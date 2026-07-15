@@ -4,6 +4,8 @@ import { SessionManager } from "./session.js";
 import { EventQueue, fetchTransport, type Transport } from "./queue.js";
 import { SDK_VERSION } from "./version.js";
 import type { AnalyticsConfig, AnalyticsEvent, ConsentState, EventMap } from "./types.js";
+import { setupErrorCapture } from "./errors.js";
+import { setupWebVitals } from "./webvitals.js";
 
 export interface Analytics<E extends EventMap = EventMap> {
   track<K extends keyof E & string>(name: K, props: E[K]): void;
@@ -92,6 +94,8 @@ export function createAnalytics<E extends EventMap = EventMap>(
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") queue.flush(true);
     });
+    if (config.captureWebVitals !== false) setupWebVitals(emit);
+    if (config.captureErrors !== false) setupErrorCapture(emit);
   }
 
   const analytics: Analytics<E> = {
