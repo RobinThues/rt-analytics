@@ -26,7 +26,7 @@ function validateEvent(raw: unknown): AnalyticsEvent | null {
   let props: Record<string, unknown> = {};
   if (typeof e.props === "object" && e.props !== null && !Array.isArray(e.props)) {
     const json = JSON.stringify(e.props);
-    if (json.length <= MAX_PROPS_BYTES) props = e.props as Record<string, unknown>;
+    if (new TextEncoder().encode(json).length <= MAX_PROPS_BYTES) props = e.props as Record<string, unknown>;
   }
 
   return {
