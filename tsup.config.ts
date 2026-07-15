@@ -1,7 +1,7 @@
-import { defineConfig } from "tsup";
+import { defineConfig, type Options } from "tsup";
 
-const shared = {
-  format: ["esm"] as const,
+const shared: Partial<Options> = {
+  format: ["esm"],
   dts: true,
   sourcemap: true,
   external: ["react", "next", "@google-cloud/bigquery-storage", "rt-analytics/react"],
