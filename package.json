@@ -1,0 +1,43 @@
+{
+  "name": "rt-analytics",
+  "version": "0.1.0",
+  "description": "Self-owned, free web analytics for Next.js apps on Vercel, backed by BigQuery",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "engines": { "node": ">=20" },
+  "files": ["dist"],
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./react": { "types": "./dist/react/index.d.ts", "import": "./dist/react/index.js" },
+    "./next": { "types": "./dist/next/index.d.ts", "import": "./dist/next/index.js" },
+    "./next/client": { "types": "./dist/next/client/index.d.ts", "import": "./dist/next/client/index.js" }
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "setup:gcp": "tsx scripts/setup-gcp.ts",
+    "prepare": "tsup"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery-storage": "^4.1.0",
+    "web-vitals": "^4.2.0"
+  },
+  "peerDependencies": { "next": ">=14", "react": ">=18" },
+  "peerDependenciesMeta": { "next": { "optional": true }, "react": { "optional": true } },
+  "devDependencies": {
+    "@google-cloud/bigquery": "^7.9.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "happy-dom": "^15.11.0",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  }
+}

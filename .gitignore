@@ -1,0 +1,7 @@
+node_modules/
+dist/
+*.tsbuildinfo
+key.json
+.env*
+example/.next/
+example/node_modules/
