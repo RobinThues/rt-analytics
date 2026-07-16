@@ -9,7 +9,10 @@
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    "paths": {
+      "rt-analytics/react": ["./src/react/index.ts"]
+    }
   },
   "include": ["src", "scripts", "tsup.config.ts", "vitest.config.ts"]
 }
