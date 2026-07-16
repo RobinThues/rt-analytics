@@ -107,14 +107,18 @@ Development, then paste the same into your local `.env.local`.
 
 | Consent state | Storage | Visitor identity | Banner needed? |
 | --- | --- | --- | --- |
-| `pending` (default, before any choice) | none | server-computed daily-rotating hash of `salt + IP + user-agent + appId` | no — no device storage happens |
-| `declined` | none | same daily-rotating hash as `pending` | no |
-| `accepted` | `localStorage` | random UUID, persists indefinitely across visits | banner is what triggered this state |
+| `pending` (default, before any choice) | none — nothing written to any storage | server-computed daily-rotating hash of `salt + IP + user-agent + appId` | no — no device storage happens |
+| `declined` | `localStorage`: consent decision only (`rta_consent=declined`); no visitor id | same daily-rotating hash as `pending` | no |
+| `accepted` | `localStorage`: consent decision (`rta_consent=accepted`) plus a persistent visitor id (`rta_vid`) | random UUID, persists indefinitely across visits | banner is what triggered this state |
 
-Cookieless mode (`pending`/`declined`) never writes anything to the browser — no cookie, no
-`localStorage`, no fingerprinting beyond a hash that intentionally rotates every day server-side,
-so the same visitor cannot be tracked across days without their consent. Because nothing is stored
-on the device, this mode is generally understood to fall outside the German TTDSG's / GDPR's
+The `pending` state — before any explicit choice — writes nothing to the browser at all: no
+cookie, no `localStorage`, no fingerprinting beyond a hash that intentionally rotates every day
+server-side, so the same visitor cannot be tracked across days. Declining does persist one thing
+to `localStorage`: the consent decision itself (`rta_consent=declined`), purely so the banner
+doesn't reappear on every page load. No visitor-identifying data is written when declining — the
+visitor id stays `null` and the server falls back to the same rotating daily hash used for
+`pending`. Because no visitor-identifying data is ever stored on the device in either `pending` or
+`declined`, this mode is generally understood to fall outside the German TTDSG's / GDPR's
 consent-required "storage of information" trigger, so showing `<ConsentBanner />` is optional
 there — it exists only to offer **better** (persistent, cross-visit) analytics in exchange for
 opt-in, not to gate tracking itself. If you don't need cross-visit retention, you can drop
@@ -132,7 +136,7 @@ never deciding) keeps every visit anonymous and unlinkable day-to-day.
   - `AnalyticsConfig`: `{ appId: string; endpoint?: string /* default "/api/a" */; flushIntervalMs?: number /* default 5000 */; maxBatchSize?: number /* default 10 */; captureWebVitals?: boolean /* default true */; captureErrors?: boolean /* default true */ }`
   - `AnalyticsDeps` (escape hatch for tests/advanced use): `{ localStorage?, sessionStorage?, transport?, now? }`
 - `Analytics<E>` instance methods:
-  - `track<K extends keyof E>(name: K, props: E[K]): void` — custom event; `name` must not start with `$`.
+  - `track<K extends keyof E>(name: K, props: E[K]): void` — custom event; by convention, don't prefix your own event names with `$` — that prefix is reserved for the SDK's auto-captured events (see [Event name rules](#event-name-rules)).
   - `page(): void` — emit `$pageview` for the current path (normally called for you by `PageviewTracker`).
   - `identify(userId: string): void` — attach a user id to subsequent events and emit `$identify`.
   - `reset(): void` — clear the user id, visitor id, and session (call on logout).
