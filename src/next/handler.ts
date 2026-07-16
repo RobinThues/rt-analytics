@@ -29,7 +29,7 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
       if (isBot(ua)) return accepted();
 
       const text = await req.text();
-      if (text.length > (opts.maxBodyBytes ?? 50_000)) return accepted();
+      if (Buffer.byteLength(text, "utf8") > (opts.maxBodyBytes ?? 50_000)) return accepted();
 
       let parsed: unknown;
       try {
