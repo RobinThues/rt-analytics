@@ -1,11 +1,12 @@
-import { defineConfig, type Options } from "tsup";
+import { defineConfig, type UserConfig } from "tsdown";
 
-const shared: Partial<Options> = {
+const shared: UserConfig = {
   format: ["esm"],
-  // tsup injects baseUrl into its dts build, which TS 6 flags as deprecated.
-  dts: { compilerOptions: { ignoreDeprecations: "6.0" } },
+  dts: true,
   sourcemap: true,
-  external: ["react", "next", "@google-cloud/bigquery-storage", "rt-analytics/react"],
+  // Keep .js/.d.ts (package is "type": "module"); tsdown defaults to .mjs on platform node.
+  fixedExtension: false,
+  deps: { neverBundle: ["react", "next", "@google-cloud/bigquery-storage", "rt-analytics/react"] },
 };
 
 export default defineConfig([

@@ -14,5 +14,5 @@
       "rt-analytics/react": ["./src/react/index.ts"]
     }
   },
-  "include": ["src", "scripts", "tsup.config.ts", "vitest.config.ts"]
+  "include": ["src", "scripts", "tsdown.config.ts", "vitest.config.ts"]
 }

@@ -14,11 +14,11 @@
     "./next/client": { "types": "./dist/next/client/index.d.ts", "import": "./dist/next/client/index.js" }
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsdown",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "setup:gcp": "tsx scripts/setup-gcp.ts",
-    "prepare": "tsup"
+    "prepare": "tsdown"
   },
   "dependencies": {
     "@google-cloud/bigquery-storage": "^6.1.0",
@@ -35,7 +35,7 @@
     "next": "^16.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tsup": "^8.3.0",
+    "tsdown": "^0.23.1",
     "tsx": "^4.19.0",
     "typescript": "^6.0.3",
     "vitest": "^5.0.4"
