@@ -5,3 +5,4 @@ key.json
 .env*
 example/.next/
 example/node_modules/
+claude-tmp-helpers/

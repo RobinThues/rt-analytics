@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
-  "engines": { "node": ">=20" },
+  "engines": { "node": ">=22" },
   "files": ["dist"],
   "exports": {
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
@@ -21,8 +21,8 @@
     "prepare": "tsup"
   },
   "dependencies": {
-    "@google-cloud/bigquery-storage": "^4.1.0",
-    "web-vitals": "^4.2.0"
+    "@google-cloud/bigquery-storage": "^6.1.0",
+    "web-vitals": "^6.2.3"
   },
   "peerDependencies": { "next": ">=14", "react": ">=18" },
   "peerDependenciesMeta": { "next": { "optional": true }, "react": { "optional": true } },
