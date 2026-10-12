@@ -1,7 +1,7 @@
 # rt-analytics 0.2.0 — Design
 
 **Date:** 2026-10-12
-**Status:** Approved in chat; reviewed by a fresh agent, findings worked in; pending Robin's review
+**Status:** Approved in chat; two review rounds by fresh agents worked in; pending Robin's review
 **Builds on:** [2026-07-11-rt-analytics-design.md](2026-07-11-rt-analytics-design.md)
 
 ## Goal
@@ -33,7 +33,7 @@ export const { GET, POST } = createAnalyticsHandler();
 ```
 
 **GET `<endpoint>?ignore=<key>`**
-- Key matches → respond `200` with a small HTML page ("This browser is now excluded from analytics for this site", plus an undo link) and set the cookie:
+- Key matches → respond `200` with a small HTML page and set the cookie. The page says "This browser is now excluded from analytics for this site", or "This browser was already excluded" when the request already carried a valid `rta_ignore` cookie, plus an undo link. Reopening the link is therefore also the way to check a device (useful on the iPhone, where DevTools are awkward). The cookie:
   `rta_ignore=1; Path=<request pathname>; Max-Age=34560000; HttpOnly; Secure; SameSite=Lax`
   (34,560,000 s = 400 days, the maximum Chrome accepts.)
 - **GET `<endpoint>?ignore=<key>&undo=1`** with a matching key → `200` with a confirmation page and the same cookie with `Max-Age=0`.
@@ -49,8 +49,8 @@ export const { GET, POST } = createAnalyticsHandler();
 - Parse the `Cookie` header exactly: split on `;`, trim each part, and match name `rta_ignore` with value `1`. (A substring check would also match `xrta_ignore=1` or `rta_ignore=10`.)
 - If it matches, respond `202`, drop the batch, and send the same `Set-Cookie` again with a fresh `Max-Age`. Without that refresh the cookie would expire silently after 400 days and own visits would be counted again. This check runs before the body is read.
 - The dropped response also carries the header `x-rta: ignored`, so the owner can check in DevTools (Network tab, `/api/a` requests) that a browser is excluded. No other response gets this header. It only tells the person who holds the cookie something they already know.
-- Whether browsers store a `Set-Cookie` from a `sendBeacon` response is not certain. It only affects the refresh, and the regular 5-second flushes use `fetch`, which does store it. Check during implementation and note the result in the README if it matters.
-- `fetch` (default `credentials: "same-origin"`) and `navigator.sendBeacon` both send same-origin cookies, so the client SDK does not change.
+- POST honors the cookie whether or not an ignore key is configured. A forged cookie is harmless, and the owner's browsers stay excluded if the key is rotated or removed.
+- `fetch` (default `credentials: "same-origin"`, also with `keepalive`) and `navigator.sendBeacon` (a keepalive fetch with credentials mode `include`, per the Beacon spec) both send same-origin cookies and store `Set-Cookie` from the response. So the client SDK does not change, and the refresh works on both paths.
 
 ### Configuration
 
@@ -84,10 +84,11 @@ The bigger source of own traffic is not the browser but configuration: README li
 
 - The salt (`HandlerOptions.salt` or `ANALYTICS_DAILY_SALT`) must be at least 16 characters.
 - Otherwise the route drops every batch (`202`) and logs one error per instance. That matches how missing credentials are handled (no events written).
+- Order of the checks: first "no injected writer and no `ANALYTICS_GCP_CREDENTIALS` → drop and log as today", then the salt check. So local and Preview logs keep naming missing credentials as the reason, and existing checks that rely on that log line keep working (dwd `src/__tests__/api-a-route.test.ts`, `claude-tmp-helpers/smoke-example.sh`). With an injected writer, the salt check runs as normal.
 - Reason: without a salt the daily visitor ID is a plain SHA-256 of IP + user agent + date + appId, which can be brute-forced back to the IP.
 - This is the main breaking change (the other one is the provider props type, see 3.1). `setup:gcp` already generates a 32-character salt, and dwd uses one.
 - The rule applies when a `writer` is injected too. Consumer tests that inject a writer need a 16+ character salt; the README migration note says so.
-- Own checks to update: `src/next/handler.test.ts` (uses `salt: "s"`), `claude-tmp-helpers/smoke-handler.ts` (no salt), plus new tests for short and missing salt.
+- Own checks to update: `src/next/handler.test.ts` (uses `salt: "s"`), `claude-tmp-helpers/smoke-handler.ts` (no salt), `claude-tmp-helpers/smoke-example.sh` (set `ANALYTICS_DAILY_SALT`), plus new tests for short and missing salt and for the check order.
 
 ### 2.3 Rate limiting via Vercel WAF (documentation + dwd rollout)
 
@@ -141,10 +142,14 @@ The client treats a 429 like any other failed send: `fetchTransport` is fire-and
 Problem: `AnalyticsProvider` does `useState(() => createAnalytics(config))`. StrictMode calls that initializer twice in dev. `createAnalytics` attaches the `visibilitychange`, error and Web Vitals listeners right away, so the thrown-away instance keeps its listeners and `$error` / `$web_vital` events are sent twice in dev. Consumers that pass their own `instance` (dwd) are not affected.
 
 Fix:
-- Move the listener setup in `createAnalytics` into an internal `start()` that runs at most once per instance.
-- `createAnalytics()` called directly starts at once, as today. No change for direct users.
-- The provider creates its instance without starting it (an internal, undocumented flag, e.g. `deps.autoStart = false` marked `@internal`) and calls `start()` in a mount effect. A discarded StrictMode instance never mounts, so it never attaches listeners. StrictMode's second mount effect hits the "at most once" guard. No cleanup on unmount: the instance lives as long as the page.
-- Test: render the provider inside `<StrictMode>` without `instance`, throw one window error, assert exactly one `$error` event reaches the transport.
+- New internal function in core, `createAnalyticsUnstarted(config, deps) → { analytics, start }`. It is not exported from any package entry, so it does not appear in the public `.d.ts`. (`AnalyticsDeps` is public and documented, so a flag there would leak.)
+- `createAnalytics()` = `createAnalyticsUnstarted()` + `start()` right away. No change for direct users.
+- `start()` attaches the listeners and returns `stop()`. Listeners report only while the instance is active. Web Vitals has no unsubscribe, so it is registered once per instance and gated by the active flag; the DOM listeners are really removed on `stop()`.
+- The provider creates its own instance with `createAnalyticsUnstarted` and runs `useEffect(() => start(), [])`, so `stop` is the cleanup. A discarded StrictMode instance never mounts, so it never attaches listeners. StrictMode's mount → cleanup → mount ends with exactly one active set. A real unmount and remount (provider below the root layout, key change, Fast Refresh) also ends with one set.
+- The provider never starts or stops an `instance` passed in as a prop. That instance was started by `createAnalytics`. (Core is bundled separately into `dist/index.js` and `dist/react/index.js`, so the provider cannot detect "is this one of mine" by symbol or WeakMap anyway; it simply only starts what it created.)
+- Effect order: child effects run before parent effects, so `PageviewTracker` calls `page()` before the provider's `start()`. `track`, `page`, `identify` and `flush` work before `start()`; only the automatic listeners wait. Errors thrown during the very first render or hydration, before the provider's effect, are not captured by a provider-created instance. The README says so, and says to use `createAnalytics` + `instance` when that matters.
+- README: one `AnalyticsProvider` per page.
+- Test (must fail on the current code, check that first): stub `fetch` and `navigator.sendBeacon`, `vi.useFakeTimers()`, render the provider inside `<StrictMode>` without `instance`, dispatch one window `error` event, advance timers past `flushIntervalMs` (or fire `visibilitychange` to hidden), and count `$error` events across all sent bodies: exactly one. A second test unmounts and remounts and still counts one per error.
 
 ## Release
 
@@ -152,15 +157,18 @@ Fix:
 - README: GET export and the ignore link (incl. rewrite note, and that Safari does not keep `Secure` cookies on `http://localhost`), `ignoreKey` / `ANALYTICS_IGNORE_KEY`, `allowedAppIds` and its limits, salt requirement, credentials in Production only, WAF rule, `cookieless`, typed `instance`, `rta_ignore` in the consent table, Jest note, and a "Migrating from 0.1.0" section (salt rule, `GET` export, provider props union).
 - Example app: `export const { GET, POST }`, `allowedAppIds: ["example"]`.
 - Verification before publishing: `npm test`, `npm run typecheck`, `npm run build`, and the three smoke helpers in `claude-tmp-helpers/` (see memory `upgrade-smoke-helpers`). `smoke-example.sh` gets a GET check (404 without key).
-- New `CHANGELOG.md` (Keep a Changelog format) with entries for 0.1.0 (initial release, 2026-10-12) and 0.2.0, including the migration notes.
-- Git tags: `v0.2.0` on the release commit, and `v0.1.0` added afterwards on the commit that was published as 0.1.0 (identify it by the `package.json` version bump / publish prep commit `de55f6a` or later, check before tagging). Push tags with Robin's OK.
+- New `CHANGELOG.md` (Keep a Changelog format) with entries for 0.1.0 (initial release, 2026-10-12) and 0.2.0, including the migration notes. Add it to `files` so it ships in the npm package.
+- `package.json`: add `"prepublishOnly": "npm test && npm run typecheck"` (`prepare` only builds), and a `repository` field pointing to the GitHub repo.
+- Run `npm pack --dry-run` before publishing and check the file list.
+- Git tags: `v0.1.0` on `3d8582d` (`npm view rt-analytics@0.1.0 gitHead` returns that commit). After publishing 0.2.0, check `npm view rt-analytics@0.2.0 gitHead` and tag that commit `v0.2.0`. Push tags with Robin's OK.
 - Robin publishes from his own terminal (npm 2FA).
 
 ## Rollout to wetter-in-kalender (after publish)
 
 Code changes in `dwd-wetter-in-calendar`, as one PR:
 - Bump `rt-analytics` to `^0.2.0`.
-- `src/app/api/a/route.ts`: `export const { GET, POST } = createAnalyticsHandler({ allowedAppIds: ["wetter-in-kalender"] })`.
+- `src/app/api/a/route.ts`: `export const { GET, POST } = createAnalyticsHandler({ allowedAppIds: [ANALYTICS_APP_ID] })`, importing the constant from `src/lib/analytics.ts`.
+- `src/__tests__/api-a-route.test.ts`: update to the new check order and salt rule (2.2).
 - `src/lib/analytics.ts`: `createAnalytics<Events>({ appId, cookieless: true })`.
 - `src/components/Analytics.tsx`: drop the cast and the redundant `appId`.
 - `jest.config.ts`: drop the two `rt-analytics` `moduleNameMapper` lines.
@@ -169,8 +177,13 @@ Production changes, each one confirmed with Robin first:
 1. Add `ANALYTICS_IGNORE_KEY` (secret type) to Vercel Production, then redeploy (env vars only apply to new deployments).
 2. Add the WAF rate-limit rule to the dwd Vercel project.
 3. Robin opens the ignore link once in each real browser app on each device (Mac, Windows, iPhone). On iOS, Chrome and Safari keep separate cookies, and so do Home Screen web apps and in-app browsers.
-4. Robin checks on each browser that `/api/a` responses show `x-rta: ignored` (on the iPhone: no new rows appear while browsing). That moment is the cutoff.
-5. Fresh start (Robin's decision on 2026-10-12): delete **all** rows with `app_id = 'wetter-in-kalender'` and `timestamp` before the cutoff from `robin-thues.analytics.events`. The data up to then mixes our own tests, Robin's visits and a few real ones, and is less than a day or two old, so it is not worth keeping. Steps: run a `SELECT COUNT(*)` with the same `WHERE` first and show it to Robin, then the `DELETE`. Wait at least 30 minutes after the cutoff, because BigQuery refuses DML on rows that the Storage Write API wrote very recently. The table is partitioned by `DATE(timestamp)`, so the delete only scans the affected days. The views read from the table, so they need no change.
+4. Robin checks each browser: on desktop, `/api/a` responses show `x-rta: ignored` in DevTools; on any device, reopening the link shows "already excluded". When all are done, that moment (UTC) is the cutoff.
+5. Fresh start (Robin's decision on 2026-10-12): delete **all** rows with `timestamp` before the cutoff from `robin-thues.analytics.events`. The data up to then mixes our own tests, Robin's visits and a few real ones, and is only a day or two old, so it is not worth keeping. Steps:
+   - First `SELECT app_id, COUNT(*), MIN(timestamp), MAX(timestamp) ... WHERE timestamp < cutoff GROUP BY app_id` and show it to Robin. Expected: only `wetter-in-kalender`, since no other app is live. If other app_ids show up, discuss before deleting.
+   - Then the `DELETE` with the same `WHERE`, after Robin's OK.
+   - `timestamp` is the client's clock (the handler accepts up to 48 h of skew). A few events that arrive after the cutoff but carry an older timestamp, or from visitors whose clock is behind, get deleted too. Accepted as lost.
+   - No waiting needed: the writer uses the Storage Write API over gRPC (`_default` stream), and BigQuery allows `DELETE` on rows written that way right away (the 30-minute block applies to the REST variant). If the `DELETE` still fails with a recent-write error, wait 30 minutes and retry.
+   - No `requirePartitionFilter` on the table; the table is partitioned by `DATE(timestamp)`, so the delete only scans the affected days and costs next to nothing. The views are logical views, so they need no change.
 
 ## Open points for implementation
 
