@@ -83,10 +83,14 @@ See `example/` for a complete minimal app wired against the package's own build 
 ```bash
 npm run setup:gcp                    # uses your gcloud default project
 npm run setup:gcp -- --project my-gcp-project-id
+npm run setup:gcp -- --query-quota-gib 100   # different daily query cap
+npm run setup:gcp -- --no-query-quota        # leave the query quota alone
 ```
 
-Requires the `gcloud` CLI authenticated (`gcloud auth application-default login`) with permission
-to create BigQuery resources and service accounts in the target project. The script is idempotent
+Requires the `gcloud` CLI authenticated twice (`gcloud auth login` for the service account steps and
+`gcloud auth application-default login` for BigQuery) with permission to create BigQuery resources,
+service accounts and quota preferences in the target project. The project needs billing enabled:
+the BigQuery sandbox does not support the Storage Write API. The script is idempotent
 — safe to re-run — and on each run it:
 
 1. Creates the `analytics` BigQuery dataset (region `EU`) if missing.
@@ -96,7 +100,10 @@ to create BigQuery resources and service accounts in the target project. The scr
    (`CREATE OR REPLACE`, so upgrades are safe).
 4. Creates a `rt-analytics-writer` service account, scoped to **WRITER** access on just the
    `analytics` dataset (not project-wide `dataEditor`).
-5. Creates a key for that service account (`key.json`, gitignored) if one doesn't already exist
+5. Sets the project's BigQuery **query usage per day** quota to 30 GiB (about 0.9 TiB a month, inside
+   the 1 TiB free tier). BigQuery rejects queries over the quota, so query costs can't run away. The
+   quota counts every query in the project, not only analytics queries.
+6. Creates a key for that service account (`key.json`, gitignored) if one doesn't already exist
    locally, and generates a random `ANALYTICS_DAILY_SALT`.
 
 At the end it prints both env var values to your terminal — paste them into your Vercel project's

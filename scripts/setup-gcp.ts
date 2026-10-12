@@ -1,7 +1,7 @@
 /**
  * Idempotent GCP setup for rt-analytics.
- * Usage: npm run setup:gcp [-- --project <gcp-project-id>]
- * Requires: gcloud CLI authenticated (`gcloud auth application-default login`).
+ * Usage: npm run setup:gcp [-- --project <gcp-project-id>] [--query-quota-gib <n> | --no-query-quota]
+ * Requires: gcloud CLI authenticated (`gcloud auth login` and `gcloud auth application-default login`).
  */
 import { BigQuery } from "@google-cloud/bigquery";
 import { execFileSync } from "node:child_process";
@@ -14,6 +14,9 @@ const TABLE = "events";
 const LOCATION = "EU";
 const SA_NAME = "rt-analytics-writer";
 const KEY_FILE = "key.json";
+// 30 GiB/day caps queries at ~0.9 TiB/month, inside BigQuery's 1 TiB/month free tier.
+const DEFAULT_QUERY_QUOTA_GIB = 30;
+const QUOTA_PREFERENCE_ID = "rt-analytics-query-usage-per-day";
 
 const SCHEMA = [
   { name: "event_id", type: "STRING", mode: "REQUIRED" },
@@ -43,9 +46,24 @@ function gcloud(...args: string[]): string {
   return execFileSync("gcloud", args, { encoding: "utf8" }).trim();
 }
 
+function flagValue(name: string): string | undefined {
+  const i = process.argv.indexOf(name);
+  return i !== -1 ? process.argv[i + 1] : undefined;
+}
+
+function resolveQueryQuotaMiB(): number | null {
+  if (process.argv.includes("--no-query-quota")) return null;
+  const gib = Number(flagValue("--query-quota-gib") ?? DEFAULT_QUERY_QUOTA_GIB);
+  if (!Number.isFinite(gib) || gib <= 0) {
+    console.error("--query-quota-gib must be a positive number");
+    process.exit(1);
+  }
+  return Math.round(gib * 1024);
+}
+
 function resolveProject(): string {
-  const flag = process.argv.indexOf("--project");
-  if (flag !== -1 && process.argv[flag + 1]) return process.argv[flag + 1] as string;
+  const fromFlag = flagValue("--project");
+  if (fromFlag) return fromFlag;
   const fromConfig = gcloud("config", "get-value", "project");
   if (!fromConfig || fromConfig === "(unset)") {
     console.error("No GCP project. Pass --project <id> or run: gcloud config set project <id>");
@@ -56,6 +74,7 @@ function resolveProject(): string {
 
 async function main(): Promise<void> {
   const projectId = resolveProject();
+  const queryQuotaMiB = resolveQueryQuotaMiB();
   console.log(`Project: ${projectId}`);
   const bq = new BigQuery({ projectId });
 
@@ -114,7 +133,21 @@ async function main(): Promise<void> {
     console.log("Dataset access already granted");
   }
 
-  // 6. Key (only if key.json not present)
+  // 6. Daily query cap (project-wide). BigQuery rejects queries over it, so it is a hard cost limit.
+  if (queryQuotaMiB === null) {
+    console.log("Skipping query quota (--no-query-quota)");
+  } else {
+    gcloud(
+      "quotas", "preferences", "update", QUOTA_PREFERENCE_ID,
+      `--project=${projectId}`, "--service=bigquery.googleapis.com", "--quota-id=QueryUsagePerDay",
+      `--preferred-value=${queryQuotaMiB}`,
+      "--allow-missing", "--allow-high-percentage-quota-decrease", "--allow-quota-decrease-below-usage",
+      "--quiet",
+    );
+    console.log(`Set project query quota to ${queryQuotaMiB / 1024} GiB/day`);
+  }
+
+  // 7. Key (only if key.json not present)
   if (!existsSync(KEY_FILE)) {
     gcloud("iam", "service-accounts", "keys", "create", KEY_FILE, `--iam-account=${saEmail}`, `--project=${projectId}`);
     console.log(`Created ${KEY_FILE} (gitignored)`);
