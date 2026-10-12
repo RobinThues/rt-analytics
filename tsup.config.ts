@@ -2,7 +2,8 @@ import { defineConfig, type Options } from "tsup";
 
 const shared: Partial<Options> = {
   format: ["esm"],
-  dts: true,
+  // tsup injects baseUrl into its dts build, which TS 6 flags as deprecated.
+  dts: { compilerOptions: { ignoreDeprecations: "6.0" } },
   sourcemap: true,
   external: ["react", "next", "@google-cloud/bigquery-storage", "rt-analytics/react"],
 };
