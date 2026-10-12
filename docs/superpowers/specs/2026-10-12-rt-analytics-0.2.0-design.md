@@ -43,11 +43,13 @@ export const { GET, POST } = createAnalyticsHandler();
 - HTML responses carry `Content-Type: text/html; charset=utf-8` and `<meta name="referrer" content="no-referrer">`. All GET responses carry `Cache-Control: no-store`, `Referrer-Policy: no-referrer` (the key is in the URL; links on the page must not leak it) and `X-Robots-Tag: noindex`. The meta tag covers consumers whose `next.config` sets a different `Referrer-Policy` header for all paths (dwd does).
 - Key comparison: hash both the given value and the key with SHA-256 and compare the digests with `crypto.timingSafeEqual`. Same length always, so it cannot throw on non-ASCII input, and it does not leak the key length.
 
-`Path` is the request's own pathname (normally `/api/a`), so the cookie is only sent to the ingest route and never to normal page requests. If a consumer rewrites a public path to the ingest route, the cookie path follows the URL the browser sees, which is the one the client posts to. The README mentions this.
+`Path` is the request's own pathname (normally `/api/a`), so the cookie is only sent to the ingest route and never to normal page requests. Known limit: if a consumer rewrites a public path (e.g. `/stats`) to the ingest route, `req.url` may show the rewritten path, and then the cookie path would not match the URL the browser posts to. The README says the ignore link only works when the client posts to the route's real path.
 
 **POST**
 - Parse the `Cookie` header exactly: split on `;`, trim each part, and match name `rta_ignore` with value `1`. (A substring check would also match `xrta_ignore=1` or `rta_ignore=10`.)
 - If it matches, respond `202`, drop the batch, and send the same `Set-Cookie` again with a fresh `Max-Age`. Without that refresh the cookie would expire silently after 400 days and own visits would be counted again. This check runs before the body is read.
+- The dropped response also carries the header `x-rta: ignored`, so the owner can check in DevTools (Network tab, `/api/a` requests) that a browser is excluded. No other response gets this header. It only tells the person who holds the cookie something they already know.
+- Whether browsers store a `Set-Cookie` from a `sendBeacon` response is not certain. It only affects the refresh, and the regular 5-second flushes use `fetch`, which does store it. Check during implementation and note the result in the README if it matters.
 - `fetch` (default `credentials: "same-origin"`) and `navigator.sendBeacon` both send same-origin cookies, so the client SDK does not change.
 
 ### Configuration
@@ -134,12 +136,24 @@ The client treats a 429 like any other failed send: `fetchTransport` is fire-and
 - `PageviewTracker` keeps the last tracked pathname in a `useRef` and skips `page()` when it has not changed. StrictMode keeps refs across its simulated remount, so dev sends one pageview instead of two.
 - Test: render inside `<StrictMode>`, assert `page()` was called once; change the pathname, assert twice.
 
+### 3.6 One instance worth of listeners under React StrictMode
+
+Problem: `AnalyticsProvider` does `useState(() => createAnalytics(config))`. StrictMode calls that initializer twice in dev. `createAnalytics` attaches the `visibilitychange`, error and Web Vitals listeners right away, so the thrown-away instance keeps its listeners and `$error` / `$web_vital` events are sent twice in dev. Consumers that pass their own `instance` (dwd) are not affected.
+
+Fix:
+- Move the listener setup in `createAnalytics` into an internal `start()` that runs at most once per instance.
+- `createAnalytics()` called directly starts at once, as today. No change for direct users.
+- The provider creates its instance without starting it (an internal, undocumented flag, e.g. `deps.autoStart = false` marked `@internal`) and calls `start()` in a mount effect. A discarded StrictMode instance never mounts, so it never attaches listeners. StrictMode's second mount effect hits the "at most once" guard. No cleanup on unmount: the instance lives as long as the page.
+- Test: render the provider inside `<StrictMode>` without `instance`, throw one window error, assert exactly one `$error` event reaches the transport.
+
 ## Release
 
 - `SDK_VERSION` and `package.json` version → `0.2.0`.
 - README: GET export and the ignore link (incl. rewrite note, and that Safari does not keep `Secure` cookies on `http://localhost`), `ignoreKey` / `ANALYTICS_IGNORE_KEY`, `allowedAppIds` and its limits, salt requirement, credentials in Production only, WAF rule, `cookieless`, typed `instance`, `rta_ignore` in the consent table, Jest note, and a "Migrating from 0.1.0" section (salt rule, `GET` export, provider props union).
 - Example app: `export const { GET, POST }`, `allowedAppIds: ["example"]`.
 - Verification before publishing: `npm test`, `npm run typecheck`, `npm run build`, and the three smoke helpers in `claude-tmp-helpers/` (see memory `upgrade-smoke-helpers`). `smoke-example.sh` gets a GET check (404 without key).
+- New `CHANGELOG.md` (Keep a Changelog format) with entries for 0.1.0 (initial release, 2026-10-12) and 0.2.0, including the migration notes.
+- Git tags: `v0.2.0` on the release commit, and `v0.1.0` added afterwards on the commit that was published as 0.1.0 (identify it by the `package.json` version bump / publish prep commit `de55f6a` or later, check before tagging). Push tags with Robin's OK.
 - Robin publishes from his own terminal (npm 2FA).
 
 ## Rollout to wetter-in-kalender (after publish)
@@ -155,7 +169,8 @@ Production changes, each one confirmed with Robin first:
 1. Add `ANALYTICS_IGNORE_KEY` (secret type) to Vercel Production, then redeploy (env vars only apply to new deployments).
 2. Add the WAF rate-limit rule to the dwd Vercel project.
 3. Robin opens the ignore link once in each real browser app on each device (Mac, Windows, iPhone). On iOS, Chrome and Safari keep separate cookies, and so do Home Screen web apps and in-app browsers.
-4. Delete the 5 test rows from 2026-10-12 19:59 UTC in `robin-thues.analytics.events`.
+4. Robin checks on each browser that `/api/a` responses show `x-rta: ignored` (on the iPhone: no new rows appear while browsing). That moment is the cutoff.
+5. Fresh start (Robin's decision on 2026-10-12): delete **all** rows with `app_id = 'wetter-in-kalender'` and `timestamp` before the cutoff from `robin-thues.analytics.events`. The data up to then mixes our own tests, Robin's visits and a few real ones, and is less than a day or two old, so it is not worth keeping. Steps: run a `SELECT COUNT(*)` with the same `WHERE` first and show it to Robin, then the `DELETE`. Wait at least 30 minutes after the cutoff, because BigQuery refuses DML on rows that the Storage Write API wrote very recently. The table is partitioned by `DATE(timestamp)`, so the delete only scans the affected days. The views read from the table, so they need no change.
 
 ## Open points for implementation
 
