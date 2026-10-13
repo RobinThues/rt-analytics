@@ -35,4 +35,18 @@ describe("writerFromEnv", () => {
     vi.stubEnv("ANALYTICS_GCP_CREDENTIALS", "{not json");
     expect(() => writerFromEnv()).toThrow();
   });
+
+  it("never puts any part of the credentials into the error", () => {
+    const secret = "-----BEGIN PRIVATE KEY-----SECRETMATERIAL";
+    vi.stubEnv("ANALYTICS_GCP_CREDENTIALS", `{"private_key": "${secret}" broken`);
+    let message = "";
+    try {
+      writerFromEnv();
+    } catch (err) {
+      message = String(err);
+    }
+    expect(message).toContain("ANALYTICS_GCP_CREDENTIALS is not valid JSON");
+    expect(message).not.toContain("SECRET");
+    expect(message).not.toContain("private_key");
+  });
 });

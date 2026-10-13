@@ -14,7 +14,13 @@ export function writerFromEnv(dest: { datasetId?: string; tableId?: string } = {
     console.error("rt-analytics: ANALYTICS_GCP_CREDENTIALS is not set; dropping events");
     return null;
   }
-  const creds = JSON.parse(raw) as { project_id: string; client_email: string; private_key: string };
+  let creds: { project_id: string; client_email: string; private_key: string };
+  try {
+    creds = JSON.parse(raw) as typeof creds;
+  } catch {
+    // JSON.parse quotes part of its input in the error, which would put key material into the logs.
+    throw new Error("rt-analytics: ANALYTICS_GCP_CREDENTIALS is not valid JSON");
+  }
   return createBigQueryWriter({
     projectId: creds.project_id,
     datasetId: dest.datasetId ?? "analytics",
