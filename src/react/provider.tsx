@@ -6,22 +6,29 @@ const AnalyticsContext = createContext<Analytics | null>(null);
 
 export type AnalyticsProviderProps<E extends EventMap = EventMap> = { children: ReactNode } & (
   | (AnalyticsConfig & { instance?: undefined })
-  /** A prebuilt instance (from createAnalytics). Config props are then ignored. */
+  /** A prebuilt instance (from createAnalytics). Config props are then ignored. Read once on mount. */
   | (Partial<AnalyticsConfig> & { instance: Analytics<E> })
 );
 
-export function AnalyticsProvider<E extends EventMap = EventMap>(props: AnalyticsProviderProps<E>) {
-  // StrictMode runs this initializer twice in dev. The instance is created unstarted, so the
-  // discarded one never attaches listeners; the kept one starts in the effect below.
-  const [created] = useState(() => {
-    if (props.instance !== undefined) return null;
-    const { children: _children, instance: _instance, ...config } = props;
-    return createAnalyticsUnstarted(config);
-  });
-  useEffect(() => (created ? created.start() : undefined), [created]);
+interface ProvidedInstance {
+  analytics: Analytics;
+  /** Only for instances the provider created itself; a passed-in instance is already started. */
+  start: (() => () => void) | null;
+}
 
-  const analytics = (props.instance ?? created!.analytics) as unknown as Analytics;
-  return <AnalyticsContext.Provider value={analytics}>{props.children}</AnalyticsContext.Provider>;
+export function AnalyticsProvider<E extends EventMap = EventMap>(props: AnalyticsProviderProps<E>) {
+  // The instance is chosen once; later prop changes are ignored. StrictMode runs this initializer
+  // twice in dev. A created instance is unstarted, so the discarded one never attaches listeners;
+  // the kept one starts in the effect below.
+  const [provided] = useState<ProvidedInstance>(() => {
+    if (props.instance !== undefined) return { analytics: props.instance as unknown as Analytics, start: null };
+    const { children: _children, instance: _instance, ...config } = props;
+    const { analytics, start } = createAnalyticsUnstarted(config);
+    return { analytics, start };
+  });
+  useEffect(() => provided.start?.(), [provided]);
+
+  return <AnalyticsContext.Provider value={provided.analytics}>{props.children}</AnalyticsContext.Provider>;
 }
 
 export function useAnalytics<E extends EventMap = EventMap>(): Analytics<E> {

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { AnalyticsProvider, useAnalytics } from "./provider.js";
 import type { Batch } from "../core/types.js";
+import { createAnalytics } from "../core/analytics.js";
 
 function Probe() {
   const analytics = useAnalytics();
@@ -24,6 +25,41 @@ describe("AnalyticsProvider", () => {
 
   it("useAnalytics throws outside the provider", () => {
     expect(() => render(<Probe />)).toThrow(/AnalyticsProvider/);
+  });
+
+  it("keeps the first instance when the instance prop changes later (as in 0.1.0)", () => {
+    const seen: unknown[] = [];
+    function Capture() {
+      seen.push(useAnalytics());
+      return null;
+    }
+    const given = createAnalytics({ appId: "t" }, { transport: { send: () => {} } });
+    const { rerender } = render(
+      <AnalyticsProvider instance={given}>
+        <Capture />
+      </AnalyticsProvider>,
+    );
+    expect(() =>
+      rerender(
+        <AnalyticsProvider appId="t">
+          <Capture />
+        </AnalyticsProvider>,
+      ),
+    ).not.toThrow();
+    expect(seen.at(-1)).toBe(given);
+
+    const created = render(
+      <AnalyticsProvider appId="t">
+        <Capture />
+      </AnalyticsProvider>,
+    );
+    const first = seen.at(-1);
+    created.rerender(
+      <AnalyticsProvider instance={given}>
+        <Capture />
+      </AnalyticsProvider>,
+    );
+    expect(seen.at(-1)).toBe(first);
   });
 });
 
