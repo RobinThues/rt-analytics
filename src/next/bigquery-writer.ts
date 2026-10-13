@@ -39,12 +39,16 @@ export interface WriterConfig {
 
 type JsonWriter = { appendRows(rows: Record<string, unknown>[]): { getResult(): Promise<unknown> } };
 
-// Module-level cache: warm serverless instances reuse the stream connection.
-let cachedWriter: Promise<JsonWriter> | null = null;
+// Module-level cache, one connection per destination table: warm serverless instances reuse it.
+const cachedWriters = new Map<string, Promise<JsonWriter>>();
+
+function destinationOf(cfg: WriterConfig): string {
+  return `projects/${cfg.projectId}/datasets/${cfg.datasetId}/tables/${cfg.tableId}`;
+}
 
 async function connect(cfg: WriterConfig): Promise<JsonWriter> {
   const { WriterClient, JSONWriter, DefaultStream } = managedwriter;
-  const destinationTable = `projects/${cfg.projectId}/datasets/${cfg.datasetId}/tables/${cfg.tableId}`;
+  const destinationTable = destinationOf(cfg);
   const client = new WriterClient({ projectId: cfg.projectId, credentials: cfg.credentials });
   const writeStream = await client.getWriteStream({
     streamId: `${destinationTable}/streams/_default`,
@@ -58,15 +62,20 @@ async function connect(cfg: WriterConfig): Promise<JsonWriter> {
 export function createBigQueryWriter(cfg: WriterConfig): RowWriter {
   return {
     async write(rows: EventRow[]): Promise<void> {
+      const key = destinationOf(cfg);
       try {
-        cachedWriter ??= connect(cfg);
-        const writer = await cachedWriter;
+        let pending = cachedWriters.get(key);
+        if (!pending) {
+          pending = connect(cfg);
+          cachedWriters.set(key, pending);
+        }
+        const writer = await pending;
         const clean = rows.map((r) =>
           Object.fromEntries(Object.entries(r).filter(([, v]) => v !== null)),
         );
         await writer.appendRows(clean).getResult();
       } catch (err) {
-        cachedWriter = null; // force reconnect on next request
+        cachedWriters.delete(key); // force reconnect for this table on next request
         throw err;
       }
     },

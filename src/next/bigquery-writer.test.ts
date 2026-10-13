@@ -36,6 +36,18 @@ function row(over: Partial<EventRow> = {}): EventRow {
 describe("createBigQueryWriter", () => {
   beforeEach(() => vi.clearAllMocks());
 
+  it("keeps one connection per destination table", async () => {
+    const creds = { client_email: "sa@p.iam", private_key: "k" };
+    const a = createBigQueryWriter({ projectId: "p", datasetId: "d_one", tableId: "events", credentials: creds });
+    const b = createBigQueryWriter({ projectId: "p", datasetId: "d_two", tableId: "events", credentials: creds });
+    await a.write([row()]);
+    await b.write([row()]);
+    await a.write([row({ event_id: "e2" })]);
+    expect(createStreamConnection).toHaveBeenCalledTimes(2);
+    const tables = createStreamConnection.mock.calls.map((c) => (c[0] as { destinationTable: string }).destinationTable);
+    expect(tables).toEqual(["projects/p/datasets/d_one/tables/events", "projects/p/datasets/d_two/tables/events"]);
+  });
+
   it("initializes the stream connection once across writes", async () => {
     const w = createBigQueryWriter({
       projectId: "p", datasetId: "analytics", tableId: "events",
