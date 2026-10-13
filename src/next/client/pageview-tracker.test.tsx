@@ -1,5 +1,6 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { StrictMode } from "react";
 import { cleanup, render } from "@testing-library/react";
 
 let pathname = "/start";
@@ -38,5 +39,34 @@ describe("PageviewTracker", () => {
     analytics.flush();
     const pageviews = batches.flatMap((b) => b.events).filter((e) => e.name === "$pageview");
     expect(pageviews).toHaveLength(2);
+  });
+
+  it("sends one pageview per path under StrictMode", () => {
+    pathname = "/strict";
+    const batches: Batch[] = [];
+    const analytics = createAnalytics(
+      { appId: "t" },
+      {
+        localStorage: fakeStorage(), sessionStorage: fakeStorage(),
+        transport: { send: (_u, body) => void batches.push(JSON.parse(body)) },
+      },
+    );
+    const ui = () => (
+      <StrictMode>
+        <AnalyticsProvider instance={analytics}>
+          <PageviewTracker />
+        </AnalyticsProvider>
+      </StrictMode>
+    );
+    const count = () => {
+      analytics.flush();
+      return batches.flatMap((b) => b.events).filter((e) => e.name === "$pageview").length;
+    };
+
+    const { rerender } = render(ui());
+    expect(count()).toBe(1);
+    pathname = "/strict-next";
+    rerender(ui());
+    expect(count()).toBe(2);
   });
 });
