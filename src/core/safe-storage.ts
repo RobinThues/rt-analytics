@@ -13,6 +13,19 @@ export function safeStorage(get: () => Storage | null | undefined): Storage | nu
   const storage = found;
   const fallback = new Map<string, string>();
 
+  function allKeys(): string[] {
+    const stored: string[] = [];
+    try {
+      for (let i = 0; i < storage.length; i++) {
+        const k = storage.key(i);
+        if (k !== null) stored.push(k);
+      }
+    } catch {
+      // blocked; only the memory values count then
+    }
+    return [...new Set([...stored, ...fallback.keys()])];
+  }
+
   return {
     getItem(key: string): string | null {
       if (fallback.has(key)) return fallback.get(key) ?? null;
@@ -47,18 +60,10 @@ export function safeStorage(get: () => Storage | null | undefined): Storage | nu
       }
     },
     key(index: number): string | null {
-      try {
-        return storage.key(index);
-      } catch {
-        return null;
-      }
+      return allKeys()[index] ?? null;
     },
     get length(): number {
-      try {
-        return storage.length;
-      } catch {
-        return 0;
-      }
+      return allKeys().length;
     },
   } as Storage;
 }

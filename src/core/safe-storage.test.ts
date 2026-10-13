@@ -36,6 +36,15 @@ describe("safeStorage", () => {
     expect(s.length).toBe(0);
   });
 
+  it("counts memory-only values in length and key()", () => {
+    const base = quotaFullStorage();
+    const s = safeStorage(() => base)!;
+    s.setItem("k", "v");
+    expect(s.length).toBe(1);
+    expect(s.key(0)).toBe("k");
+    expect(s.key(1)).toBeNull();
+  });
+
   it("keeps a failed write in memory so it can be read back", () => {
     const s = safeStorage(() => quotaFullStorage())!;
     s.setItem("k", "v");
