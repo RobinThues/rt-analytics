@@ -11,3 +11,33 @@ export function fakeStorage(): Storage {
     },
   } as Storage;
 }
+
+/** Every access throws, like Safari with blocked site data. */
+export function throwingStorage(): Storage {
+  const fail = (): never => {
+    throw new DOMException("blocked", "SecurityError");
+  };
+  return {
+    getItem: fail,
+    setItem: fail,
+    removeItem: fail,
+    clear: fail,
+    key: fail,
+    get length() {
+      return fail();
+    },
+  } as unknown as Storage;
+}
+
+/** Reads work, writes throw, like a full quota. */
+export function quotaFullStorage(): Storage {
+  const base = fakeStorage();
+  return {
+    ...base,
+    getItem: base.getItem,
+    removeItem: base.removeItem,
+    setItem: () => {
+      throw new DOMException("full", "QuotaExceededError");
+    },
+  } as Storage;
+}

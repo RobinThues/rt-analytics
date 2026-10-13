@@ -6,6 +6,7 @@ import { SDK_VERSION } from "./version.js";
 import type { AnalyticsConfig, AnalyticsEvent, ConsentState, EventMap } from "./types.js";
 import { setupErrorCapture } from "./errors.js";
 import { setupWebVitals } from "./webvitals.js";
+import { safeStorage } from "./safe-storage.js";
 
 export interface Analytics<E extends EventMap = EventMap> {
   track<K extends keyof E & string>(name: K, props: E[K]): void;
@@ -41,8 +42,8 @@ export function createAnalytics<E extends EventMap = EventMap>(
   const isBrowser = typeof window !== "undefined";
   if (!isBrowser && deps.transport === undefined) return noop() as Analytics<E>;
 
-  const ls = deps.localStorage !== undefined ? deps.localStorage : isBrowser ? window.localStorage : null;
-  const ss = deps.sessionStorage !== undefined ? deps.sessionStorage : isBrowser ? window.sessionStorage : null;
+  const ls = safeStorage(() => (deps.localStorage !== undefined ? deps.localStorage : isBrowser ? window.localStorage : null));
+  const ss = safeStorage(() => (deps.sessionStorage !== undefined ? deps.sessionStorage : isBrowser ? window.sessionStorage : null));
   const now = deps.now ?? Date.now;
 
   const consent = new ConsentManager(ls);

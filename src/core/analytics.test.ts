@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createAnalytics, type AnalyticsDeps } from "./analytics.js";
 import type { Batch } from "./types.js";
 import type { Transport } from "./queue.js";
-import { fakeStorage } from "../test-utils.js";
+import { fakeStorage, quotaFullStorage, throwingStorage } from "../test-utils.js";
 
 describe("createAnalytics", () => {
   let batches: Batch[];
@@ -71,5 +71,25 @@ describe("createAnalytics", () => {
       a.flush();
     }).not.toThrow();
     expect(a.getConsent()).toBe("pending");
+  });
+
+  it("keeps sending when every storage access throws", () => {
+    const a = createAnalytics({ appId: "wordle" }, { ...deps, localStorage: throwingStorage(), sessionStorage: throwingStorage() });
+    expect(() => {
+      a.acceptConsent();
+      a.page();
+      a.flush();
+    }).not.toThrow();
+    expect(batches.flatMap((b) => b.events).some((e) => e.name === "$pageview")).toBe(true);
+  });
+
+  it("keeps one session when storage writes fail (quota full)", () => {
+    const a = createAnalytics({ appId: "wordle" }, { ...deps, localStorage: quotaFullStorage(), sessionStorage: quotaFullStorage() });
+    a.acceptConsent();
+    a.page();
+    a.page();
+    a.flush();
+    const starts = batches.flatMap((b) => b.events).filter((e) => e.name === "$session_start");
+    expect(starts).toHaveLength(1);
   });
 });
