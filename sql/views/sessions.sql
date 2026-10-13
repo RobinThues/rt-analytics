@@ -15,4 +15,5 @@ SELECT
   ANY_VALUE(device_type) AS device_type,
   COUNTIF(event_name = '$pageview') <= 1 AS bounced
 FROM `{{PROJECT}}.{{DATASET}}.events`
+WHERE session_id IS NOT NULL
 GROUP BY app_id, session_id;

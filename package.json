@@ -45,7 +45,8 @@
     "typecheck": "tsc --noEmit",
     "setup:gcp": "tsx scripts/setup-gcp.ts",
     "prepare": "tsdown",
-    "typecheck:dist": "tsc -p tsconfig.dist-types.json"
+    "typecheck:dist": "tsc -p tsconfig.dist-types.json",
+    "pseudonymize": "tsx scripts/pseudonymize.ts"
   },
   "dependencies": {
     "@google-cloud/bigquery-storage": "^6.1.0",

@@ -9,6 +9,7 @@ WITH per_visitor AS (
   FROM `PROJECT.analytics.events`
   WHERE app_id = 'APP_ID'
     AND DATE(timestamp) BETWEEN 'YYYY-MM-DD' AND 'YYYY-MM-DD'
+    AND visitor_id IS NOT NULL
   GROUP BY visitor_id
 )
 SELECT
