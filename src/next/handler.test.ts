@@ -141,4 +141,38 @@ describe("createAnalyticsHandler", () => {
     expect(messages.some((m) => m.includes("ANALYTICS_GCP_CREDENTIALS is not set"))).toBe(true);
     expect(messages.some((m) => m.includes("ANALYTICS_DAILY_SALT"))).toBe(false);
   });
+
+  describe("allowedAppIds", () => {
+    const make = (allowedAppIds?: string[]) =>
+      createAnalyticsHandler({ writer, salt: SALT, now: () => NOW, allowedAppIds });
+
+    it("writes batches for an allowed appId", async () => {
+      await make(["wordle"]).POST(request(batchBody()));
+      expect(written).toHaveLength(1);
+    });
+
+    it("drops batches for any other appId", async () => {
+      await make(["other-app"]).POST(request(batchBody()));
+      expect(written).toHaveLength(0);
+    });
+
+    it("matches exactly, so a different case is dropped", async () => {
+      await make(["Wordle"]).POST(request(batchBody()));
+      expect(written).toHaveLength(0);
+    });
+
+    it("drops everything for an empty list", async () => {
+      await make([]).POST(request(batchBody()));
+      expect(written).toHaveLength(0);
+    });
+
+    it("accepts any appId when unset and warns once per instance", async () => {
+      const open = make(undefined);
+      await open.POST(request(batchBody()));
+      await open.POST(request(batchBody()));
+      expect(written).toHaveLength(2);
+      const warnings = vi.mocked(console.warn).mock.calls.filter((c) => String(c[0]).includes("allowedAppIds"));
+      expect(warnings).toHaveLength(1);
+    });
+  });
 });

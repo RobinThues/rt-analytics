@@ -8,6 +8,8 @@ export interface HandlerOptions {
   maxBodyBytes?: number;
   /** At least 16 characters. Default process.env.ANALYTICS_DAILY_SALT */
   salt?: string;
+  /** Only these appIds are written (exact match). Unset: any valid appId, with a warning. */
+  allowedAppIds?: string[];
   writer?: RowWriter;
   now?: () => Date;
 }
@@ -23,6 +25,16 @@ function accepted(): Response {
 export function createAnalyticsHandler(opts: HandlerOptions = {}) {
   let writer: RowWriter | null = opts.writer ?? null;
   let saltErrorLogged = false;
+  let appIdWarningLogged = false;
+
+  function appIdAllowed(appId: string): boolean {
+    if (opts.allowedAppIds) return opts.allowedAppIds.includes(appId);
+    if (!appIdWarningLogged) {
+      appIdWarningLogged = true;
+      console.warn("rt-analytics: allowedAppIds is not set; accepting any appId");
+    }
+    return true;
+  }
 
   function resolveWriter(): RowWriter | null {
     if (writer) return writer;
@@ -73,6 +85,7 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
       }
       const batch = validateBatch(parsed);
       if (!batch) return accepted();
+      if (!appIdAllowed(batch.appId)) return accepted();
 
       // Credentials before salt, so local and Preview logs keep naming the real reason.
       const target = resolveWriter();
