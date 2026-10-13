@@ -42,8 +42,13 @@ export function createAnalytics<E extends EventMap = EventMap>(
   const isBrowser = typeof window !== "undefined";
   if (!isBrowser && deps.transport === undefined) return noop() as Analytics<E>;
 
-  const ls = safeStorage(() => (deps.localStorage !== undefined ? deps.localStorage : isBrowser ? window.localStorage : null));
-  const ss = safeStorage(() => (deps.sessionStorage !== undefined ? deps.sessionStorage : isBrowser ? window.sessionStorage : null));
+  const cookieless = config.cookieless === true;
+  const ls = cookieless
+    ? null
+    : safeStorage(() => (deps.localStorage !== undefined ? deps.localStorage : isBrowser ? window.localStorage : null));
+  const ss = cookieless
+    ? null
+    : safeStorage(() => (deps.sessionStorage !== undefined ? deps.sessionStorage : isBrowser ? window.sessionStorage : null));
   const now = deps.now ?? Date.now;
 
   const consent = new ConsentManager(ls);
@@ -113,8 +118,12 @@ export function createAnalytics<E extends EventMap = EventMap>(
     },
     flush: (useBeacon = false) => queue.flush(useBeacon),
     getConsent: () => consent.get(),
-    acceptConsent: () => consent.accept(),
-    declineConsent: () => consent.decline(),
+    acceptConsent: () => {
+      if (!cookieless) consent.accept();
+    },
+    declineConsent: () => {
+      if (!cookieless) consent.decline();
+    },
     onConsentChange: (fn) => consent.onChange(fn),
   };
   return analytics;

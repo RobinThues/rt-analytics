@@ -92,4 +92,42 @@ describe("createAnalytics", () => {
     const starts = batches.flatMap((b) => b.events).filter((e) => e.name === "$session_start");
     expect(starts).toHaveLength(1);
   });
+
+  describe("cookieless", () => {
+    it("never touches the storages, even when deps provide them", () => {
+      const a = createAnalytics({ appId: "wordle", cookieless: true }, deps);
+      a.page();
+      a.acceptConsent();
+      a.page();
+      a.flush();
+      expect(deps.localStorage!.length).toBe(0);
+      expect(deps.sessionStorage!.length).toBe(0);
+    });
+
+    it("keeps consent pending, sends no $consent and no visitor id", () => {
+      const a = createAnalytics({ appId: "wordle", cookieless: true }, deps);
+      const seen: string[] = [];
+      a.onConsentChange((s) => seen.push(s));
+      a.acceptConsent();
+      a.declineConsent();
+      a.page();
+      a.flush();
+      const events = batches.flatMap((b) => b.events);
+      expect(a.getConsent()).toBe("pending");
+      expect(seen).toEqual([]);
+      expect(events.some((e) => e.name === "$consent")).toBe(false);
+      expect(events.every((e) => e.visitorId === null)).toBe(true);
+      expect(batches.every((b) => b.consentState === "pending")).toBe(true);
+    });
+
+    it("keeps one in-memory session", () => {
+      const a = createAnalytics({ appId: "wordle", cookieless: true }, deps);
+      a.page();
+      a.page();
+      a.flush();
+      const events = batches.flatMap((b) => b.events);
+      expect(events.filter((e) => e.name === "$session_start")).toHaveLength(1);
+      expect(new Set(events.map((e) => e.sessionId)).size).toBe(1);
+    });
+  });
 });

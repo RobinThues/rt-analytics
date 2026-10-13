@@ -36,6 +36,8 @@ export interface AnalyticsConfig {
   captureWebVitals?: boolean;
   /** Default true */
   captureErrors?: boolean;
+  /** Never touch localStorage/sessionStorage. Consent stays "pending"; accept/decline do nothing. Default false */
+  cookieless?: boolean;
 }
 
 export type EventMap = Record<string, Record<string, unknown>>;
