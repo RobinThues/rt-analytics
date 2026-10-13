@@ -5,13 +5,29 @@
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
-  "engines": { "node": ">=22" },
-  "files": ["dist"],
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist"
+  ],
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./react": { "types": "./dist/react/index.d.ts", "import": "./dist/react/index.js" },
-    "./next": { "types": "./dist/next/index.d.ts", "import": "./dist/next/index.js" },
-    "./next/client": { "types": "./dist/next/client/index.d.ts", "import": "./dist/next/client/index.js" }
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    },
+    "./next": {
+      "types": "./dist/next/index.d.ts",
+      "import": "./dist/next/index.js"
+    },
+    "./next/client": {
+      "types": "./dist/next/client/index.d.ts",
+      "import": "./dist/next/client/index.js"
+    }
   },
   "scripts": {
     "build": "tsdown",
@@ -24,13 +40,24 @@
     "@google-cloud/bigquery-storage": "^6.1.0",
     "web-vitals": "^6.2.3"
   },
-  "peerDependencies": { "next": ">=14", "react": ">=18" },
-  "peerDependenciesMeta": { "next": { "optional": true }, "react": { "optional": true } },
+  "peerDependencies": {
+    "next": ">=14",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
     "@google-cloud/bigquery": "^9.2.0",
     "@testing-library/react": "^16.1.0",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.3.0",
     "happy-dom": "^21.0.1",
     "next": "^16.4.0",
     "react": "^19.0.0",

@@ -1,18 +1,27 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-import { createAnalytics, type Analytics } from "../core/analytics.js";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createAnalyticsUnstarted, type Analytics } from "../core/analytics.js";
 import type { AnalyticsConfig, EventMap } from "../core/types.js";
 
 const AnalyticsContext = createContext<Analytics | null>(null);
 
-export interface AnalyticsProviderProps extends AnalyticsConfig {
-  children: ReactNode;
-  /** Escape hatch for tests/advanced use: supply a prebuilt instance. */
-  instance?: Analytics;
-}
+export type AnalyticsProviderProps<E extends EventMap = EventMap> = { children: ReactNode } & (
+  | (AnalyticsConfig & { instance?: undefined })
+  /** A prebuilt instance (from createAnalytics). Config props are then ignored. */
+  | (Partial<AnalyticsConfig> & { instance: Analytics<E> })
+);
 
-export function AnalyticsProvider({ children, instance, ...config }: AnalyticsProviderProps) {
-  const [analytics] = useState<Analytics>(() => instance ?? createAnalytics(config));
-  return <AnalyticsContext.Provider value={analytics}>{children}</AnalyticsContext.Provider>;
+export function AnalyticsProvider<E extends EventMap = EventMap>(props: AnalyticsProviderProps<E>) {
+  // StrictMode runs this initializer twice in dev. The instance is created unstarted, so the
+  // discarded one never attaches listeners; the kept one starts in the effect below.
+  const [created] = useState(() => {
+    if (props.instance !== undefined) return null;
+    const { children: _children, instance: _instance, ...config } = props;
+    return createAnalyticsUnstarted(config);
+  });
+  useEffect(() => (created ? created.start() : undefined), [created]);
+
+  const analytics = (props.instance ?? created!.analytics) as unknown as Analytics;
+  return <AnalyticsContext.Provider value={analytics}>{props.children}</AnalyticsContext.Provider>;
 }
 
 export function useAnalytics<E extends EventMap = EventMap>(): Analytics<E> {
