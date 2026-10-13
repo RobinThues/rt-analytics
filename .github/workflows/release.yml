@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  id-token: write # npm trusted publishing (OIDC)
+  contents: write # GitHub release creation
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+
+      # OIDC publishing requires npm >= 11.5.1.
+      - run: npm install -g npm@latest
+
+      - name: Check that the tag matches package.json
+        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
+
+      - run: npm ci
+
+      # prepublishOnly runs tests and typecheck, prepare builds dist.
+      # The repo is public, so npm attaches provenance automatically.
+      - run: npm publish
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes

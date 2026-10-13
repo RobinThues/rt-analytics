@@ -347,6 +347,19 @@ transformIgnorePatterns: ["/node_modules/(?!rt-analytics/)"],
 - **Jest:** the `moduleNameMapper` entries for `rt-analytics` can go.
 - **Env vars:** set them for Production only (see Quickstart step 3).
 
+## Releasing
+
+Releases are published from GitHub Actions with npm trusted publishing (no npm token). Bump the
+version in `package.json`, `package-lock.json` and `src/core/version.ts`, add a `CHANGELOG.md`
+entry, commit, then push a matching tag:
+
+```bash
+git tag v0.2.0 && git push origin main v0.2.0
+```
+
+`.github/workflows/release.yml` checks that the tag matches the version, runs tests and typecheck,
+publishes to npm and creates a GitHub release.
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).
