@@ -1,6 +1,7 @@
 import { validateBatch } from "./validate.js";
 import { dailyVisitorId, isBot, parseUserAgent } from "./enrich.js";
 import { createBigQueryWriter, type EventRow, type RowWriter } from "./bigquery-writer.js";
+import { hasIgnoreCookie, ignoreCookie, ignorePage, keyMatches, type IgnoreState } from "./ignore.js";
 
 export interface HandlerOptions {
   datasetId?: string;
@@ -10,6 +11,8 @@ export interface HandlerOptions {
   salt?: string;
   /** Only these appIds are written (exact match). Unset: any valid appId, with a warning. */
   allowedAppIds?: string[];
+  /** Secret for the owner's ignore link, at least 16 characters. Default process.env.ANALYTICS_IGNORE_KEY */
+  ignoreKey?: string;
   writer?: RowWriter;
   now?: () => Date;
 }
@@ -20,6 +23,12 @@ const MIN_SECRET_LENGTH = 16;
 
 function accepted(): Response {
   return new Response(null, { status: 202 });
+}
+
+const GET_HEADERS = { "cache-control": "no-store", "referrer-policy": "no-referrer", "x-robots-tag": "noindex" };
+
+function notFound(): Response {
+  return new Response(null, { status: 404, headers: GET_HEADERS });
 }
 
 export function createAnalyticsHandler(opts: HandlerOptions = {}) {
@@ -34,6 +43,45 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
       console.warn("rt-analytics: allowedAppIds is not set; accepting any appId");
     }
     return true;
+  }
+
+  let keyErrorLogged = false;
+
+  function resolveIgnoreKey(): string | null {
+    const key = opts.ignoreKey ?? process.env.ANALYTICS_IGNORE_KEY ?? "";
+    if (key.length >= MIN_SECRET_LENGTH) return key;
+    if (key.length > 0 && !keyErrorLogged) {
+      keyErrorLogged = true;
+      console.error(
+        `rt-analytics: ANALYTICS_IGNORE_KEY is shorter than ${MIN_SECRET_LENGTH} characters; the ignore link is disabled`,
+      );
+    }
+    return null;
+  }
+
+  async function GET(req: Request): Promise<Response> {
+    try {
+      // Read the request first: with Cache Components (and Next 14's static detection) a GET handler
+      // that returns before touching the request can be prerendered, which would bake in a 404.
+      const url = new URL(req.url);
+      const key = resolveIgnoreKey();
+      const given = url.searchParams.getAll("ignore");
+      if (!key || given.length !== 1 || !keyMatches(given[0]!, key)) return notFound();
+
+      const undo = url.searchParams.get("undo") === "1";
+      const state: IgnoreState = undo ? "included" : hasIgnoreCookie(req.headers.get("cookie")) ? "already" : "excluded";
+      return new Response(ignorePage(state, key), {
+        status: 200,
+        headers: {
+          ...GET_HEADERS,
+          "content-type": "text/html; charset=utf-8",
+          "set-cookie": ignoreCookie(url.pathname, undo),
+        },
+      });
+    } catch (err) {
+      console.error("rt-analytics ignore link error:", err);
+      return notFound();
+    }
   }
 
   function resolveWriter(): RowWriter | null {
@@ -70,6 +118,14 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
     try {
       const origin = req.headers.get("origin");
       if (origin && new URL(origin).host !== new URL(req.url).host) return accepted();
+
+      // The owner's own browsers (see GET). Refresh the cookie so it never expires while in use.
+      if (hasIgnoreCookie(req.headers.get("cookie"))) {
+        return new Response(null, {
+          status: 202,
+          headers: { "x-rta": "ignored", "set-cookie": ignoreCookie(new URL(req.url).pathname) },
+        });
+      }
 
       const ua = req.headers.get("user-agent");
       if (isBot(ua)) return accepted();
@@ -134,5 +190,5 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
     }
   }
 
-  return { POST };
+  return { GET, POST };
 }

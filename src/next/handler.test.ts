@@ -176,3 +176,110 @@ describe("createAnalyticsHandler", () => {
     });
   });
 });
+
+describe("ignore link", () => {
+  const KEY = "ignore-key-0123456789";
+  let written: EventRow[][];
+  let writer: RowWriter;
+
+  const get = (query: string, headers: Record<string, string> = {}) =>
+    new Request(`https://wordle.example.com/api/a${query}`, { headers: { "user-agent": UA, ...headers } });
+
+  const make = (ignoreKey?: string) => createAnalyticsHandler({ writer, salt: SALT, now: () => NOW, ignoreKey });
+
+  beforeEach(() => {
+    written = [];
+    writer = { write: vi.fn(async (rows: EventRow[]) => void written.push(rows)) };
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
+  });
+
+  it("sets the cookie and shows the page for the right key", async () => {
+    const res = await make(KEY).GET(get(`?ignore=${KEY}`));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toBe(
+      "rta_ignore=1; Path=/api/a; Max-Age=34560000; HttpOnly; Secure; SameSite=Lax",
+    );
+    expect(res.headers.get("content-type")).toBe("text/html; charset=utf-8");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(res.headers.get("referrer-policy")).toBe("no-referrer");
+    expect(res.headers.get("x-robots-tag")).toBe("noindex");
+    expect(await res.text()).toContain("now excluded");
+  });
+
+  it("reads the key from ANALYTICS_IGNORE_KEY", async () => {
+    vi.stubEnv("ANALYTICS_IGNORE_KEY", KEY);
+    const res = await make().GET(get(`?ignore=${KEY}`));
+    expect(res.status).toBe(200);
+  });
+
+  it("says already excluded when the cookie is present", async () => {
+    const res = await make(KEY).GET(get(`?ignore=${KEY}`, { cookie: "rta_ignore=1" }));
+    expect(await res.text()).toContain("already excluded");
+  });
+
+  it("clears the cookie on undo", async () => {
+    const res = await make(KEY).GET(get(`?ignore=${KEY}&undo=1`, { cookie: "rta_ignore=1" }));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toContain("Max-Age=0");
+    expect(await res.text()).toContain("counted in analytics again");
+  });
+
+  it("accepts a key with URL and HTML special characters", async () => {
+    const special = 'a b&c"d<e+f-0123456789';
+    const res = await make(special).GET(get(`?ignore=${encodeURIComponent(special)}`));
+    expect(res.status).toBe(200);
+  });
+
+  it("answers 404 with an empty body for wrong, missing, empty, repeated or non-ASCII keys", async () => {
+    const h = make(KEY);
+    for (const query of ["", "?ignore=wrong", "?ignore=", `?ignore=wrong&ignore=${KEY}`, `?ignore=${encodeURIComponent("ä".repeat(KEY.length))}`]) {
+      const res = await h.GET(get(query));
+      expect(res.status, query).toBe(404);
+      expect(res.headers.get("set-cookie")).toBeNull();
+      expect(res.headers.get("cache-control")).toBe("no-store");
+      expect(await res.text()).toBe("");
+    }
+  });
+
+  it("answers 404 when no key is configured", async () => {
+    vi.stubEnv("ANALYTICS_IGNORE_KEY", "");
+    const res = await make().GET(get("?ignore=anything-long-enough-123"));
+    expect(res.status).toBe(404);
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("answers 404 and logs once for a key shorter than 16 characters", async () => {
+    const h = make("short");
+    await h.GET(get("?ignore=short"));
+    const res = await h.GET(get("?ignore=short"));
+    expect(res.status).toBe(404);
+    const keyErrors = vi.mocked(console.error).mock.calls.filter((c) => String(c[0]).includes("ANALYTICS_IGNORE_KEY"));
+    expect(keyErrors).toHaveLength(1);
+  });
+
+  it("drops POSTs carrying the cookie, marks them and refreshes the cookie", async () => {
+    const res = await make(KEY).POST(request(batchBody(), { cookie: "a=b; rta_ignore=1" }));
+    expect(res.status).toBe(202);
+    expect(res.headers.get("x-rta")).toBe("ignored");
+    expect(res.headers.get("set-cookie")).toContain("Max-Age=34560000");
+    expect(written).toHaveLength(0);
+  });
+
+  it("drops POSTs carrying the cookie even when no key is configured", async () => {
+    vi.stubEnv("ANALYTICS_IGNORE_KEY", "");
+    await make().POST(request(batchBody(), { cookie: "rta_ignore=1" }));
+    expect(written).toHaveLength(0);
+  });
+
+  it("writes POSTs with similar but different cookies, without the marker header", async () => {
+    const res = await make(KEY).POST(request(batchBody(), { cookie: "xrta_ignore=1" }));
+    expect(res.headers.get("x-rta")).toBeNull();
+    expect(written).toHaveLength(1);
+  });
+});
