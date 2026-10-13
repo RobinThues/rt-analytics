@@ -1,10 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createAnalyticsHandler } from "./handler.js";
 import type { EventRow, RowWriter } from "./bigquery-writer.js";
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 const NOW = new Date("2026-07-11T12:00:00.000Z");
+const SALT = "test-salt-0123456789";
 
 function batchBody(over: Record<string, unknown> = {}) {
   return JSON.stringify({
@@ -46,7 +47,14 @@ describe("createAnalyticsHandler", () => {
   beforeEach(() => {
     written = [];
     writer = { write: vi.fn(async (rows: EventRow[]) => void written.push(rows)) };
-    handler = createAnalyticsHandler({ writer, salt: "test-salt", now: () => NOW });
+    handler = createAnalyticsHandler({ writer, salt: SALT, now: () => NOW });
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("writes enriched rows and returns 202", async () => {
@@ -92,11 +100,45 @@ describe("createAnalyticsHandler", () => {
   });
 
   it("returns 202 even when the writer throws", async () => {
-    const failing = createAnalyticsHandler({
-      writer: { write: vi.fn().mockRejectedValue(new Error("boom")) },
-      salt: "s", now: () => NOW,
-    });
+    const write = vi.fn().mockRejectedValue(new Error("boom"));
+    const failing = createAnalyticsHandler({ writer: { write }, salt: SALT, now: () => NOW });
     const res = await failing.POST(request(batchBody()));
     expect(res.status).toBe(202);
+    expect(write).toHaveBeenCalledOnce();
+  });
+
+  it("drops events and logs once when the salt is shorter than 16 characters", async () => {
+    const short = createAnalyticsHandler({ writer, salt: "short", now: () => NOW });
+    await short.POST(request(batchBody()));
+    const res = await short.POST(request(batchBody()));
+    expect(res.status).toBe(202);
+    expect(written).toHaveLength(0);
+    const saltErrors = vi.mocked(console.error).mock.calls.filter((c) => String(c[0]).includes("ANALYTICS_DAILY_SALT"));
+    expect(saltErrors).toHaveLength(1);
+  });
+
+  it("drops events when no salt is configured at all", async () => {
+    vi.stubEnv("ANALYTICS_DAILY_SALT", "");
+    const noSalt = createAnalyticsHandler({ writer, now: () => NOW });
+    await noSalt.POST(request(batchBody()));
+    expect(written).toHaveLength(0);
+  });
+
+  it("uses ANALYTICS_DAILY_SALT from the environment when long enough", async () => {
+    vi.stubEnv("ANALYTICS_DAILY_SALT", SALT);
+    const envSalt = createAnalyticsHandler({ writer, now: () => NOW });
+    await envSalt.POST(request(batchBody()));
+    expect(written).toHaveLength(1);
+  });
+
+  it("reports missing credentials before checking the salt", async () => {
+    vi.stubEnv("ANALYTICS_GCP_CREDENTIALS", "");
+    vi.stubEnv("ANALYTICS_DAILY_SALT", "");
+    const bare = createAnalyticsHandler({ now: () => NOW });
+    const res = await bare.POST(request(batchBody()));
+    expect(res.status).toBe(202);
+    const messages = vi.mocked(console.error).mock.calls.map((c) => String(c[0]));
+    expect(messages.some((m) => m.includes("ANALYTICS_GCP_CREDENTIALS is not set"))).toBe(true);
+    expect(messages.some((m) => m.includes("ANALYTICS_DAILY_SALT"))).toBe(false);
   });
 });

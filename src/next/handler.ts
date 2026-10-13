@@ -6,12 +6,15 @@ export interface HandlerOptions {
   datasetId?: string;
   tableId?: string;
   maxBodyBytes?: number;
+  /** At least 16 characters. Default process.env.ANALYTICS_DAILY_SALT */
   salt?: string;
   writer?: RowWriter;
   now?: () => Date;
 }
 
 const MAX_SKEW_MS = 48 * 60 * 60 * 1000;
+/** Minimum length for the salt and the ignore key. */
+const MIN_SECRET_LENGTH = 16;
 
 function accepted(): Response {
   return new Response(null, { status: 202 });
@@ -19,6 +22,37 @@ function accepted(): Response {
 
 export function createAnalyticsHandler(opts: HandlerOptions = {}) {
   let writer: RowWriter | null = opts.writer ?? null;
+  let saltErrorLogged = false;
+
+  function resolveWriter(): RowWriter | null {
+    if (writer) return writer;
+    const raw = process.env.ANALYTICS_GCP_CREDENTIALS;
+    if (!raw) {
+      console.error("rt-analytics: ANALYTICS_GCP_CREDENTIALS is not set; dropping events");
+      return null;
+    }
+    const creds = JSON.parse(raw) as { project_id: string; client_email: string; private_key: string };
+    writer = createBigQueryWriter({
+      projectId: creds.project_id,
+      datasetId: opts.datasetId ?? "analytics",
+      tableId: opts.tableId ?? "events",
+      credentials: { client_email: creds.client_email, private_key: creds.private_key },
+    });
+    return writer;
+  }
+
+  // Without a salt the daily visitor id is a plain hash of IP + user agent, which can be brute-forced back to the IP.
+  function resolveSalt(): string | null {
+    const salt = opts.salt ?? process.env.ANALYTICS_DAILY_SALT ?? "";
+    if (salt.length >= MIN_SECRET_LENGTH) return salt;
+    if (!saltErrorLogged) {
+      saltErrorLogged = true;
+      console.error(
+        `rt-analytics: ANALYTICS_DAILY_SALT is missing or shorter than ${MIN_SECRET_LENGTH} characters; dropping events`,
+      );
+    }
+    return null;
+  }
 
   async function POST(req: Request): Promise<Response> {
     try {
@@ -40,11 +74,16 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
       const batch = validateBatch(parsed);
       if (!batch) return accepted();
 
+      // Credentials before salt, so local and Preview logs keep naming the real reason.
+      const target = resolveWriter();
+      if (!target) return accepted();
+      const salt = resolveSalt();
+      if (!salt) return accepted();
+
       const now = opts.now ? opts.now() : new Date();
       const uaInfo = parseUserAgent(ua as string);
       const country = req.headers.get("x-vercel-ip-country");
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "0.0.0.0";
-      const salt = opts.salt ?? process.env.ANALYTICS_DAILY_SALT ?? "";
 
       const rows: EventRow[] = batch.events.map((e) => {
         const ts = new Date(e.ts);
@@ -74,21 +113,7 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
         };
       });
 
-      if (!writer) {
-        const raw = process.env.ANALYTICS_GCP_CREDENTIALS;
-        if (!raw) {
-          console.error("rt-analytics: ANALYTICS_GCP_CREDENTIALS is not set; dropping events");
-          return accepted();
-        }
-        const creds = JSON.parse(raw) as { project_id: string; client_email: string; private_key: string };
-        writer = createBigQueryWriter({
-          projectId: creds.project_id,
-          datasetId: opts.datasetId ?? "analytics",
-          tableId: opts.tableId ?? "events",
-          credentials: { client_email: creds.client_email, private_key: creds.private_key },
-        });
-      }
-      await writer.write(rows);
+      await target.write(rows);
       return accepted();
     } catch (err) {
       console.error("rt-analytics ingest error:", err);
