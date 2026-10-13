@@ -21,8 +21,11 @@ npm install rt-analytics
 ```ts
 import { createAnalyticsHandler } from "rt-analytics/next";
 
-export const { POST } = createAnalyticsHandler();
+export const { GET, POST } = createAnalyticsHandler({ allowedAppIds: ["my-app"] });
 ```
+
+`POST` receives the events. `GET` serves the optional [ignore link](#exclude-your-own-visits).
+`allowedAppIds` drops batches for any other app id (exact match).
 
 **2. Wrap your root layout** (`app/layout.tsx`):
 
@@ -45,17 +48,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-**3. Set two environment variables** (locally in `.env.local`, and in Vercel — see
-[GCP setup](#gcp-setup) for how to generate them):
+Use one `AnalyticsProvider` per page. The provider starts error and Web Vitals capture in an effect,
+so errors thrown during the very first render or hydration are not captured. If you need those,
+create the instance yourself with `createAnalytics()` and pass it as `instance`.
+
+**3. Set the environment variables in Vercel, for Production only** (see [GCP setup](#gcp-setup)
+for how to generate them):
 
 ```
 ANALYTICS_GCP_CREDENTIALS={"type":"service_account","project_id":"...","client_email":"...","private_key":"...", ...}
-ANALYTICS_DAILY_SALT=<random hex string>
+ANALYTICS_DAILY_SALT=<random hex string, at least 16 characters>
+ANALYTICS_IGNORE_KEY=<optional, random, at least 16 characters>
 ```
 
 `ANALYTICS_GCP_CREDENTIALS` is the service account key JSON collapsed to one line.
-`ANALYTICS_DAILY_SALT` seeds the cookieless daily visitor hash (see [Consent model](#consent-model)) —
-keep it secret and stable; rotating it changes cookieless visitor ids going forward.
+`ANALYTICS_DAILY_SALT` seeds the cookieless daily visitor hash (see [Consent model](#consent-model)).
+It must be at least 16 characters, otherwise the handler drops all events and logs an error. Keep it
+secret and stable; rotating it changes cookieless visitor ids going forward.
+`ANALYTICS_IGNORE_KEY` enables the [ignore link](#exclude-your-own-visits).
+
+Without credentials the handler drops events and logs why, so `next dev` and Preview deployments send
+nothing to your production table. Keep it that way: don't put the credentials into `.env.local` or the
+Preview environment unless you want to test writes, and then point `datasetId` at a separate dataset.
 
 That's it. Custom events from any client component:
 
@@ -104,11 +118,49 @@ the BigQuery sandbox does not support the Storage Write API. The script is idemp
    the 1 TiB free tier). BigQuery rejects queries over the quota, so query costs can't run away. The
    quota counts every query in the project, not only analytics queries.
 6. Creates a key for that service account (`key.json`, gitignored) if one doesn't already exist
-   locally, and generates a random `ANALYTICS_DAILY_SALT`.
+   locally, and generates a random `ANALYTICS_DAILY_SALT` and `ANALYTICS_IGNORE_KEY`.
 
-At the end it prints both env var values to your terminal — paste them into your Vercel project's
-environment variables (Project Settings → Environment Variables) for Production, Preview, and
-Development, then paste the same into your local `.env.local`.
+At the end it prints the env var values to your terminal. Paste them into your Vercel project's
+environment variables (Project Settings → Environment Variables) for **Production only**, then
+redeploy (env vars only apply to new deployments).
+
+## Exclude your own visits
+
+Set `ANALYTICS_IGNORE_KEY` (at least 16 characters) and redeploy. Then open this link once in each
+browser you use:
+
+    https://your-site.example/api/a?ignore=<ANALYTICS_IGNORE_KEY>
+
+It sets an HttpOnly cookie `rta_ignore=1`, valid for 400 days and limited to the path `/api/a`, so
+it is never sent with normal page requests. The handler drops every batch that carries it, answers
+with the header `x-rta: ignored` (check the `/api/a` requests in your browser's DevTools), and
+refreshes the cookie, so it does not expire while you use the site. Reopening the link shows
+"already excluded". To undo, use the link on that page (`?ignore=<key>&undo=1`). A wrong or missing
+key gets a plain `404`. Batches with the cookie are dropped even if you later remove or rotate the key.
+
+Notes:
+- Each browser keeps its own cookies. On iOS, Safari, Chrome, Home Screen web apps and in-app
+  browsers are all separate, so open the link in each one you use.
+- The link only works when the client posts to the route's real path. If you rewrite a public path
+  to the ingest route, the cookie path will not match.
+- Safari does not keep `Secure` cookies on `http://localhost`. That doesn't matter in practice,
+  because local development sends nothing without credentials.
+
+## Rate limiting
+
+The handler does not rate-limit; an in-memory limiter doesn't work across Vercel function instances.
+Add one Vercel WAF rate-limit rule per project instead (Project → Firewall → New Rule):
+
+- If: request path equals `/api/a`
+- Then: Rate Limit, fixed window, 60 seconds, 120 requests, key: IP, action: default (429)
+
+An active tab sends at most about 12 requests per minute (a flush every 5 seconds plus a beacon on
+page hide), so 120 leaves room for several people behind one IP. The Hobby plan includes one
+rate-limit rule per project and 1,000,000 allowed requests. The client never retries, so a `429`
+only loses that batch.
+
+`allowedAppIds` stops junk from other sites and typos, not a determined attacker: requests without
+an `Origin` header pass the origin check and can send an allowed app id. The WAF rule limits volume.
 
 ## Consent model
 
@@ -134,13 +186,25 @@ opt-in, not to gate tracking itself. If you don't need cross-visit retention, yo
 Accepting persists a random id in `localStorage` so returning visits are recognized; declining (or
 never deciding) keeps every visit anonymous and unlinkable day-to-day.
 
+**Fully cookieless mode.** Pass `cookieless: true` (to `createAnalytics` or the provider) and the SDK
+never touches `localStorage` or `sessionStorage`. Consent stays `pending`, `acceptConsent()` and
+`declineConsent()` do nothing, there is no persistent visitor id, and the session lives in memory.
+Don't combine it with `<ConsentBanner />`.
+
+**Storage errors.** If storage is blocked or full, the SDK keeps working: reads return nothing and
+failed writes are kept in memory for the current page.
+
+**The one cookie.** The only cookie this package ever sets is `rta_ignore`, and only in the browser
+of someone who opens the secret [ignore link](#exclude-your-own-visits) on purpose (the site owner).
+Visitors never get it.
+
 ## API reference
 
 ### `rt-analytics` (core)
 
 - `createAnalytics<E extends EventMap>(config: AnalyticsConfig, deps?: AnalyticsDeps): Analytics<E>`
   Framework-agnostic client factory. No-ops on the server unless a `transport` dep is supplied.
-  - `AnalyticsConfig`: `{ appId: string; endpoint?: string /* default "/api/a" */; flushIntervalMs?: number /* default 5000 */; maxBatchSize?: number /* default 10 */; captureWebVitals?: boolean /* default true */; captureErrors?: boolean /* default true */ }`
+  - `AnalyticsConfig`: `{ appId: string; endpoint?: string /* default "/api/a" */; flushIntervalMs?: number /* default 5000 */; maxBatchSize?: number /* default 10 */; captureWebVitals?: boolean /* default true */; captureErrors?: boolean /* default true */; cookieless?: boolean /* default false */ }`
   - `AnalyticsDeps` (escape hatch for tests/advanced use): `{ localStorage?, sessionStorage?, transport?, now? }`
 - `Analytics<E>` instance methods:
   - `track<K extends keyof E>(name: K, props: E[K]): void` — custom event; by convention, don't prefix your own event names with `$` — that prefix is reserved for the SDK's auto-captured events (see [Event name rules](#event-name-rules)).
@@ -154,7 +218,7 @@ never deciding) keeps every visit anonymous and unlinkable day-to-day.
 
 ### `rt-analytics/react`
 
-- `<AnalyticsProvider appId="..." endpoint?, flushIntervalMs?, maxBatchSize?, captureWebVitals?, captureErrors?, instance? />` — creates one `Analytics` instance (via `createAnalytics`) and provides it via context. `instance` is an escape hatch to inject a prebuilt instance (tests/advanced use).
+- `<AnalyticsProvider appId="..." endpoint?, flushIntervalMs?, maxBatchSize?, captureWebVitals?, captureErrors?, cookieless? />` or `<AnalyticsProvider instance={analytics} />` — provides one `Analytics` instance via context. Without `instance` it creates one from the config props and starts its automatic listeners in an effect. With `instance` (any `Analytics<E>`, typed events included) the config props are optional and ignored. Use one provider per page.
 - `useAnalytics<E extends EventMap>(): Analytics<E>` — reads the instance from context; throws if used outside `<AnalyticsProvider>`.
 - `<ConsentBanner message? acceptLabel? declineLabel? className? />` — renders only while consent is `pending`; calls `acceptConsent()`/`declineConsent()`. All props optional with sensible defaults.
 
@@ -164,9 +228,10 @@ never deciding) keeps every visit anonymous and unlinkable day-to-day.
 
 ### `rt-analytics/next`
 
-- `createAnalyticsHandler(options?: HandlerOptions): { POST: (req: Request) => Promise<Response> }` — drop into `app/api/a/route.ts`.
-  - `HandlerOptions`: `{ datasetId?: string /* default "analytics" */; tableId?: string /* default "events" */; maxBodyBytes?: number /* default 50000 */; salt?: string /* default process.env.ANALYTICS_DAILY_SALT */; writer?: RowWriter /* inject a custom writer, e.g. for tests */; now?: () => Date }`
-  - Reads GCP credentials from `process.env.ANALYTICS_GCP_CREDENTIALS` (one-line service-account JSON) unless a `writer` is injected.
+- `createAnalyticsHandler(options?: HandlerOptions): { GET: (req: Request) => Promise<Response>; POST: (req: Request) => Promise<Response> }` — drop into `app/api/a/route.ts` as `export const { GET, POST } = ...`.
+  - `HandlerOptions`: `{ datasetId?: string /* default "analytics" */; tableId?: string /* default "events" */; maxBodyBytes?: number /* default 50000 */; salt?: string /* default process.env.ANALYTICS_DAILY_SALT, at least 16 characters */; allowedAppIds?: string[] /* exact match; unset accepts any app id and warns once */; ignoreKey?: string /* default process.env.ANALYTICS_IGNORE_KEY, at least 16 characters */; writer?: RowWriter /* inject a custom writer, e.g. for tests */; now?: () => Date }`
+  - Reads GCP credentials from `process.env.ANALYTICS_GCP_CREDENTIALS` (one-line service-account JSON) unless a `writer` is injected. Checks credentials first, then the salt; the salt rule also applies with an injected writer.
+  - `GET` serves the [ignore link](#exclude-your-own-visits) and answers `200` or `404`.
   - Always responds `202 Accepted` (even on malformed input, bot traffic, or write failure) so the client never retries or surfaces errors to users; failures are logged server-side via `console.error`.
   - Drops requests from bots (user-agent sniffing), cross-origin requests, and oversized bodies before touching BigQuery.
   - Types: `EventRow`, `RowWriter`, `WriterConfig`.
@@ -256,7 +321,31 @@ but names you pass to `track()` should not start with `$`):
 | `$web_vital` | Core Web Vitals (CLS, LCP, INP), captured automatically unless `captureWebVitals: false` |
 | `$error` | uncaught `window.onerror` / unhandled promise rejections, captured automatically unless `captureErrors: false` |
 | `$identify` | emitted by `analytics.identify(userId)` |
-| `$consent` | emitted whenever consent state changes (accept/decline) |
+| `$consent` | emitted whenever consent state changes (accept/decline); never in `cookieless` mode |
+
+## Using with Jest
+
+The package is ESM-only. Jest's resolver finds it through the `default` export condition, but Jest
+still has to transform it:
+
+```js
+transformIgnorePatterns: ["/node_modules/(?!rt-analytics/)"],
+```
+
+## Migrating from 0.1.0
+
+- **Salt:** `ANALYTICS_DAILY_SALT` (or `salt`) must now be at least 16 characters, otherwise all
+  events are dropped. This also applies to tests that inject a `writer`. `npm run setup:gcp`
+  generates 32 characters.
+- **Route:** export `GET` too (`export const { GET, POST } = createAnalyticsHandler(...)`) to use the
+  ignore link. `export const { POST }` keeps working.
+- **Provider props** are now a union type, so `interface X extends AnalyticsProviderProps` no longer
+  compiles. Use a type intersection instead. Passing a typed `instance` no longer needs a cast or
+  `appId`.
+- **Null storages:** replace `createAnalytics(config, { localStorage: null, sessionStorage: null })`
+  with `createAnalytics({ ...config, cookieless: true })`.
+- **Jest:** the `moduleNameMapper` entries for `rt-analytics` can go.
+- **Env vars:** set them for Production only (see Quickstart step 3).
 
 ## License
 
