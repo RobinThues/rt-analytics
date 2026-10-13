@@ -1,36 +1,46 @@
 {
   "name": "rt-analytics",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Self-owned, free web analytics for Next.js apps on Vercel, backed by BigQuery",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RobinThues/rt-analytics.git"
+  },
   "type": "module",
   "sideEffects": false,
   "engines": {
     "node": ">=22"
   },
   "files": [
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./react": {
       "types": "./dist/react/index.d.ts",
-      "import": "./dist/react/index.js"
+      "import": "./dist/react/index.js",
+      "default": "./dist/react/index.js"
     },
     "./next": {
       "types": "./dist/next/index.d.ts",
-      "import": "./dist/next/index.js"
+      "import": "./dist/next/index.js",
+      "default": "./dist/next/index.js"
     },
     "./next/client": {
       "types": "./dist/next/client/index.d.ts",
-      "import": "./dist/next/client/index.js"
+      "import": "./dist/next/client/index.js",
+      "default": "./dist/next/client/index.js"
     }
   },
   "scripts": {
     "build": "tsdown",
+    "prepublishOnly": "npm test && npm run typecheck",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "setup:gcp": "tsx scripts/setup-gcp.ts",

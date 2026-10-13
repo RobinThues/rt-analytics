@@ -157,12 +157,15 @@ async function main(): Promise<void> {
 
   const keyOneLine = JSON.stringify(JSON.parse(readFileSync(KEY_FILE, "utf8")));
   const salt = randomBytes(16).toString("hex");
+  const ignoreKey = randomBytes(16).toString("hex");
 
-  console.log("\n=== Vercel env vars (per app; salt may be shared across apps) ===");
+  console.log("\n=== Vercel env vars (per app, Production only; salt may be shared across apps) ===");
   console.log("ANALYTICS_GCP_CREDENTIALS:");
   console.log(keyOneLine);
   console.log("\nANALYTICS_DAILY_SALT (generated now; reuse the same value everywhere):");
   console.log(salt);
+  console.log("\nANALYTICS_IGNORE_KEY (optional, generated now; opens the ignore link /api/a?ignore=<key>):");
+  console.log(ignoreKey);
   console.log("\nDone.");
 }
 

@@ -1,3 +1,3 @@
 import { createAnalyticsHandler } from "rt-analytics/next";
 
-export const { POST } = createAnalyticsHandler();
+export const { GET, POST } = createAnalyticsHandler({ allowedAppIds: ["example"] });
