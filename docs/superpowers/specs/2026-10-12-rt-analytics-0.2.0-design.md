@@ -122,7 +122,7 @@ The client treats a 429 like any other failed send: `fetchTransport` is fire-and
 
 - A small `safeStorage` wrapper in `src/core/`:
   - Reading `window.localStorage` / `window.sessionStorage` can throw (Safari with blocked site data, sandboxed iframes). That access is wrapped; on error the SDK uses no storage.
-  - `getItem`, `setItem` and `removeItem` are each wrapped. On error, `getItem` returns `null` and writes are ignored (quota full, private mode).
+  - `getItem`, `setItem` and `removeItem` are each wrapped. On error, `getItem` returns `null`, and a failed write is kept in memory for the page (quota full, private mode), so sessions keep working. (Changed during planning; the first version of this spec said writes are ignored.)
 - `ConsentManager`, `VisitorManager` and `SessionManager` get the wrapped storage, so their code does not change.
 - Unit tests with a storage whose methods throw, and with a throwing `window.localStorage` getter.
 

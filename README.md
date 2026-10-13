@@ -131,6 +131,10 @@ browser you use:
 
     https://your-site.example/api/a?ignore=<ANALYTICS_IGNORE_KEY>
 
+Use letters and digits for the key (the key from `npm run setup:gcp` is hex). If you pick a key with
+other characters, URL-encode it in the link: a raw `+` becomes a space, and `&` or `#` cut the key off,
+so the link would answer `404`.
+
 It sets an HttpOnly cookie `rta_ignore=1`, valid for 400 days and limited to the path `/api/a`, so
 it is never sent with normal page requests. The handler drops every batch that carries it, answers
 with the header `x-rta: ignored` (check the `/api/a` requests in your browser's DevTools), and
