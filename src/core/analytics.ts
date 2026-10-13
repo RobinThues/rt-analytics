@@ -27,6 +27,12 @@ export interface AnalyticsDeps {
   now?: () => number;
 }
 
+export interface StartableAnalytics<E extends EventMap = EventMap> {
+  analytics: Analytics<E>;
+  /** Attach the automatic listeners. Idempotent while active. Returns stop(). */
+  start: () => () => void;
+}
+
 function noop(): Analytics<never> {
   return {
     track: () => {}, page: () => {}, identify: () => {}, reset: () => {}, flush: () => {},
@@ -35,12 +41,13 @@ function noop(): Analytics<never> {
   } as unknown as Analytics<never>;
 }
 
-export function createAnalytics<E extends EventMap = EventMap>(
+/** @internal Used by AnalyticsProvider, which starts the instance in an effect. Not exported from any package entry. */
+export function createAnalyticsUnstarted<E extends EventMap = EventMap>(
   config: AnalyticsConfig,
   deps: AnalyticsDeps = {},
-): Analytics<E> {
+): StartableAnalytics<E> {
   const isBrowser = typeof window !== "undefined";
-  if (!isBrowser && deps.transport === undefined) return noop() as Analytics<E>;
+  if (!isBrowser && deps.transport === undefined) return { analytics: noop() as Analytics<E>, start: () => () => {} };
 
   const cookieless = config.cookieless === true;
   const ls = cookieless
@@ -96,12 +103,37 @@ export function createAnalytics<E extends EventMap = EventMap>(
     emit("$consent", { state });
   });
 
-  if (isBrowser) {
-    document.addEventListener("visibilitychange", () => {
+  let active = false;
+  let vitalsRegistered = false;
+  let detach: (() => void) | null = null;
+
+  function stop(): void {
+    if (!active) return;
+    active = false;
+    detach?.();
+    detach = null;
+  }
+
+  function start(): () => void {
+    if (!isBrowser || active) return stop;
+    active = true;
+    const onVisibility = () => {
       if (document.visibilityState === "hidden") queue.flush(true);
-    });
-    if (config.captureWebVitals !== false) setupWebVitals(emit);
-    if (config.captureErrors !== false) setupErrorCapture(emit);
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    const stopErrors = config.captureErrors !== false ? setupErrorCapture(emit) : () => {};
+    // web-vitals cannot unsubscribe, so register once and gate on `active`.
+    if (config.captureWebVitals !== false && !vitalsRegistered) {
+      vitalsRegistered = true;
+      setupWebVitals((name, props) => {
+        if (active) emit(name, props);
+      });
+    }
+    detach = () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      stopErrors();
+    };
+    return stop;
   }
 
   const analytics: Analytics<E> = {
@@ -126,5 +158,14 @@ export function createAnalytics<E extends EventMap = EventMap>(
     },
     onConsentChange: (fn) => consent.onChange(fn),
   };
+  return { analytics, start };
+}
+
+export function createAnalytics<E extends EventMap = EventMap>(
+  config: AnalyticsConfig,
+  deps: AnalyticsDeps = {},
+): Analytics<E> {
+  const { analytics, start } = createAnalyticsUnstarted<E>(config, deps);
+  start();
   return analytics;
 }
