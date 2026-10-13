@@ -64,7 +64,8 @@ ANALYTICS_IGNORE_KEY=<optional, random, at least 16 characters>
 `ANALYTICS_GCP_CREDENTIALS` is the service account key JSON collapsed to one line.
 `ANALYTICS_DAILY_SALT` seeds the cookieless daily visitor hash (see [Consent model](#consent-model)).
 It must be at least 16 characters, otherwise the handler drops all events and logs an error. Keep it
-secret and stable; rotating it changes cookieless visitor ids going forward.
+secret and stable; rotating it changes cookieless visitor ids going forward. Without a separate
+`ANALYTICS_PSEUDONYM_KEY` it also changes server-side pseudonyms (see [Server-side events](#server-side-events)).
 `ANALYTICS_IGNORE_KEY` enables the [ignore link](#exclude-your-own-visits).
 
 Without credentials the handler drops events and logs why, so `next dev` and Preview deployments send
@@ -166,6 +167,31 @@ only loses that batch.
 `allowedAppIds` stops junk from other sites and typos, not a determined attacker: requests without
 an `Origin` header pass the origin check and can send an allowed app id. The WAF rule limits volume.
 
+## Server-side events
+
+For events that happen on the server (e.g. a calendar app polling a feed), use the server tracker. It
+writes straight to BigQuery with the same credentials and salt rules as the ingest route, never throws,
+and does nothing without credentials (so local and Preview runs send nothing).
+
+```ts
+import { createServerTracker } from "rt-analytics/next";
+
+export const serverTracker = createServerTracker({ appId: "my-app" });
+
+// in a route handler, after the response (Next.js `after()`):
+const subscription = serverTracker.pseudonymize(`s:${token}`); // null without a valid key
+if (subscription) await serverTracker.track("calendar_poll", { subscription });
+```
+
+Rows have `consent_state: 'server'` and no visitor, session, page or device data; only `props` carries
+your values. `pseudonymize(value)` returns a stable keyed hash (32 hex characters, HMAC-SHA-256 with a key
+derived per app). The key is `ANALYTICS_PSEUDONYM_KEY` if set (at least 16 characters), otherwise
+`ANALYTICS_DAILY_SALT`. **Never rotate the pseudonym key**: every pseudonym changes with it. Set a separate
+`ANALYTICS_PSEUDONYM_KEY` if you may want to rotate the salt later.
+
+Deletion requests: `npm run pseudonymize -- --app my-app <value>...` prints the ids for given values;
+`sql/templates/delete_pseudonyms.sql` deletes their rows.
+
 ## Consent model
 
 | Consent state | Storage | Visitor identity | Banner needed? |
@@ -173,6 +199,7 @@ an `Origin` header pass the origin check and can send an allowed app id. The WAF
 | `pending` (default, before any choice) | none — nothing written to any storage | server-computed daily-rotating hash of `salt + IP + user-agent + appId` | no — no device storage happens |
 | `declined` | `localStorage`: consent decision only (`rta_consent=declined`); no visitor id | same daily-rotating hash as `pending` | no |
 | `accepted` | `localStorage`: consent decision (`rta_consent=accepted`) plus a persistent visitor id (`rta_vid`) | random UUID, persists indefinitely across visits | banner is what triggered this state |
+| `server` (server-side events) | none | none, or a pseudonym in `props` | no |
 
 The `pending` state — before any explicit choice — writes nothing to the browser at all: no
 cookie, no `localStorage`, no fingerprinting beyond a hash that intentionally rotates every day
@@ -239,6 +266,9 @@ Visitors never get it.
   - Always responds `202 Accepted` (even on malformed input, bot traffic, or write failure) so the client never retries or surfaces errors to users; failures are logged server-side via `console.error`.
   - Drops requests from bots (user-agent sniffing), cross-origin requests, and oversized bodies before touching BigQuery.
   - Types: `EventRow`, `RowWriter`, `WriterConfig`.
+- `createServerTracker(options: ServerTrackerOptions): ServerTracker` — server-side events (see [Server-side events](#server-side-events)).
+  - `ServerTrackerOptions`: `{ appId: string; salt?: string /* default ANALYTICS_DAILY_SALT */; pseudonymKey?: string /* default ANALYTICS_PSEUDONYM_KEY, else the salt */; writer?: RowWriter; now?: () => Date }`
+  - `ServerTracker`: `{ track(name: string, props?: Record<string, unknown>): Promise<void>; pseudonymize(value: string): string | null }`
 
 ## HTTP ingestion contract
 

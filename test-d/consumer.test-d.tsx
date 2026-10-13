@@ -23,3 +23,8 @@ export const neither = <AnalyticsProvider>x</AnalyticsProvider>;
 export function useTyped(): Analytics<Events> {
   return useAnalytics<Events>();
 }
+
+import { createServerTracker, type ServerTracker } from "rt-analytics/next";
+export const tracker: ServerTracker = createServerTracker({ appId: "t" });
+export const pseudonym: string | null = tracker.pseudonymize("v");
+export const done: Promise<void> = tracker.track("calendar_poll", { kind: "token" });

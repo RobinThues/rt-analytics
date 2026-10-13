@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.3.0] - 2026-10-13
+
+### Added
+- `createServerTracker` in `rt-analytics/next`: server-side events written straight to BigQuery, with
+  `pseudonymize(value)` for stable keyed ids (HMAC-SHA-256, key derived per app).
+- `ANALYTICS_PSEUDONYM_KEY` (optional; falls back to the salt).
+- `sql/templates/delete_pseudonyms.sql` and `npm run pseudonymize` for deletion requests.
+
+### Changed
+- The `sessions` view ignores rows without a session (server events).
+- The funnel template ignores rows without a visitor.
+- One BigQuery connection per destination table instead of one per process.
+
+### Fixed
+- An invalid `ANALYTICS_GCP_CREDENTIALS` value no longer puts part of the credentials into the error log.
+
 ## [0.2.0] - 2026-10-13
 
 ### Added
@@ -34,5 +50,6 @@ All notable changes to this project are documented here. The format follows
   provider and consent banner; Next.js pageview tracker and ingest handler writing to BigQuery via
   the Storage Write API; `setup:gcp` script, SQL views and query templates.
 
+[0.3.0]: https://github.com/RobinThues/rt-analytics/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/RobinThues/rt-analytics/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/RobinThues/rt-analytics/releases/tag/v0.1.0
