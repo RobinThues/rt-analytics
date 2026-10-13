@@ -6,7 +6,7 @@ const shared: UserConfig = {
   sourcemap: true,
   // Keep .js/.d.ts (package is "type": "module"); tsdown defaults to .mjs on platform node.
   fixedExtension: false,
-  deps: { neverBundle: ["react", "next", "@google-cloud/bigquery-storage", "rt-analytics/react"] },
+  deps: { neverBundle: ["react", "next", "@google-cloud/bigquery-storage", "rt-analytics", "rt-analytics/react"] },
 };
 
 export default defineConfig([

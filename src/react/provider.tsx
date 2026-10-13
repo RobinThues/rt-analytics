@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { createAnalyticsUnstarted, type Analytics } from "../core/analytics.js";
-import type { AnalyticsConfig, EventMap } from "../core/types.js";
+import { createAnalyticsUnstarted } from "../core/analytics.js";
+// Public types come from the core entry, so dist/react/index.d.ts references them instead of bundling
+// a second copy. With two copies TypeScript cannot infer E from a typed instance.
+import type { Analytics, AnalyticsConfig, EventMap } from "rt-analytics";
 
 const AnalyticsContext = createContext<Analytics | null>(null);
 

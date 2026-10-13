@@ -40,11 +40,12 @@
   },
   "scripts": {
     "build": "tsdown",
-    "prepublishOnly": "npm test && npm run typecheck",
+    "prepublishOnly": "npm test && npm run typecheck && npm run build && npm run typecheck:dist",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "setup:gcp": "tsx scripts/setup-gcp.ts",
-    "prepare": "tsdown"
+    "prepare": "tsdown",
+    "typecheck:dist": "tsc -p tsconfig.dist-types.json"
   },
   "dependencies": {
     "@google-cloud/bigquery-storage": "^6.1.0",

@@ -11,6 +11,7 @@
     "noEmit": true,
     "types": ["node"],
     "paths": {
+      "rt-analytics": ["./src/index.ts"],
       "rt-analytics/react": ["./src/react/index.ts"]
     }
   },
