@@ -1,6 +1,7 @@
 import { validateBatch } from "./validate.js";
 import { dailyVisitorId, isBot, parseUserAgent } from "./enrich.js";
-import { createBigQueryWriter, type EventRow, type RowWriter } from "./bigquery-writer.js";
+import type { EventRow, RowWriter } from "./bigquery-writer.js";
+import { MIN_SECRET_LENGTH, validSecret, writerFromEnv } from "./config.js";
 import { hasIgnoreCookie, ignoreCookie, ignorePage, keyMatches, type IgnoreState } from "./ignore.js";
 
 export interface HandlerOptions {
@@ -18,8 +19,6 @@ export interface HandlerOptions {
 }
 
 const MAX_SKEW_MS = 48 * 60 * 60 * 1000;
-/** Minimum length for the salt and the ignore key. */
-const MIN_SECRET_LENGTH = 16;
 
 function accepted(): Response {
   return new Response(null, { status: 202 });
@@ -49,7 +48,7 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
 
   function resolveIgnoreKey(): string | null {
     const key = opts.ignoreKey ?? process.env.ANALYTICS_IGNORE_KEY ?? "";
-    if (key.length >= MIN_SECRET_LENGTH) return key;
+    if (validSecret(key)) return key;
     if (key.length > 0 && !keyErrorLogged) {
       keyErrorLogged = true;
       console.error(
@@ -85,26 +84,14 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
   }
 
   function resolveWriter(): RowWriter | null {
-    if (writer) return writer;
-    const raw = process.env.ANALYTICS_GCP_CREDENTIALS;
-    if (!raw) {
-      console.error("rt-analytics: ANALYTICS_GCP_CREDENTIALS is not set; dropping events");
-      return null;
-    }
-    const creds = JSON.parse(raw) as { project_id: string; client_email: string; private_key: string };
-    writer = createBigQueryWriter({
-      projectId: creds.project_id,
-      datasetId: opts.datasetId ?? "analytics",
-      tableId: opts.tableId ?? "events",
-      credentials: { client_email: creds.client_email, private_key: creds.private_key },
-    });
+    writer ??= writerFromEnv({ datasetId: opts.datasetId, tableId: opts.tableId });
     return writer;
   }
 
   // Without a salt the daily visitor id is a plain hash of IP + user agent, which can be brute-forced back to the IP.
   function resolveSalt(): string | null {
     const salt = opts.salt ?? process.env.ANALYTICS_DAILY_SALT ?? "";
-    if (salt.length >= MIN_SECRET_LENGTH) return salt;
+    if (validSecret(salt)) return salt;
     if (!saltErrorLogged) {
       saltErrorLogged = true;
       console.error(

@@ -2,8 +2,8 @@ import type { AnalyticsEvent, Batch, ConsentState } from "../core/types.js";
 
 const MAX_EVENTS = 25;
 const MAX_STRING = 1024;
-const MAX_PROPS_BYTES = 4096;
-const NAME_RE = /^\$?[a-z0-9_]{1,64}$/i;
+export const MAX_PROPS_BYTES = 4096;
+export const NAME_RE = /^\$?[a-z0-9_]{1,64}$/i;
 const APP_ID_RE = /^[a-z0-9_-]{1,32}$/i;
 
 function str(v: unknown, max = MAX_STRING): string | null {
