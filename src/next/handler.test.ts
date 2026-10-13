@@ -271,6 +271,14 @@ describe("ignore link", () => {
     expect(written).toHaveLength(0);
   });
 
+  it("drops ignored POSTs without reading the body", async () => {
+    const req = request(batchBody(), { cookie: "rta_ignore=1" });
+    const text = vi.spyOn(req, "text");
+    const res = await make(KEY).POST(req);
+    expect(res.headers.get("x-rta")).toBe("ignored");
+    expect(text).not.toHaveBeenCalled();
+  });
+
   it("drops POSTs carrying the cookie even when no key is configured", async () => {
     vi.stubEnv("ANALYTICS_IGNORE_KEY", "");
     await make().POST(request(batchBody(), { cookie: "rta_ignore=1" }));
