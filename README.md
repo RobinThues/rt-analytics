@@ -59,6 +59,7 @@ for how to generate them):
 ANALYTICS_GCP_CREDENTIALS={"type":"service_account","project_id":"...","client_email":"...","private_key":"...", ...}
 ANALYTICS_DAILY_SALT=<random hex string, at least 16 characters>
 ANALYTICS_IGNORE_KEY=<optional, random, at least 16 characters>
+ANALYTICS_PSEUDONYM_KEY=<optional, random, at least 16 characters; only for server-side events>
 ```
 
 `ANALYTICS_GCP_CREDENTIALS` is the service account key JSON collapsed to one line.
@@ -67,6 +68,8 @@ It must be at least 16 characters, otherwise the handler drops all events and lo
 secret and stable; rotating it changes cookieless visitor ids going forward. Without a separate
 `ANALYTICS_PSEUDONYM_KEY` it also changes server-side pseudonyms (see [Server-side events](#server-side-events)).
 `ANALYTICS_IGNORE_KEY` enables the [ignore link](#exclude-your-own-visits).
+`ANALYTICS_PSEUDONYM_KEY` is the key for `pseudonymize` in [Server-side events](#server-side-events); never
+rotate it once events exist.
 
 Without credentials the handler drops events and logs why, so `next dev` and Preview deployments send
 nothing to your production table. Keep it that way: don't put the credentials into `.env.local` or the
@@ -190,7 +193,10 @@ derived per app). The key is `ANALYTICS_PSEUDONYM_KEY` if set (at least 16 chara
 `ANALYTICS_PSEUDONYM_KEY` if you may want to rotate the salt later.
 
 Deletion requests: `npm run pseudonymize -- --app my-app <value>...` prints the ids for given values;
-`sql/templates/delete_pseudonyms.sql` deletes their rows.
+`sql/templates/delete_pseudonyms.sql` deletes their rows. The script reads the key from the environment
+and does not load env files itself, e.g.
+`(set -a; . ./.env.analytics; set +a; npm run -s pseudonymize -- --app my-app '<value>')`.
+Check with a `SELECT COUNT(*)` on the same ids that they match rows before deleting.
 
 ## Consent model
 

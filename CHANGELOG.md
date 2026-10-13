@@ -13,7 +13,9 @@ All notable changes to this project are documented here. The format follows
 - `sql/templates/delete_pseudonyms.sql` and `npm run pseudonymize` for deletion requests.
 
 ### Changed
-- The `sessions` view ignores rows without a session (server events).
+- The `sessions` view ignores rows without a session (server events). **Upgrade:** re-run
+  `npm run setup:gcp` to apply the new view before sending server events; otherwise each app gets one
+  fake session made of all server rows.
 - The funnel template ignores rows without a visitor.
 - One BigQuery connection per destination table instead of one per process.
 
