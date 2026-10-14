@@ -12,7 +12,8 @@
     "types": ["node"],
     "paths": {
       "rt-analytics": ["./src/index.ts"],
-      "rt-analytics/react": ["./src/react/index.ts"]
+      "rt-analytics/react": ["./src/react/index.ts"],
+      "rt-analytics/schema": ["./src/schema/index.ts"]
     }
   },
   "include": ["src", "tsdown.config.ts", "vitest.config.ts"]

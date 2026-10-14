@@ -1,5 +1,6 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { SDK_VERSION } from "../core/version.js";
+import { SERVER_CONSENT_STATE } from "../schema/index.js";
 import type { EventRow, RowWriter } from "./bigquery-writer.js";
 import { MIN_SECRET_LENGTH, validSecret, writerFromEnv } from "./config.js";
 import { MAX_PROPS_BYTES, NAME_RE } from "./validate.js";
@@ -97,7 +98,7 @@ export function createServerTracker(opts: ServerTrackerOptions): ServerTracker {
           viewport_w: null,
           viewport_h: null,
           props: json,
-          consent_state: "server",
+          consent_state: SERVER_CONSENT_STATE,
           sdk_version: SDK_VERSION,
         };
         await writer.write([row]);

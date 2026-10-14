@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { DAILY_VISITOR_PREFIX } from "../schema/index.js";
 
 export interface UAInfo {
   browser: string;
@@ -43,5 +44,5 @@ export function parseUserAgent(ua: string): UAInfo {
 export function dailyVisitorId(salt: string, ip: string, ua: string, appId: string, date: Date): string {
   const day = date.toISOString().slice(0, 10);
   const hash = createHash("sha256").update(`${salt}:${day}:${ip}:${ua}:${appId}`).digest("hex");
-  return `d_${hash.slice(0, 32)}`;
+  return `${DAILY_VISITOR_PREFIX}${hash.slice(0, 32)}`;
 }

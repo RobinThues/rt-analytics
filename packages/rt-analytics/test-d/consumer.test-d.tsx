@@ -28,3 +28,11 @@ import { createServerTracker, type ServerTracker } from "rt-analytics/next";
 export const tracker: ServerTracker = createServerTracker({ appId: "t" });
 export const pseudonym: string | null = tracker.pseudonymize("v");
 export const done: Promise<void> = tracker.track("calendar_poll", { kind: "token" });
+
+// rt-analytics/schema: EventRow is the same type as the one rt-analytics/next has always exported.
+import type { EventRow as NextEventRow } from "rt-analytics/next";
+import { BUILTIN_EVENTS, type EventRow, type RowConsentState } from "rt-analytics/schema";
+
+const sameRow = (r: EventRow): NextEventRow => r;
+const consent: RowConsentState = "server";
+export const schemaChecks = [sameRow, consent, BUILTIN_EVENTS] as const;

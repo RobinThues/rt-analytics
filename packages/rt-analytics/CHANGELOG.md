@@ -4,6 +4,22 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## Unreleased
+
+### Added
+
+- `rt-analytics/schema`: `EventRow`, `BUILTIN_EVENTS`, `EVENTS`, `RowConsentState`, `SERVER_CONSENT_STATE`,
+  `DAILY_VISITOR_PREFIX`, for tools that read the BigQuery table (like the dashboard).
+
+### Changed
+
+- `EventRow.consent_state` is typed as `RowConsentState` instead of `string`.
+
+### Fixed
+
+- `sql/templates/retention.sql` dropped persistent visitor ids starting with "d" (`LIKE 'd_%'` treats `_` as a
+  wildcard) and had no date filter. `sql/templates/funnel.sql` now takes each step after the previous step.
+
 ## [0.3.0] - 2026-10-13
 
 ### Added

@@ -1,30 +1,8 @@
 import { adapt, managedwriter } from "@google-cloud/bigquery-storage";
 import type { protos } from "@google-cloud/bigquery-storage";
+import type { EventRow } from "../schema/event-row.js";
 
-export interface EventRow {
-  event_id: string;
-  app_id: string;
-  event_name: string;
-  timestamp: Date;
-  visitor_id: string | null;
-  session_id: string | null;
-  user_id: string | null;
-  page_path: string | null;
-  referrer: string | null;
-  utm_source: string | null;
-  utm_medium: string | null;
-  utm_campaign: string | null;
-  country: string | null;
-  browser: string | null;
-  os: string | null;
-  device_type: string | null;
-  viewport_w: number | null;
-  viewport_h: number | null;
-  /** JSON-serialized custom props */
-  props: string | null;
-  consent_state: string;
-  sdk_version: string;
-}
+export type { EventRow };
 
 export interface RowWriter {
   write(rows: EventRow[]): Promise<void>;

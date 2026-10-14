@@ -1,14 +1,16 @@
+import { EVENTS } from "../schema/index.js";
+
 type Report = (name: string, props: Record<string, unknown>) => void;
 
 export function setupErrorCapture(report: Report): () => void {
   const onError = (e: ErrorEvent) =>
-    report("$error", {
+    report(EVENTS.error, {
       message: String(e.message ?? "").slice(0, 500),
       source: e.filename || null,
       line: e.lineno ?? null,
     });
   const onRejection = (e: PromiseRejectionEvent) =>
-    report("$error", {
+    report(EVENTS.error, {
       message: String(e.reason ?? "").slice(0, 500),
       source: "unhandledrejection",
       line: null,

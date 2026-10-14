@@ -12,7 +12,7 @@ const shared: UserConfig = {
 export default defineConfig([
   {
     ...shared,
-    entry: { index: "src/index.ts", "next/index": "src/next/index.ts" },
+    entry: { index: "src/index.ts", "next/index": "src/next/index.ts", "schema/index": "src/schema/index.ts" },
     clean: true,
   },
   {

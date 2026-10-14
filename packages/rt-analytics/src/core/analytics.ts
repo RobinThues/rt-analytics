@@ -7,6 +7,7 @@ import type { AnalyticsConfig, AnalyticsEvent, ConsentState, EventMap } from "./
 import { setupErrorCapture } from "./errors.js";
 import { setupWebVitals } from "./webvitals.js";
 import { safeStorage } from "./safe-storage.js";
+import { EVENTS } from "../schema/index.js";
 
 export interface Analytics<E extends EventMap = EventMap> {
   track<K extends keyof E & string>(name: K, props: E[K]): void;
@@ -107,13 +108,13 @@ export function createAnalyticsUnstarted<E extends EventMap = EventMap>(
   function emit(name: string, props: Record<string, unknown>): void {
     const state = consent.get();
     const s = session.touch(state);
-    if (s.isNew) queue.enqueue(buildEvent("$session_start", {}, s.id, state));
+    if (s.isNew) queue.enqueue(buildEvent(EVENTS.sessionStart, {}, s.id, state));
     queue.enqueue(buildEvent(name, props, s.id, state));
   }
 
   consent.onChange((state) => {
     if (state === "declined") visitor.clear();
-    emit("$consent", { state });
+    emit(EVENTS.consent, { state });
   });
 
   let active = false;
@@ -151,10 +152,10 @@ export function createAnalyticsUnstarted<E extends EventMap = EventMap>(
 
   const analytics: Analytics<E> = {
     track: (name, props) => emit(name, (props ?? {}) as Record<string, unknown>),
-    page: () => emit("$pageview", {}),
+    page: () => emit(EVENTS.pageview, {}),
     identify: (uid) => {
       userId = uid;
-      emit("$identify", {});
+      emit(EVENTS.identify, {});
     },
     reset: () => {
       userId = null;
