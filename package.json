@@ -17,7 +17,8 @@
     "pseudonymize": "tsx scripts/pseudonymize.ts",
     "lint": "eslint . && npm run lint --workspaces --if-present",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "demo:generate": "tsx scripts/generate-demo-data.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
