@@ -1,6 +1,8 @@
 /**
  * Idempotent GCP setup for rt-analytics.
  * Usage: npm run setup:gcp [-- --project <gcp-project-id>] [--query-quota-gib <n> | --no-query-quota]
+ *        npm run setup:gcp -- --dashboard --vercel-team <slug> [--vercel-project <name>] [--project <id>]
+ *          (only the dashboard resources: config dataset, keyless service account, Vercel OIDC pool)
  * Requires: gcloud CLI authenticated (`gcloud auth login` and `gcloud auth application-default login`).
  */
 import { BigQuery } from "@google-cloud/bigquery";
@@ -8,6 +10,7 @@ import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { setupDashboard } from "./gcp-dashboard.js";
 
 const DATASET = "analytics";
 const TABLE = "events";
@@ -74,6 +77,16 @@ function resolveProject(): string {
 
 async function main(): Promise<void> {
   const projectId = resolveProject();
+  if (process.argv.includes("--dashboard")) {
+    const team = flagValue("--vercel-team");
+    const project = flagValue("--vercel-project") ?? "rt-analytics-dashboard";
+    if (!team) {
+      console.error("--dashboard needs --vercel-team <slug> (and optionally --vercel-project <name>)");
+      process.exit(2);
+    }
+    await setupDashboard(projectId, { team, project });
+    return;
+  }
   const queryQuotaMiB = resolveQueryQuotaMiB();
   console.log(`Project: ${projectId}`);
   const bq = new BigQuery({ projectId });

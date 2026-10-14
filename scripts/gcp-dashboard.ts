@@ -1,0 +1,173 @@
+// Dashboard part of `npm run setup:gcp -- --dashboard --vercel-team <slug> [--vercel-project <name>]`.
+// Creates the analytics_dashboard dataset, the keyless rt-analytics-dashboard service account and a workload
+// identity pool that trusts only the dashboard's Vercel project (production and development). Idempotent.
+import { execFileSync } from "node:child_process";
+import { BigQuery } from "@google-cloud/bigquery";
+
+export const DASHBOARD_SA = "rt-analytics-dashboard";
+export const CONFIG_DATASET = "analytics_dashboard";
+const ANALYTICS_DATASET = "analytics";
+const LOCATION = "EU";
+const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,99}$/;
+
+export const CONFIG_SCHEMA = [
+  { name: "kind", type: "STRING", mode: "REQUIRED" },
+  { name: "id", type: "STRING", mode: "REQUIRED" },
+  { name: "app_id", type: "STRING", mode: "REQUIRED" },
+  { name: "name", type: "STRING", mode: "NULLABLE" },
+  { name: "value", type: "JSON", mode: "REQUIRED" },
+  { name: "updated_at", type: "TIMESTAMP", mode: "REQUIRED" },
+  { name: "updated_by", type: "STRING", mode: "REQUIRED" },
+] as const;
+
+export function wifConfig(team: string, project: string, projectNumber: string) {
+  if (!SLUG_RE.test(team) || !SLUG_RE.test(project)) throw new Error("Vercel team and project must be slugs");
+  if (!/^\d+$/.test(projectNumber)) throw new Error("GCP project number must be digits");
+  const poolId = "vercel";
+  const providerId = "vercel";
+  const pool = `projects/${projectNumber}/locations/global/workloadIdentityPools/${poolId}`;
+  const sub = (env: string) => `"owner:${team}:project:${project}:environment:${env}"`;
+  return {
+    poolId,
+    providerId,
+    issuer: `https://oidc.vercel.com/${team}`,
+    allowedAudience: `https://vercel.com/${team}`,
+    attributeCondition: `assertion.sub in [${sub("production")}, ${sub("development")}]`,
+    stsAudience: `//iam.googleapis.com/${pool}/providers/${providerId}`,
+    principalSet: `principalSet://iam.googleapis.com/${pool}/*`,
+  } as const;
+}
+
+function gcloud(...args: string[]): string {
+  return execFileSync("gcloud", args, { encoding: "utf8" }).trim();
+}
+
+function tryGcloud(...args: string[]): string | null {
+  try {
+    return execFileSync("gcloud", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return null;
+  }
+}
+
+type AccessEntry = { role?: string; userByEmail?: string };
+
+async function grantDataset(bq: BigQuery, datasetId: string, role: "READER" | "WRITER", email: string) {
+  const dataset = bq.dataset(datasetId);
+  const [meta] = await dataset.getMetadata();
+  const access: AccessEntry[] = meta.access ?? [];
+  if (access.some((a) => a.userByEmail === email && a.role === role)) {
+    console.log(`${datasetId}: ${role} already granted`);
+    return;
+  }
+  access.push({ role, userByEmail: email });
+  await dataset.setMetadata({ access });
+  console.log(`${datasetId}: granted ${role} to ${email}`);
+}
+
+export async function setupDashboard(projectId: string, opts: { team: string; project: string }): Promise<void> {
+  const projectNumber = gcloud("projects", "describe", projectId, "--format=value(projectNumber)");
+  const wif = wifConfig(opts.team, opts.project, projectNumber);
+  const saEmail = `${DASHBOARD_SA}@${projectId}.iam.gserviceaccount.com`;
+  const bq = new BigQuery({ projectId });
+  const inProject = `--project=${projectId}`;
+
+  // 1. APIs for token exchange and impersonation
+  gcloud("services", "enable", "iam.googleapis.com", "sts.googleapis.com", "iamcredentials.googleapis.com", inProject);
+  console.log("APIs enabled: iam, sts, iamcredentials");
+
+  // 2. Config dataset and table
+  const dataset = bq.dataset(CONFIG_DATASET);
+  if (!(await dataset.exists())[0]) {
+    await bq.createDataset(CONFIG_DATASET, { location: LOCATION });
+    console.log(`Created dataset ${CONFIG_DATASET} (${LOCATION})`);
+  } else {
+    console.log(`Dataset ${CONFIG_DATASET} exists`);
+  }
+  if (!(await dataset.table("dashboard_config").exists())[0]) {
+    await dataset.createTable("dashboard_config", { schema: [...CONFIG_SCHEMA] });
+    console.log("Created table dashboard_config");
+  } else {
+    console.log("Table dashboard_config exists");
+  }
+
+  // 3. Service account without keys
+  if (!tryGcloud("iam", "service-accounts", "describe", saEmail, inProject)) {
+    gcloud(
+      "iam",
+      "service-accounts",
+      "create",
+      DASHBOARD_SA,
+      inProject,
+      "--display-name=rt-analytics dashboard (keyless)",
+    );
+    console.log(`Created service account ${saEmail}`);
+  } else {
+    console.log(`Service account ${saEmail} exists`);
+  }
+
+  // 4. Permissions: run queries; read analytics; read and write analytics_dashboard
+  gcloud(
+    "projects",
+    "add-iam-policy-binding",
+    projectId,
+    `--member=serviceAccount:${saEmail}`,
+    "--role=roles/bigquery.jobUser",
+    "--condition=None",
+    "--quiet",
+  );
+  console.log("Granted roles/bigquery.jobUser on the project");
+  await grantDataset(bq, ANALYTICS_DATASET, "READER", saEmail);
+  await grantDataset(bq, CONFIG_DATASET, "WRITER", saEmail);
+
+  // 5. Workload identity pool and Vercel OIDC provider
+  const poolArgs = ["--location=global", inProject];
+  if (!tryGcloud("iam", "workload-identity-pools", "describe", wif.poolId, ...poolArgs)) {
+    gcloud("iam", "workload-identity-pools", "create", wif.poolId, ...poolArgs, "--display-name=Vercel");
+    console.log(`Created workload identity pool ${wif.poolId}`);
+  } else {
+    console.log(`Workload identity pool ${wif.poolId} exists`);
+  }
+  const providerScope = [`--workload-identity-pool=${wif.poolId}`, ...poolArgs];
+  const providerExists = tryGcloud(
+    "iam",
+    "workload-identity-pools",
+    "providers",
+    "describe",
+    wif.providerId,
+    ...providerScope,
+  );
+  gcloud(
+    "iam",
+    "workload-identity-pools",
+    "providers",
+    providerExists ? "update-oidc" : "create-oidc",
+    wif.providerId,
+    ...providerScope,
+    `--issuer-uri=${wif.issuer}`,
+    `--allowed-audiences=${wif.allowedAudience}`,
+    "--attribute-mapping=google.subject=assertion.sub",
+    `--attribute-condition=${wif.attributeCondition}`,
+  );
+  console.log(`${providerExists ? "Updated" : "Created"} OIDC provider ${wif.providerId} (${wif.issuer})`);
+
+  // 6. Let the pool's identities impersonate the service account
+  gcloud(
+    "iam",
+    "service-accounts",
+    "add-iam-policy-binding",
+    saEmail,
+    inProject,
+    "--role=roles/iam.workloadIdentityUser",
+    `--member=${wif.principalSet}`,
+    "--quiet",
+  );
+  console.log("Granted roles/iam.workloadIdentityUser to the pool");
+
+  console.log("\nSet these (non-secret) variables in the dashboard's Vercel project (production and development):");
+  console.log(`  GCP_PROJECT_ID=${projectId}`);
+  console.log(`  GCP_PROJECT_NUMBER=${projectNumber}`);
+  console.log(`  GCP_SERVICE_ACCOUNT_EMAIL=${saEmail}`);
+  console.log(`  GCP_WORKLOAD_IDENTITY_POOL_ID=${wif.poolId}`);
+  console.log(`  GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID=${wif.providerId}`);
+}
