@@ -2,13 +2,22 @@
   "name": "rt-analytics-demo",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build"
+    "dev": "node --env-file-if-exists=../../.env.analytics ../../node_modules/next/dist/bin/next dev",
+    "build": "next build",
+    "start": "node --env-file-if-exists=../../.env.analytics ../../node_modules/next/dist/bin/next start",
+    "lint": "eslint ."
   },
   "dependencies": {
     "next": "^16.4.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "rt-analytics": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "eslint": "^10.12.0",
+    "eslint-config-next": "^16.4.0"
   }
 }
