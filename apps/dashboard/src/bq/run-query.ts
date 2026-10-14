@@ -18,7 +18,10 @@ export function toPlain(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(toPlain);
   const v = value as Record<string, unknown> & { toNumber?: () => number };
   if (typeof v.toNumber === "function") return v.toNumber();
-  if (typeof v.value === "string" && Object.keys(v).length === 1) return v.value;
+  // BigQuery's value classes (BigQueryDate, BigQueryTimestamp, ...) hold a single `value`; plain result rows
+  // can have a column named value too, so only class instances are unwrapped.
+  const isClassInstance = Object.getPrototypeOf(v) !== Object.prototype && Object.getPrototypeOf(v) !== null;
+  if (isClassInstance && typeof v.value === "string" && Object.keys(v).length === 1) return v.value;
   return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, toPlain(x)]));
 }
 

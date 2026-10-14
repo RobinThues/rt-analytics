@@ -61,6 +61,9 @@ describe("toPlain", () => {
       toPlain({ d: new BigQueryDate("2026-10-01"), n: big, s: "x", a: [new BigQueryDate("2026-10-02")], z: null }),
     ).toEqual({ d: "2026-10-01", n: 12.5, s: "x", a: ["2026-10-02"], z: null });
   });
+  it("keeps plain rows that have a single column named value", () => {
+    expect(toPlain({ value: '{"timezone":"UTC"}' })).toEqual({ value: '{"timezone":"UTC"}' });
+  });
   it("turns Date into an ISO string", () => {
     expect(toPlain(new Date("2026-10-01T00:00:00Z"))).toBe("2026-10-01T00:00:00.000Z");
   });
