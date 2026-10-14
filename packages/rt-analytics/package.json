@@ -1,0 +1,79 @@
+{
+  "name": "rt-analytics",
+  "version": "0.3.0",
+  "description": "Self-owned, free web analytics for Next.js apps on Vercel, backed by BigQuery",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RobinThues/rt-analytics.git",
+    "directory": "packages/rt-analytics"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js",
+      "default": "./dist/react/index.js"
+    },
+    "./next": {
+      "types": "./dist/next/index.d.ts",
+      "import": "./dist/next/index.js",
+      "default": "./dist/next/index.js"
+    },
+    "./next/client": {
+      "types": "./dist/next/client/index.d.ts",
+      "import": "./dist/next/client/index.js",
+      "default": "./dist/next/client/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepublishOnly": "npm test && npm run typecheck && npm run build && npm run typecheck:dist",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepare": "tsdown",
+    "typecheck:dist": "tsc -p tsconfig.dist-types.json"
+  },
+  "dependencies": {
+    "@google-cloud/bigquery-storage": "^6.1.0",
+    "web-vitals": "^6.2.3"
+  },
+  "peerDependencies": {
+    "next": ">=14",
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "next": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.3.0",
+    "happy-dom": "^21.0.1",
+    "next": "^16.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsdown": "^0.23.1",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.4"
+  }
+}

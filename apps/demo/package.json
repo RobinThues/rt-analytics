@@ -1,11 +1,11 @@
 {
-  "name": "rt-analytics-example",
+  "name": "rt-analytics-demo",
   "private": true,
   "scripts": { "dev": "next dev", "build": "next build" },
   "dependencies": {
     "next": "^16.4.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "rt-analytics": "file:.."
+    "rt-analytics": "*"
   }
 }

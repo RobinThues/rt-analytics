@@ -23,14 +23,15 @@ jobs:
       # OIDC publishing requires npm >= 11.5.1.
       - run: npm install -g npm@latest
 
-      - name: Check that the tag matches package.json
-        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./package.json').version")"
+      - name: Check that the tag matches the package version
+        run: test "$GITHUB_REF_NAME" = "v$(node -p "require('./packages/rt-analytics/package.json').version")"
 
       - run: npm ci
 
       # prepublishOnly runs tests and typecheck, prepare builds dist.
       # The repo is public, so npm attaches provenance automatically.
       - run: npm publish
+        working-directory: packages/rt-analytics
 
       - name: Create GitHub release
         env:

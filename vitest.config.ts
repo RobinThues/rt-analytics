@@ -1,11 +1,6 @@
 import { defineConfig } from "vitest/config";
-import { fileURLToPath } from "node:url";
 
+// Root tests: ops scripts and SQL templates. Workspace packages run their own suites.
 export default defineConfig({
-  resolve: {
-    alias: {
-      "rt-analytics/react": fileURLToPath(new URL("./src/react/index.ts", import.meta.url)),
-    },
-  },
-  test: { environment: "node" },
+  test: { environment: "node", include: ["scripts/**/*.test.ts"] },
 });

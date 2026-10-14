@@ -3,7 +3,7 @@
 // ANALYTICS_DAILY_SALT (the same rules as createServerTracker). Used to turn a deletion request into ids
 // for sql/templates/delete_pseudonyms.sql.
 import { parseArgs } from "node:util";
-import { createServerTracker } from "../src/next/server-tracker.js";
+import { createServerTracker } from "rt-analytics/next";
 
 const { values, positionals } = parseArgs({ options: { app: { type: "string" } }, allowPositionals: true });
 if (!values.app || positionals.length === 0) {

@@ -3,6 +3,6 @@ dist/
 *.tsbuildinfo
 key.json
 .env*
-example/.next/
-example/node_modules/
+apps/*/.next/
 claude-tmp-helpers/
+.vercel/
