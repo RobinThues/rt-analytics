@@ -4,9 +4,20 @@ import type { AnalyticsEvent, Batch } from "./types.js";
 
 function ev(name: string): AnalyticsEvent {
   return {
-    eventId: crypto.randomUUID(), name, ts: new Date().toISOString(),
-    sessionId: "s1", visitorId: null, userId: null, pagePath: "/", referrer: null,
-    utmSource: null, utmMedium: null, utmCampaign: null, viewportW: null, viewportH: null, props: {},
+    eventId: crypto.randomUUID(),
+    name,
+    ts: new Date().toISOString(),
+    sessionId: "s1",
+    visitorId: null,
+    userId: null,
+    pagePath: "/",
+    referrer: null,
+    utmSource: null,
+    utmMedium: null,
+    utmCampaign: null,
+    viewportW: null,
+    viewportH: null,
+    props: {},
   };
 }
 
@@ -17,7 +28,10 @@ describe("EventQueue", () => {
   };
   const makeQueue = () =>
     new EventQueue({
-      endpoint: "/api/a", flushIntervalMs: 5000, maxBatchSize: 3, transport,
+      endpoint: "/api/a",
+      flushIntervalMs: 5000,
+      maxBatchSize: 3,
+      transport,
       getMeta: () => ({ appId: "test", sdkVersion: "0.1.0", consentState: "pending" }),
     });
 
@@ -29,7 +43,8 @@ describe("EventQueue", () => {
 
   it("flushes when maxBatchSize is reached", () => {
     const q = makeQueue();
-    q.enqueue(ev("a")); q.enqueue(ev("b"));
+    q.enqueue(ev("a"));
+    q.enqueue(ev("b"));
     expect(sent).toHaveLength(0);
     q.enqueue(ev("c"));
     expect(sent).toHaveLength(1);

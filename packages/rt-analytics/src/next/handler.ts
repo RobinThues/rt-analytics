@@ -68,7 +68,11 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
       if (!key || given.length !== 1 || !keyMatches(given[0]!, key)) return notFound();
 
       const undo = url.searchParams.get("undo") === "1";
-      const state: IgnoreState = undo ? "included" : hasIgnoreCookie(req.headers.get("cookie")) ? "already" : "excluded";
+      const state: IgnoreState = undo
+        ? "included"
+        : hasIgnoreCookie(req.headers.get("cookie"))
+          ? "already"
+          : "excluded";
       return new Response(ignorePage(state, key), {
         status: 200,
         headers: {

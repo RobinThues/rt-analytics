@@ -114,9 +114,23 @@ async function main(): Promise<void> {
 
   // 4. Service account (write-only access, scoped to the dataset)
   const saEmail = `${SA_NAME}@${projectId}.iam.gserviceaccount.com`;
-  const existing = gcloud("iam", "service-accounts", "list", `--project=${projectId}`, `--filter=email:${saEmail}`, "--format=value(email)");
+  const existing = gcloud(
+    "iam",
+    "service-accounts",
+    "list",
+    `--project=${projectId}`,
+    `--filter=email:${saEmail}`,
+    "--format=value(email)",
+  );
   if (!existing) {
-    gcloud("iam", "service-accounts", "create", SA_NAME, `--project=${projectId}`, "--display-name=rt-analytics ingest writer");
+    gcloud(
+      "iam",
+      "service-accounts",
+      "create",
+      SA_NAME,
+      `--project=${projectId}`,
+      "--display-name=rt-analytics ingest writer",
+    );
     console.log(`Created service account ${saEmail}`);
   } else {
     console.log(`Service account ${saEmail} exists`);
@@ -138,10 +152,17 @@ async function main(): Promise<void> {
     console.log("Skipping query quota (--no-query-quota)");
   } else {
     gcloud(
-      "quotas", "preferences", "update", QUOTA_PREFERENCE_ID,
-      `--project=${projectId}`, "--service=bigquery.googleapis.com", "--quota-id=QueryUsagePerDay",
+      "quotas",
+      "preferences",
+      "update",
+      QUOTA_PREFERENCE_ID,
+      `--project=${projectId}`,
+      "--service=bigquery.googleapis.com",
+      "--quota-id=QueryUsagePerDay",
       `--preferred-value=${queryQuotaMiB}`,
-      "--allow-missing", "--allow-high-percentage-quota-decrease", "--allow-quota-decrease-below-usage",
+      "--allow-missing",
+      "--allow-high-percentage-quota-decrease",
+      "--allow-quota-decrease-below-usage",
       "--quiet",
     );
     console.log(`Set project query quota to ${queryQuotaMiB / 1024} GiB/day`);

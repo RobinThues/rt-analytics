@@ -20,7 +20,8 @@ describe("PageviewTracker", () => {
     const analytics = createAnalytics(
       { appId: "t" },
       {
-        localStorage: fakeStorage(), sessionStorage: fakeStorage(),
+        localStorage: fakeStorage(),
+        sessionStorage: fakeStorage(),
         transport: { send: (_u, body) => void batches.push(JSON.parse(body)) },
       },
     );
@@ -47,7 +48,8 @@ describe("PageviewTracker", () => {
     const analytics = createAnalytics(
       { appId: "t" },
       {
-        localStorage: fakeStorage(), sessionStorage: fakeStorage(),
+        localStorage: fakeStorage(),
+        sessionStorage: fakeStorage(),
         transport: { send: (_u, body) => void batches.push(JSON.parse(body)) },
       },
     );

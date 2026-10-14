@@ -22,13 +22,27 @@ import { createBigQueryWriter, type EventRow } from "./bigquery-writer.js";
 
 function row(over: Partial<EventRow> = {}): EventRow {
   return {
-    event_id: "e1", app_id: "wordle", event_name: "$pageview",
+    event_id: "e1",
+    app_id: "wordle",
+    event_name: "$pageview",
     timestamp: new Date("2026-07-11T10:00:00Z"),
-    visitor_id: null, session_id: "s1", user_id: null, page_path: "/", referrer: null,
-    utm_source: null, utm_medium: null, utm_campaign: null, country: "DE",
-    browser: "Chrome", os: "macOS", device_type: "desktop",
-    viewport_w: 800, viewport_h: 600, props: null,
-    consent_state: "pending", sdk_version: "0.1.0",
+    visitor_id: null,
+    session_id: "s1",
+    user_id: null,
+    page_path: "/",
+    referrer: null,
+    utm_source: null,
+    utm_medium: null,
+    utm_campaign: null,
+    country: "DE",
+    browser: "Chrome",
+    os: "macOS",
+    device_type: "desktop",
+    viewport_w: 800,
+    viewport_h: 600,
+    props: null,
+    consent_state: "pending",
+    sdk_version: "0.1.0",
     ...over,
   };
 }
@@ -44,13 +58,17 @@ describe("createBigQueryWriter", () => {
     await b.write([row()]);
     await a.write([row({ event_id: "e2" })]);
     expect(createStreamConnection).toHaveBeenCalledTimes(2);
-    const tables = createStreamConnection.mock.calls.map((c) => (c[0] as { destinationTable: string }).destinationTable);
+    const tables = createStreamConnection.mock.calls.map(
+      (c) => (c[0] as { destinationTable: string }).destinationTable,
+    );
     expect(tables).toEqual(["projects/p/datasets/d_one/tables/events", "projects/p/datasets/d_two/tables/events"]);
   });
 
   it("initializes the stream connection once across writes", async () => {
     const w = createBigQueryWriter({
-      projectId: "p", datasetId: "analytics", tableId: "events",
+      projectId: "p",
+      datasetId: "analytics",
+      tableId: "events",
       credentials: { client_email: "sa@p.iam", private_key: "k" },
     });
     await w.write([row()]);
@@ -61,7 +79,9 @@ describe("createBigQueryWriter", () => {
 
   it("appends rows with null fields omitted and Date preserved", async () => {
     const w = createBigQueryWriter({
-      projectId: "p", datasetId: "analytics", tableId: "events",
+      projectId: "p",
+      datasetId: "analytics",
+      tableId: "events",
       credentials: { client_email: "sa@p.iam", private_key: "k" },
     });
     await w.write([row()]);

@@ -147,6 +147,7 @@ refreshes the cookie, so it does not expire while you use the site. Reopening th
 key gets a plain `404`. Batches with the cookie are dropped even if you later remove or rotate the key.
 
 Notes:
+
 - Each browser keeps its own cookies. On iOS, Safari, Chrome, Home Screen web apps and in-app
   browsers are all separate, so open the link in each one you use.
 - The link only works when the client posts to the route's real path. If you rewrite a public path
@@ -200,12 +201,12 @@ Check with a `SELECT COUNT(*)` on the same ids that they match rows before delet
 
 ## Consent model
 
-| Consent state | Storage | Visitor identity | Banner needed? |
-| --- | --- | --- | --- |
-| `pending` (default, before any choice) | none — nothing written to any storage | server-computed daily-rotating hash of `salt + IP + user-agent + appId` | no — no device storage happens |
-| `declined` | `localStorage`: consent decision only (`rta_consent=declined`); no visitor id | same daily-rotating hash as `pending` | no |
-| `accepted` | `localStorage`: consent decision (`rta_consent=accepted`) plus a persistent visitor id (`rta_vid`) | random UUID, persists indefinitely across visits | banner is what triggered this state |
-| `server` (server-side events) | none | none, or a pseudonym in `props` | no |
+| Consent state                          | Storage                                                                                            | Visitor identity                                                        | Banner needed?                      |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ----------------------------------- |
+| `pending` (default, before any choice) | none — nothing written to any storage                                                              | server-computed daily-rotating hash of `salt + IP + user-agent + appId` | no — no device storage happens      |
+| `declined`                             | `localStorage`: consent decision only (`rta_consent=declined`); no visitor id                      | same daily-rotating hash as `pending`                                   | no                                  |
+| `accepted`                             | `localStorage`: consent decision (`rta_consent=accepted`) plus a persistent visitor id (`rta_vid`) | random UUID, persists indefinitely across visits                        | banner is what triggered this state |
+| `server` (server-side events)          | none                                                                                               | none, or a pseudonym in `props`                                         | no                                  |
 
 The `pending` state — before any explicit choice — writes nothing to the browser at all: no
 cookie, no `localStorage`, no fingerprinting beyond a hash that intentionally rotates every day
@@ -354,14 +355,14 @@ Event names starting with `$` are reserved for this package's automatic events �
 prefix for your own custom event names (`track()` accepts any name matching `^\$?[a-z0-9_]{1,64}$`,
 but names you pass to `track()` should not start with `$`):
 
-| Event | When |
-| --- | --- |
-| `$pageview` | emitted by `<PageviewTracker />` on each App Router navigation, or manually via `analytics.page()` |
-| `$session_start` | first event of a new session (30-minute inactivity gap resets a session) |
-| `$web_vital` | Core Web Vitals (CLS, LCP, INP), captured automatically unless `captureWebVitals: false` |
-| `$error` | uncaught `window.onerror` / unhandled promise rejections, captured automatically unless `captureErrors: false` |
-| `$identify` | emitted by `analytics.identify(userId)` |
-| `$consent` | emitted whenever consent state changes (accept/decline); never in `cookieless` mode |
+| Event            | When                                                                                                           |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- |
+| `$pageview`      | emitted by `<PageviewTracker />` on each App Router navigation, or manually via `analytics.page()`             |
+| `$session_start` | first event of a new session (30-minute inactivity gap resets a session)                                       |
+| `$web_vital`     | Core Web Vitals (CLS, LCP, INP), captured automatically unless `captureWebVitals: false`                       |
+| `$error`         | uncaught `window.onerror` / unhandled promise rejections, captured automatically unless `captureErrors: false` |
+| `$identify`      | emitted by `analytics.identify(userId)`                                                                        |
+| `$consent`       | emitted whenever consent state changes (accept/decline); never in `cookieless` mode                            |
 
 ## Using with Jest
 

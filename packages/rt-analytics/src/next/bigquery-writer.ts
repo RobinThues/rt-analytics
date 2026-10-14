@@ -70,9 +70,7 @@ export function createBigQueryWriter(cfg: WriterConfig): RowWriter {
           cachedWriters.set(key, pending);
         }
         const writer = await pending;
-        const clean = rows.map((r) =>
-          Object.fromEntries(Object.entries(r).filter(([, v]) => v !== null)),
-        );
+        const clean = rows.map((r) => Object.fromEntries(Object.entries(r).filter(([, v]) => v !== null)));
         await writer.appendRows(clean).getResult();
       } catch (err) {
         cachedWriters.delete(key); // force reconnect for this table on next request

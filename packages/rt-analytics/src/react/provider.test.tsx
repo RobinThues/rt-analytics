@@ -94,9 +94,7 @@ describe("AnalyticsProvider listeners", () => {
 
   function errorsSent(): number {
     vi.advanceTimersByTime(6000);
-    return bodies
-      .flatMap((b) => (JSON.parse(b) as Batch).events)
-      .filter((e) => e.name === "$error").length;
+    return bodies.flatMap((b) => (JSON.parse(b) as Batch).events).filter((e) => e.name === "$error").length;
   }
 
   it("sends one $error per error under StrictMode", () => {

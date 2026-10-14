@@ -19,9 +19,7 @@ describe("hasIgnoreCookie", () => {
 
 describe("ignoreCookie", () => {
   it("sets a long-lived, path-scoped, HttpOnly cookie", () => {
-    expect(ignoreCookie("/api/a")).toBe(
-      "rta_ignore=1; Path=/api/a; Max-Age=34560000; HttpOnly; Secure; SameSite=Lax",
-    );
+    expect(ignoreCookie("/api/a")).toBe("rta_ignore=1; Path=/api/a; Max-Age=34560000; HttpOnly; Secure; SameSite=Lax");
   });
 
   it("clears it with Max-Age=0", () => {

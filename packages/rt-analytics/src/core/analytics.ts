@@ -35,8 +35,14 @@ export interface StartableAnalytics<E extends EventMap = EventMap> {
 
 function noop(): Analytics<never> {
   return {
-    track: () => {}, page: () => {}, identify: () => {}, reset: () => {}, flush: () => {},
-    getConsent: () => "pending", acceptConsent: () => {}, declineConsent: () => {},
+    track: () => {},
+    page: () => {},
+    identify: () => {},
+    reset: () => {},
+    flush: () => {},
+    getConsent: () => "pending",
+    acceptConsent: () => {},
+    declineConsent: () => {},
     onConsentChange: () => () => {},
   } as unknown as Analytics<never>;
 }
@@ -55,7 +61,9 @@ export function createAnalyticsUnstarted<E extends EventMap = EventMap>(
     : safeStorage(() => (deps.localStorage !== undefined ? deps.localStorage : isBrowser ? window.localStorage : null));
   const ss = cookieless
     ? null
-    : safeStorage(() => (deps.sessionStorage !== undefined ? deps.sessionStorage : isBrowser ? window.sessionStorage : null));
+    : safeStorage(() =>
+        deps.sessionStorage !== undefined ? deps.sessionStorage : isBrowser ? window.sessionStorage : null,
+      );
   const now = deps.now ?? Date.now;
 
   const consent = new ConsentManager(ls);
@@ -71,7 +79,12 @@ export function createAnalyticsUnstarted<E extends EventMap = EventMap>(
 
   let userId: string | null = null;
 
-  function buildEvent(name: string, props: Record<string, unknown>, sessionId: string, state: ConsentState): AnalyticsEvent {
+  function buildEvent(
+    name: string,
+    props: Record<string, unknown>,
+    sessionId: string,
+    state: ConsentState,
+  ): AnalyticsEvent {
     const url = isBrowser ? new URL(window.location.href) : null;
     return {
       eventId: crypto.randomUUID(),

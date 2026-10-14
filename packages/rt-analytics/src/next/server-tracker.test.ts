@@ -26,11 +26,25 @@ describe("createServerTracker", () => {
     expect(rows).toHaveLength(1);
     const row = rows[0]!;
     expect(row).toMatchObject({
-      app_id: "wetter", event_name: "calendar_poll", timestamp: NOW,
-      props: '{"kind":"token","client":"google"}', consent_state: "server",
-      visitor_id: null, session_id: null, user_id: null, page_path: null, referrer: null,
-      utm_source: null, utm_medium: null, utm_campaign: null, country: null,
-      browser: null, os: null, device_type: null, viewport_w: null, viewport_h: null,
+      app_id: "wetter",
+      event_name: "calendar_poll",
+      timestamp: NOW,
+      props: '{"kind":"token","client":"google"}',
+      consent_state: "server",
+      visitor_id: null,
+      session_id: null,
+      user_id: null,
+      page_path: null,
+      referrer: null,
+      utm_source: null,
+      utm_medium: null,
+      utm_campaign: null,
+      country: null,
+      browser: null,
+      os: null,
+      device_type: null,
+      viewport_w: null,
+      viewport_h: null,
     });
     expect(row.event_id).toMatch(/^[0-9a-f-]{36}$/);
     expect(row.sdk_version).toMatch(/^\d+\.\d+\.\d+$/);

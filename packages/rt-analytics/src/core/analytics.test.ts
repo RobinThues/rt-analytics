@@ -74,7 +74,10 @@ describe("createAnalytics", () => {
   });
 
   it("keeps sending when every storage access throws", () => {
-    const a = createAnalytics({ appId: "wordle" }, { ...deps, localStorage: throwingStorage(), sessionStorage: throwingStorage() });
+    const a = createAnalytics(
+      { appId: "wordle" },
+      { ...deps, localStorage: throwingStorage(), sessionStorage: throwingStorage() },
+    );
     expect(() => {
       a.acceptConsent();
       a.page();
@@ -84,7 +87,10 @@ describe("createAnalytics", () => {
   });
 
   it("keeps one session when storage writes fail (quota full)", () => {
-    const a = createAnalytics({ appId: "wordle" }, { ...deps, localStorage: quotaFullStorage(), sessionStorage: quotaFullStorage() });
+    const a = createAnalytics(
+      { appId: "wordle" },
+      { ...deps, localStorage: quotaFullStorage(), sessionStorage: quotaFullStorage() },
+    );
     a.acceptConsent();
     a.page();
     a.page();

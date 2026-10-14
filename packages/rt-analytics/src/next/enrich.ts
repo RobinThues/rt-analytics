@@ -14,20 +14,28 @@ export function isBot(ua: string | null): boolean {
 }
 
 export function parseUserAgent(ua: string): UAInfo {
-  const browser =
-    /edg\//i.test(ua) ? "Edge"
-    : /opr\//i.test(ua) ? "Opera"
-    : /chrome|crios/i.test(ua) ? "Chrome"
-    : /firefox|fxios/i.test(ua) ? "Firefox"
-    : /safari/i.test(ua) ? "Safari"
-    : "Other";
-  const os =
-    /windows/i.test(ua) ? "Windows"
-    : /android/i.test(ua) ? "Android"
-    : /iphone|ipad|ipod/i.test(ua) ? "iOS"
-    : /mac os/i.test(ua) ? "macOS"
-    : /linux/i.test(ua) ? "Linux"
-    : "Other";
+  const browser = /edg\//i.test(ua)
+    ? "Edge"
+    : /opr\//i.test(ua)
+      ? "Opera"
+      : /chrome|crios/i.test(ua)
+        ? "Chrome"
+        : /firefox|fxios/i.test(ua)
+          ? "Firefox"
+          : /safari/i.test(ua)
+            ? "Safari"
+            : "Other";
+  const os = /windows/i.test(ua)
+    ? "Windows"
+    : /android/i.test(ua)
+      ? "Android"
+      : /iphone|ipad|ipod/i.test(ua)
+        ? "iOS"
+        : /mac os/i.test(ua)
+          ? "macOS"
+          : /linux/i.test(ua)
+            ? "Linux"
+            : "Other";
   const deviceType = /ipad|tablet/i.test(ua) ? "tablet" : /mobile|iphone|android/i.test(ua) ? "mobile" : "desktop";
   return { browser, os, deviceType };
 }

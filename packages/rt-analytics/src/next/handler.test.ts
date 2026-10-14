@@ -14,10 +14,20 @@ function batchBody(over: Record<string, unknown> = {}) {
     consentState: "pending",
     events: [
       {
-        eventId: "e1", name: "$pageview", ts: "2026-07-11T11:59:00.000Z", sessionId: "s1",
-        visitorId: null, userId: null, pagePath: "/play", referrer: null,
-        utmSource: null, utmMedium: null, utmCampaign: null,
-        viewportW: 800, viewportH: 600, props: { a: 1 },
+        eventId: "e1",
+        name: "$pageview",
+        ts: "2026-07-11T11:59:00.000Z",
+        sessionId: "s1",
+        visitorId: null,
+        userId: null,
+        pagePath: "/play",
+        referrer: null,
+        utmSource: null,
+        utmMedium: null,
+        utmCampaign: null,
+        viewportW: 800,
+        viewportH: 600,
+        props: { a: 1 },
       },
     ],
     ...over,
@@ -62,9 +72,15 @@ describe("createAnalyticsHandler", () => {
     expect(res.status).toBe(202);
     const row = written[0]![0]!;
     expect(row).toMatchObject({
-      app_id: "wordle", event_name: "$pageview", country: "DE",
-      browser: "Chrome", os: "macOS", device_type: "desktop",
-      page_path: "/play", consent_state: "pending", props: '{"a":1}',
+      app_id: "wordle",
+      event_name: "$pageview",
+      country: "DE",
+      browser: "Chrome",
+      os: "macOS",
+      device_type: "desktop",
+      page_path: "/play",
+      consent_state: "pending",
+      props: '{"a":1}',
     });
     expect(row.timestamp).toEqual(new Date("2026-07-11T11:59:00.000Z"));
     expect(row.visitor_id).toMatch(/^d_[0-9a-f]{32}$/); // cookieless daily hash fallback
@@ -238,7 +254,13 @@ describe("ignore link", () => {
 
   it("answers 404 with an empty body for wrong, missing, empty, repeated or non-ASCII keys", async () => {
     const h = make(KEY);
-    for (const query of ["", "?ignore=wrong", "?ignore=", `?ignore=wrong&ignore=${KEY}`, `?ignore=${encodeURIComponent("ä".repeat(KEY.length))}`]) {
+    for (const query of [
+      "",
+      "?ignore=wrong",
+      "?ignore=",
+      `?ignore=wrong&ignore=${KEY}`,
+      `?ignore=${encodeURIComponent("ä".repeat(KEY.length))}`,
+    ]) {
       const res = await h.GET(get(query));
       expect(res.status, query).toBe(404);
       expect(res.headers.get("set-cookie")).toBeNull();

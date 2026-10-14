@@ -3,10 +3,20 @@ import { validateBatch } from "./validate.js";
 
 function validEvent(over: Record<string, unknown> = {}) {
   return {
-    eventId: "e1", name: "$pageview", ts: "2026-07-11T10:00:00.000Z", sessionId: "s1",
-    visitorId: null, userId: null, pagePath: "/x", referrer: null,
-    utmSource: null, utmMedium: null, utmCampaign: null,
-    viewportW: 800, viewportH: 600, props: {},
+    eventId: "e1",
+    name: "$pageview",
+    ts: "2026-07-11T10:00:00.000Z",
+    sessionId: "s1",
+    visitorId: null,
+    userId: null,
+    pagePath: "/x",
+    referrer: null,
+    utmSource: null,
+    utmMedium: null,
+    utmCampaign: null,
+    viewportW: 800,
+    viewportH: 600,
+    props: {},
     ...over,
   };
 }
@@ -38,7 +48,9 @@ describe("validateBatch", () => {
 
   it("truncates long strings and drops oversized or non-object props", () => {
     const long = "p".repeat(3000);
-    const b = validateBatch(validBatch({ events: [validEvent({ pagePath: long, props: { blob: "x".repeat(5000) } })] }));
+    const b = validateBatch(
+      validBatch({ events: [validEvent({ pagePath: long, props: { blob: "x".repeat(5000) } })] }),
+    );
     expect(b!.events[0]!.pagePath).toHaveLength(1024);
     expect(b!.events[0]!.props).toEqual({});
     const arr = validateBatch(validBatch({ events: [validEvent({ props: [1, 2] })] }));
