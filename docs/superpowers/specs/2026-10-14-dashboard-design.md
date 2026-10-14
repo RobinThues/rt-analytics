@@ -1,7 +1,7 @@
 # rt-analytics dashboard: Design
 
 **Date:** 2026-10-14
-**Status:** Decisions settled in a grilling session with Robin on 2026-10-13. Revised after review round 1 (fresh agent, 2026-10-14) with Robin's rulings: TypeScript 6.0 for the repo, one prop filter in the explorer, v1 scope cut and v2 defined. Waiting for review round 2 and Robin's review.
+**Status:** Decisions settled in a grilling session with Robin on 2026-10-13. Revised after review round 1 (fresh agent, 2026-10-14) with Robin's rulings: TypeScript 6.0 for the repo, one prop filter in the explorer, v1 scope cut and v2 defined. Review round 2 (fresh agent, 2026-10-14) fixes worked in. Waiting for Robin's review.
 **Builds on:** [2026-07-11-rt-analytics-design.md](2026-07-11-rt-analytics-design.md), [2026-10-12-rt-analytics-0.2.0-design.md](2026-10-12-rt-analytics-0.2.0-design.md)
 
 ## Goal
@@ -46,16 +46,19 @@ docs/                        unchanged
 
 ### TypeScript 6.0 for the whole repo
 
-The standard stack says: latest TypeScript, and fall back to the previous major only when a tool does not support it yet, with a note why. That applies here. `eslint-config-next` 16.4 depends on `typescript-eslint` 8, whose peer range is `typescript >=4.8.4 <6.1.0` (8.71.2, checked 2026-10-14). The maintainers will not support TypeScript 7 before it has a JS API ([typescript-eslint#12518](https://github.com/typescript-eslint/typescript-eslint/issues/12518)). With one root lockfile, TS 7 would make `npm ci` fail for the whole repo, including the release workflow.
+The standard stack says: latest TypeScript, and fall back to the previous major only when a tool does not support it yet, with a note why. That applies here. `eslint-config-next` 16.4 depends on `typescript-eslint` 8, whose peer range is `typescript >=4.8.4 <6.1.0` (8.71.2, checked 2026-10-14). The maintainers will not support TypeScript 7 before it has a JS API ([typescript-eslint#12518](https://github.com/typescript-eslint/typescript-eslint/issues/12518)). With TS 7, `npm ci` only warns about the peer range, but ESLint then refuses to run ("typescript-eslint does not support TS 7.0"), so linting is impossible.
 
-So the repo uses TypeScript 6.0.3 everywhere, the library included. This only affects dev tooling: the library's published JavaScript and `.d.ts` output is checked to be unchanged. We move back to TS 7 when `typescript-eslint` supports it (Follow-ups).
+So the repo uses TypeScript 6.0.3 everywhere, the library included (one root lockfile, one version). This only affects dev tooling. Review round 2 checked it on a copy of the repo: the library's `dist` is byte-identical to the TS 7 build, `typecheck` and `typecheck:dist` pass, all tests pass, and tsdown 0.23.1 accepts TS 6. We move back to TS 7 when `typescript-eslint` supports it (Follow-ups).
+
+ESLint 10.12 is newer than the peer ranges of some plugins bundled in `eslint-config-next` 16.4 (react, import, jsx-a11y stop at ESLint 9). They install with warnings and all rules run correctly; ESLint 9 is no longer supported. So we use ESLint 10, and `npm ls` (which reports those plugins as "invalid") is not used as a CI gate.
 
 ### What the move changes
 
 - Library scripts (`build`, `test`, `typecheck`, `typecheck:dist`, `prepublishOnly`, `prepare`) move to `packages/rt-analytics/package.json`, which also gets `repository.directory: "packages/rt-analytics"`. LICENSE is copied into the package folder (the root keeps one for GitHub), so the tarball still contains it.
 - `release.yml`: the tag guard reads `packages/rt-analytics/package.json`, and publish runs with `working-directory: packages/rt-analytics`. Tags stay `vX.Y.Z` and mean library releases only. The published file list must be identical before and after the move (`npm pack --dry-run`).
-- Root `package.json`: `npm test` runs `npm test --workspaces --if-present`. It keeps `setup:gcp` and `pseudonymize`, adds `demo:generate`, and gets `tsx` and `@google-cloud/bigquery` as dev dependencies for the scripts.
-- `scripts/pseudonymize.ts` imports `rt-analytics/next` (workspace package) instead of `../src/next/server-tracker.js`. Its test (`pseudonymize-script.test.ts`) moves to a root `scripts/` test and resolves the script path from `import.meta.url`, so it does not depend on the working directory.
+- Root `package.json`: keeps `setup:gcp` and `pseudonymize`, adds `demo:generate`, and gets `tsx`, `vitest` and `@google-cloud/bigquery` as dev dependencies for the scripts. A root `vitest.config.ts` covers `scripts/**/*.test.ts`. Root `npm test` runs the root script tests and then `npm test --workspaces --if-present`.
+- `scripts/pseudonymize.ts` imports `rt-analytics/next` (workspace package) instead of `../src/next/server-tracker.js`. This works because npm runs the library's `prepare` (build) on `npm install` and `npm ci`, so `dist` exists.
+- Its test moves to `scripts/pseudonymize.test.ts` and resolves the script path from `import.meta.url`. It no longer imports the internal `pseudonymizeWith`; it computes the expected value with `createServerTracker({ appId, salt }).pseudonymize()` from the public API.
 - `.env.analytics` and `key.json` stay at the repo root, gitignored. The scripts keep reading them from the root.
 - `apps/demo`: depends on `"rt-analytics": "*"` (workspace), its own `package-lock.json` is deleted, `.gitignore` entries move from `example/` to `apps/demo/`.
 - The library's `engines` stays `>=22` (consumer-facing). The apps use Node 24 LTS (Vercel default).
@@ -75,7 +78,7 @@ The library code uses these constants instead of literals, so a rename breaks th
 ### SQL template fixes (library PR)
 
 - `sql/templates/retention.sql` filters persistent IDs with `visitor_id NOT LIKE 'd_%'`. In LIKE, `_` matches any character, so persistent UUIDs that start with `d` (about 1 in 16) are dropped. Fix: `NOT STARTS_WITH(visitor_id, 'd_')`, plus a partition filter.
-- `sql/templates/funnel.sql` takes the first occurrence of each step independently, which is wrong when an event repeats. Fix it to the step rule in section 7.
+- `sql/templates/funnel.sql` takes the first occurrence of each step independently, which is wrong when an event repeats. Fix it to the step rule in section 7. The template keeps its unit (visitor) and gets a comment that only persistent IDs make sense across days; the dashboard's own funnel uses sessions.
 
 The dashboard does not use the views in `sql/views/`. They have no partition filter, so the dashboard builds its own SQL.
 
@@ -200,7 +203,9 @@ With `cacheComponents`, anything that reads cookies (session, Live toggle) rende
 ### Test login (Playwright only)
 
 - Enabled only when all of these hold: `DASHBOARD_TEST_LOGIN=1`, `DASHBOARD_TEST_LOGIN_SECRET` set (at least 32 characters), and `VERCEL_ENV` unset or `development`.
-- The route `/api/test-login` requires the secret in a header and creates a normal session for an email that must be on the allowlist.
+- Built as a small Better Auth plugin endpoint (`createAuthEndpoint`, path `/api/auth/test-login`), not as a plain Next route. Better Auth 1.7.7 only creates users inside its own endpoint context when `validateUserInfo` is set (`validation_context_missing` otherwise), and the bundled `test-utils` plugin does not set the stateless `session_data` cookie.
+- The endpoint checks the guard and the secret (header), then creates the user with source `{ method: "test" }` and sets the session cookies with `setSessionCookie`. The email must be on the allowlist.
+- `validateUserInfo` accepts `method === "test"` only while the guard holds. Otherwise it requires an OAuth sign-in with Google and a verified email.
 - `instrumentation.ts` `register()` checks at startup: if `DASHBOARD_TEST_LOGIN=1` and `VERCEL_ENV` is `production` or `preview`, it throws and the app does not start.
 
 ## 5. Query layer
@@ -208,8 +213,9 @@ With `cacheComponents`, anything that reads cookies (session, Live toggle) rende
 `runQuery({ sql, params })` is the only way the app talks to BigQuery. A cached wrapper sits in front of it (below).
 
 - Always parameterized (`@app_id`, `@from_ts`, `@to_ts`, `@tz`, `@event`, `@prop_key`, `@prop_value`, ...). No user input ever goes into SQL text.
-- Props are read with the JSON subscript operator, which takes a STRING expression, so the key is a parameter: `LAX_STRING(props[@prop_key])`. Prop keys are still validated before use: they must match `^[A-Za-z0-9_]{1,64}$` and be in the discovered key list for that event.
-- Every query on `analytics.events` filters `app_id` and a `timestamp` range, so partition pruning and clustering (`app_id, event_name`) apply.
+- Props are read with the JSON subscript operator, which takes a STRING expression, so the key is a parameter: `LAX_STRING(props[@prop_key])` (checked with a real query in review round 2, also for number and boolean values). Prop keys are still validated before use: at most 128 characters, not quoted by `JSON_KEYS` (BigQuery quotes keys like `a.b`), and in the discovered key list for that event or used in a saved funnel of that app.
+- Every query on `analytics.events` filters a `timestamp` range, so partition pruning applies. Every query except the app list (section 5, Discovery) also filters `app_id`, so clustering (`app_id, event_name`) applies.
+- Time values that change on every request (like "now") are never passed as parameters, because parameters are part of the cache key. The SQL uses `CURRENT_TIMESTAMP()` instead (see the partial-today cut in section 6), so the default view keeps hitting the cache.
 - Results are mapped to plain JSON before they leave `runQuery`: the SQL casts dates and timestamps to STRING and numbers to INT64 or FLOAT64, so no `BigQueryDate`, `BigQueryTimestamp` or Big.js objects reach the cache or React.
 - Location `EU`.
 
@@ -223,18 +229,20 @@ With `cacheComponents`, anything that reads cookies (session, Live toggle) rende
 
 BigQuery's own result cache does not help here: it is skipped for tables that recently received streaming writes, which is always true for `events` ([BigQuery cached results](https://cloud.google.com/bigquery/docs/cached-results)). The app's own cache is the only one.
 
-- **Data queries** go through a function with `'use cache: remote'` (Vercel runtime cache, shared by all instances), `cacheTag('bq:<appId>')` and `cacheLife({ stale: min(300, TTL), revalidate: TTL, expire: 2 × TTL })`. Without `revalidate` and `stale`, Next fills them from its default profile, so all three are set explicitly ([cacheLife](https://nextjs.org/docs/app/api-reference/functions/cacheLife)).
-- `DASHBOARD_CACHE_TTL_SECONDS` sets TTL (default 3600). `0` means: the app calls `runQuery` directly and never the cached function.
+- All cache tags start with `rtd:`. On the Hobby plan the runtime cache is shared by all projects of the team, so generic tags could clash with dwd's.
+- **Data queries** go through a function with `'use cache: remote'` (Vercel runtime cache, shared by all instances), `cacheTag('rtd:bq:<appId>')` and `cacheLife({ stale: min(300, TTL), revalidate: TTL, expire: 2 × TTL })`. Without `revalidate` and `stale`, Next fills them from its default profile, so all three are set explicitly ([cacheLife](https://nextjs.org/docs/app/api-reference/functions/cacheLife)). These values are valid for any TTL above 0.
+- `DASHBOARD_CACHE_TTL_SECONDS` sets TTL (default 3600). It is parsed and checked at startup (whole number, 0 or more); an invalid value stops the app, because `cacheLife` throws on non-finite numbers. `0` means: the app calls `runQuery` directly and never the cached function.
+- The BigQuery client gets its OIDC token inside the cached function (`getVercelOidcToken()` reads it from the request context). The proof query in "Dashboard part 1" (section 11) goes through the cached path and includes one forced stale revalidation, to confirm that the token is also available when Next refreshes an entry in the background.
 - **Live toggle:** sets the cookie `rtd_live=1` for this browser. The cookie is read outside the cached function. While it is set, data queries call `runQuery` directly. A "Live" badge shows in the header. Live costs real bytes on every load, because there is no other cache.
-- **Discovery and app list** use a separate cached function with tags `discovery:<appId>` and `apps`, TTL 24 hours. Live does not skip them, so a Live page load never re-runs the expensive discovery scans.
-- **Refresh button:** a server action calls `updateTag` for `bq:<appId>`, `discovery:<appId>` and `apps`, so the next load queries BigQuery again for everyone and new events appear.
-- **Config reads** are cached with tag `config`, invalidated with `updateTag('config')` after every write. Live and Refresh do not affect them.
+- **Discovery and app list** use a separate cached function with tags `rtd:discovery:<appId>` and `rtd:apps`, TTL 24 hours. Live does not skip them, so a Live page load never re-runs the expensive discovery scans.
+- **Refresh button:** a server action calls `updateTag` for `rtd:bq:<appId>`, `rtd:discovery:<appId>` and `rtd:apps`, so the next load queries BigQuery again for everyone and new events appear.
+- **Config reads** are cached with tag `rtd:config`, invalidated with `updateTag('rtd:config')` after every write. Live and Refresh do not affect them.
 - Remote cache entries do not survive a new deployment, so every dashboard deploy starts with an empty cache. Section 10 keeps deploys rare.
 
 ### Discovery (bounded)
 
-- **App list:** distinct `app_id` over the last 7 days (reads only `app_id` and `timestamp`), plus every app ID in `dashboard_config`.
-- **Event names:** distinct non-`$` `event_name` with counts over the last 30 days (reads only `app_id`, `event_name`, `timestamp`).
+- **App list:** distinct `app_id` over the last 7 days (reads only `app_id` and `timestamp`), plus every app ID in `dashboard_config`. This is the one query without an `app_id` filter.
+- **Event names:** distinct non-`$` `event_name` over the last 30 days, with the event count and `COUNTIF(visitor_id IS NOT NULL)` and `COUNTIF(session_id IS NOT NULL)`, so the explorer knows which metrics make sense for each event (reads only `app_id`, `event_name`, `timestamp`, `visitor_id`, `session_id`).
 - **Prop keys:** for each event, top-level keys over the last 7 days whose values are strings, numbers or booleans: `UNNEST(JSON_KEYS(props, 1)) AS k` with `JSON_TYPE(props[k])`. Keys that BigQuery returns quoted (special characters) fail the key rule and are skipped. Nested objects and arrays are ignored. This is the query that reads `props`, so it gets the shortest window.
 
 ### Errors
@@ -247,7 +255,7 @@ Each panel renders in its own Suspense boundary and error boundary. A failing qu
 
 - Every app has a timezone in `dashboard_config` (`app_settings.timezone`, IANA name), default `Europe/Berlin`.
 - A day is `DATE(timestamp, @tz)`. A range `from..to` covers `[from 00:00, to+1 00:00)` in the app timezone, converted to UTC timestamps for the partition filter.
-- **Previous period:** the same number of calendar days, ending the day before `from` (calendar days, not hours, so DST changes do not shift it). When the range includes today, the previous period's last day is cut at the same time of day, so a half day is compared with a half day. KPI tiles show the change in percent; time series show the previous period as a dashed line aligned by day offset.
+- **Previous period:** the same number of calendar days, ending the day before `from` (calendar days, not hours, so DST changes do not shift it). When the range includes today, the previous period's last day is cut at the same time of day, so a half day is compared with a half day. The cut is computed in SQL, not passed in: `TIMESTAMP_ADD(@prev_last_day_start, INTERVAL TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), @today_start, SECOND) SECOND)`. All parameters stay stable for the whole day, so the cache keeps working. KPI tiles show the change in percent; time series show the previous period as a dashed line aligned by day offset.
 
 ### Sessions
 
@@ -260,7 +268,7 @@ The SDK's session data has quirks the definitions must handle (`src/core/session
 Definitions:
 
 - A **session** is a `session_id` with at least one `$pageview`. Sessions without a pageview are not counted anywhere.
-- A session belongs to the day (and range) of its first event. To see the rest of a session that starts near the end of the range, queries read events up to one day past `to`.
+- A session belongs to the day (and range) of its first event. Queries read events from one day before `from` to one day after `to`: the day before finds sessions that started earlier (they belong to the earlier day and are not counted), the day after shows the rest of sessions that start near the end of the range. SDK sessions have no maximum length, so a session longer than a day is still split; that is rare enough to accept (Known limits).
 - **Bounce rate:** share of sessions with exactly one `$pageview`.
 
 ### Identity kinds
@@ -278,11 +286,11 @@ The `d_` daily hash in the ingest uses the UTC day (`src/next/enrich.ts:36`). A 
 ### Metrics
 
 - **Visitors per day:** distinct `visitor_id` per day over client events, all kinds. This is the main visitor number in time series.
-- **Visitors for a range:** the average of the daily values. Daily IDs are never counted across days.
+- **Visitors for a range:** the sum of the daily values divided by the number of calendar days in the range (today counts as one day, also when partial). Days without data count as 0. Daily IDs are never counted across days. Labels say "per day". The same rule applies to every "per day" number: breakdown rows, explorer metrics, and "distinct values of a prop". It is cheap to compute (`GROUP BY day, dimension`, then sum and divide).
 - **Persistent people in range:** distinct person keys with a persistent ID, shown with coverage.
 - **Coverage:** share of sessions in the range with a persistent ID. Shown on every persistent-only panel, e.g. "based on 14 % of sessions".
 - **Returning visitors (persistent only):** persistent people active on two or more distinct days in the range.
-- **Retention (persistent only):** weekly cohorts (weeks start Monday, app timezone) of persistent people whose first event in the range has no earlier event in the 28 days before `from` ("new in range"). Each cohort row shows the share active in each later week. The 28-day lookback reads only `visitor_id`, `user_id` and `timestamp`.
+- **Retention (persistent only):** weekly cohorts (weeks start Monday, app timezone) of persistent people whose first event in the range has no earlier event in the 28 days before `from` ("new in range"). Each cohort row shows the share active in each later week. The 28-day lookback reads only `visitor_id`, `user_id` and `timestamp`; someone last seen more than 28 days before `from` counts as new. Retention has no compare.
 - **Sources:** per session, the referrer host and UTM fields of its first `$pageview`. Hosts listed in `app_settings.hosts` (the app's own domains) and empty referrers count as "direct". Without that setting, full page loads between the app's own pages would show the app as its own top source.
 - **Breakdown tables in the overview** (pages, sources, countries, devices, browsers, OS) show two counts per row: pageviews and visitors (average per day, as above).
 
@@ -309,7 +317,7 @@ The `d_` daily hash in the ingest uses the UTC day (`src/next/enrich.ts:36`). A 
   - visitors with the event (per day; the range total is the daily average, as in section 6),
   - distinct values of a prop per day.
 - **Filter:** at most one condition, "prop = value". The value is picked from the prop's top values or typed in.
-- **Breakdown by one prop:** top 20 values plus "other", with the selected metric and compare.
+- **Breakdown by one prop:** the 20 values with the most events in the range, plus "other", with the selected metric and compare. "Other" is computed in SQL by grouping with `CASE WHEN value IN (top 20) THEN value ELSE 'other' END`, not as total minus top 20, because distinct counts do not add up. The same applies to the overview breakdown tables (ranked by pageviews).
 - Example: `calendar_poll`, metric "distinct values of `subscription`", filter `kind = token` gives the number of dwd subscriptions polled per day with the new token links. It is close to dwd's own active-subscription definition but not the same (dwd also requires polls on two or more days and excludes browser clients); that metric is v2.
 - Server events (like dwd's `calendar_poll`) are normal events here. Visitor and session metrics are hidden for an event when none of its rows has those IDs.
 
@@ -318,7 +326,7 @@ The `d_` daily hash in the ingest uses the UTC day (`src/next/enrich.ts:36`). A 
 - 2 to 5 steps. Each step is a discovered event (including `$pageview`) with an optional filter: "prop = value", or for `$pageview` "path = value".
 - Unit: session. Steps must happen in order within one session.
 - Step rule: step 1 is the first occurrence of event 1 in the session. Step k is the first occurrence of event k with a timestamp strictly after the timestamp of step k-1. Events with the same timestamp as the previous step do not count.
-- A session belongs to the range if its step 1 is in the range. Later steps may happen up to one day past `to` (same tail rule as sessions).
+- A session belongs to the range by its first event (the session rule from section 6). Later steps may happen up to one day past `to` (same tail rule).
 - Output: count per step, conversion from the first and from the previous step, and the previous period's numbers when compare is on.
 - Known limit: cookieless sessions end at full page loads and at consent acceptance, so a funnel that crosses either loses those sessions.
 - **Save:** name the funnel, stored in `dashboard_config` (`kind = funnel`, value `{ steps }`). Saved funnels are listed per app, open by `?funnel=<id>`, and can be deleted. To change one, save it again under a new name.
@@ -353,22 +361,24 @@ Cleanup: `DELETE FROM analytics.events WHERE app_id = 'demo'`. The ingest writes
 
 - `appId: "demo"`, shows the library's consent banner so both cookieless and consented paths are exercised.
 - A few pages and buttons that send the same events as the generator's profile, so live events join the generated history.
-- Its ingest route uses the existing writer credentials from `.env.analytics` and `allowedAppIds: ["demo"]`.
+- Its ingest route uses the existing writer credentials from the root `.env.analytics` and `allowedAppIds: ["demo"]`. Next only loads `.env*` files from the app folder, so the demo's `dev` and `start` scripts load the root file explicitly (`node --env-file=../../.env.analytics`).
 - It is also the integration reference for new projects (wordle and others).
 
 ## 9. Testing
 
-- **Unit (Vitest, node):** every query builder (SQL shape, params, partition filter and `app_id` filter present, no user input in SQL text), prop key validation, range and timezone math including DST changes, previous-period math including the partial-today cut, session and funnel step rules, identity kind rules, allowlist check, test-login guard, the Live/TTL decision, row mapping to plain JSON.
+- **Unit (Vitest, node):** every query builder (SQL shape, params, partition filter present, `app_id` filter present except in the app list, no user input in SQL text, no request-time values in params), prop key validation, range and timezone math including DST changes, previous-period math including the partial-today cut, session and funnel step rules, identity kind rules, allowlist check, test-login guard, the Live/TTL decision, row mapping to plain JSON.
 - **Dry-run integration (opt-in, like the existing `bigquery-writer.integration.test.ts`):** every query builder runs as a BigQuery dry run against `app_id = 'demo'` for a 90-day range with compare on (180 days read). Dry runs are free, validate the SQL, and return the bytes estimate; the test fails if the estimate is over the cap.
 - **Component (Vitest + happy-dom + Testing Library):** KPI tiles with and without compare, coverage notes, panel error and byte-cap states, filter picker, funnel step editor.
-- **End-to-end (Playwright, local only):** test login, pick the demo app, check that overview, explorer and funnels render data, save and reopen a funnel, toggle Live and Refresh. Runs against `next start` with real demo data.
+- **End-to-end (Playwright, local only):** test login, pick the demo app, check that overview, explorer and funnels render data, save and reopen a funnel, toggle Live and Refresh. Runs against `next start` with real demo data. `next start` loads env files in production mode, so it would not read `.env.development.local` (GCP values, OIDC token). `playwright.config.ts` therefore calls `loadEnvConfig(appDir, true)` from `@next/env` and passes the result to `webServer.env`.
 - **Library:** the existing suites keep passing after the monorepo move and the TS 6 switch; the published file list and the built output are unchanged.
 
 ## 10. Deployment
 
 - New Vercel project for the dashboard: root directory `apps/dashboard`, "Include files outside the root directory" on, Node 24.
 - Build: the library is built first (`npm run build -w rt-analytics`), then the dashboard.
-- Skipping: Vercel's built-in monorepo skipping treats every change outside the workspaces (docs, `sql/`, `scripts/`, root files) as global and would redeploy, which also empties the remote cache. So the project uses an `ignoreCommand` instead: `git diff --quiet $VERCEL_GIT_PREVIOUS_SHA HEAD -- apps/dashboard packages/rt-analytics package-lock.json` (exit 0 skips the build).
+- Skipping: Vercel's built-in monorepo skipping treats every change outside the workspaces (docs, `sql/`, `scripts/`, root files) as global and would redeploy, which also empties the remote cache. So the project uses an `ignoreCommand` instead, pointing to a script file `apps/dashboard/scripts/ignore-build.sh`. Vercel runs it inside the root directory (`apps/dashboard`), so paths must be repo-relative:
+  - `VERCEL_GIT_PREVIOUS_SHA` empty (first deployment of a branch): exit 1, build.
+  - Otherwise: `git diff --quiet "$VERCEL_GIT_PREVIOUS_SHA" HEAD -- ':/apps/dashboard' ':/packages/rt-analytics' ':/package-lock.json'`. Exit 0 skips the build; any other exit code builds, including 128 when a shallow clone lacks the old commit.
 - Domain: the default `*.vercel.app` URL while building. Later `analytics.thues.eu` with one CNAME at the DNS host of thues.eu, plus the redirect URI in the OAuth client and `BETTER_AUTH_URL`.
 - OIDC for the project uses the team issuer mode.
 
@@ -390,7 +400,7 @@ Cleanup: `DELETE FROM analytics.events WHERE app_id = 'demo'`. The ingest writes
 | `DASHBOARD_MAX_BYTES_PER_QUERY` | production, development | default 1000000000 |
 | `DASHBOARD_TEST_LOGIN`, `DASHBOARD_TEST_LOGIN_SECRET` | never | local only |
 
-Local development: Vercel cannot give sensitive variables to the development environment. So `vercel env pull .env.development.local` brings the non-secret values and the `VERCEL_OIDC_TOKEN`, and a hand-written `apps/dashboard/.env.local` (gitignored) holds the local secrets: `BETTER_AUTH_SECRET` (a separate local value), `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `DASHBOARD_ALLOWED_EMAILS`, and the test-login values.
+Local development: Vercel cannot give sensitive variables to the development environment. So `vercel env pull .env.development.local` brings the non-secret values and the `VERCEL_OIDC_TOKEN`, and a hand-written `apps/dashboard/.env.local` (gitignored) holds the local secrets: `BETTER_AUTH_SECRET` (a separate local value), `BETTER_AUTH_URL=http://localhost:3000`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `DASHBOARD_ALLOWED_EMAILS`, and the test-login values. `apps/dashboard` is linked with `vercel link`, so `@vercel/oidc` can refresh an expired development token by itself (it uses `.vercel/project.json` and the CLI login).
 
 Secrets are backed up in Robin's Chrome Password Manager (one entry per secret: site = service, username = variable name, password = value, note = project and purpose). The existing copies in Robin's Downloads folder stay.
 
@@ -401,10 +411,10 @@ One PR each, in this order:
 1. **Monorepo move** and TypeScript 6.0.3 for the repo. No behavior change; the release workflow still publishes the library with the same file list and built output.
 2. **ESLint and Prettier for the library** (standard stack migration, separate small task).
 3. **Library:** `rt-analytics/schema` entry and constants; `retention.sql` and `funnel.sql` template fixes.
-4. **GCP:** `analytics_dashboard`, service account, workload identity pool (`setup:gcp --dashboard`), OAuth client by hand.
-5. **Dashboard part 1:** app skeleton, Better Auth with allowlist and test login, `proxy.ts`, deploy to `*.vercel.app`, and one test query through OIDC to prove access.
-6. **Dashboard part 2:** query layer, cache, Live, Refresh, byte cap, discovery, app picker, settings page, header.
-7. **Demo:** generator with the dwd profile, demo app.
+4. **Demo:** generator with the dwd profile, demo app. Comes early so the dashboard is built against demo data from the start; it only needs the `schema` entry and Robin's `gcloud` login.
+5. **GCP:** `analytics_dashboard`, service account, workload identity pool (`setup:gcp --dashboard`), OAuth client by hand.
+6. **Dashboard part 1:** app skeleton, Better Auth with allowlist and test login, `proxy.ts`, deploy to `*.vercel.app`, and one proof query through OIDC and the cached path (section 5).
+7. **Dashboard part 2:** query layer, cache, Live, Refresh, byte cap, discovery, app picker, settings page, header.
 8. **Overview** page.
 9. **Events explorer** with filter.
 10. **Funnel builder** with saved funnels.
@@ -414,11 +424,12 @@ One PR each, in this order:
 
 - Cookieless visitors cannot be followed across days. Persistent-only panels show coverage instead of guessing.
 - Cookieless sessions restart on full page loads; consent acceptance splits a visit into two sessions and two visitors.
+- A session longer than one day (rare, the SDK has no maximum session length) is split at the read window.
 - One person counts twice after `identify()`.
 - Small overcount of daily visitors around 00:00 UTC.
 - Funnels only work within one session.
 - Sign-in does not work on preview deployments.
-- Discovery looks at event names of the last 30 days and prop keys of the last 7 days, top-level scalar props only.
+- Discovery looks at event names of the last 30 days and prop keys of the last 7 days, top-level scalar props only. Keys that `JSON_KEYS` returns quoted (like `a.b`) are skipped.
 - The byte cap works on an upper-bound estimate that includes other apps' rows in the same partitions.
 - Demo rows share the table with real apps; maintenance SQL by date or app must filter by `app_id`.
 
