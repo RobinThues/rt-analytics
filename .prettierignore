@@ -7,3 +7,5 @@ claude-tmp-helpers
 **/next-env.d.ts
 .superpowers
 docs
+test-results
+playwright-report
