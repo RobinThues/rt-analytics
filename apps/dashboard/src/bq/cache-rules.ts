@@ -21,20 +21,32 @@ export function usesCache(opts: { live: boolean; ttl: number }): boolean {
 
 const FAILURE_PREFIX = "rtd-query-failure:";
 
-/** Inside the cached function: failures throw, so they are never stored in the cache. */
+/**
+ * Inside the cached function: failures throw, so they are never stored in the cache. The failure code goes
+ * into `digest` too: in production React replaces the message across the 'use cache' boundary and keeps
+ * only the digest.
+ */
 export function rowsOrThrow<T>(res: QueryResult<T>): T[] {
   if (res.ok) return res.rows;
-  throw new Error(`${FAILURE_PREFIX}${res.error}:${res.message}`);
+  throw Object.assign(new Error(`${FAILURE_PREFIX}${res.error}:${res.message}`), {
+    digest: `${FAILURE_PREFIX}${res.error}`,
+  });
 }
 
 /** Outside the cached function: turns a thrown failure back into a result panels can render. */
 export function failureFrom(err: unknown): QueryResult<never> {
   const message = err instanceof Error ? err.message : String(err);
-  if (message.startsWith(FAILURE_PREFIX)) {
-    const rest = message.slice(FAILURE_PREFIX.length);
+  const digest = (err as { digest?: unknown } | null)?.digest;
+  const tagged = message.startsWith(FAILURE_PREFIX) ? message : typeof digest === "string" ? digest : "";
+  if (tagged.startsWith(FAILURE_PREFIX)) {
+    const rest = tagged.slice(FAILURE_PREFIX.length);
     const i = rest.indexOf(":");
-    const code = rest.slice(0, i);
-    return { ok: false, error: code === "bytes-cap" ? "bytes-cap" : "failed", message: rest.slice(i + 1) };
+    const code = i === -1 ? rest : rest.slice(0, i);
+    return {
+      ok: false,
+      error: code === "bytes-cap" ? "bytes-cap" : "failed",
+      message: i === -1 ? message : rest.slice(i + 1),
+    };
   }
   return { ok: false, error: "failed", message };
 }

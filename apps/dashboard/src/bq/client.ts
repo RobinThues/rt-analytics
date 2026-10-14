@@ -22,3 +22,19 @@ export function createBigQuery(env: DashboardEnv): BigQuery {
   if (!authClient) throw new Error("Could not build the GCP external account client");
   return new BigQuery({ projectId, location: "EU", authClient });
 }
+
+const clients = new Map<string, BigQuery>();
+
+/**
+ * One client per GCP configuration and process: the auth client caches its access token, so only the
+ * first query (and token expiry) pays for the STS exchange and the impersonation call.
+ */
+export function getBigQuery(env: DashboardEnv): BigQuery {
+  const key = JSON.stringify(env.gcp);
+  let client = clients.get(key);
+  if (!client) {
+    client = createBigQuery(env);
+    clients.set(key, client);
+  }
+  return client;
+}

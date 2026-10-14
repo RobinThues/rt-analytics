@@ -33,4 +33,17 @@ describe("failures are thrown, never returned from the cached function", () => {
     expect(failureFrom(caught)).toEqual({ ok: false, error: "bytes-cap", message: "Query exceeded limit | 1 GB" });
     expect(failureFrom(new Error("network down"))).toEqual({ ok: false, error: "failed", message: "network down" });
   });
+  it("keeps the failure code in the digest, which survives production error redaction", () => {
+    let caught: unknown;
+    try {
+      rowsOrThrow({ ok: false, error: "bytes-cap", message: "limit" });
+    } catch (e) {
+      caught = e;
+    }
+    // In production, React only passes the digest across the 'use cache' boundary; the message is replaced.
+    const redacted = Object.assign(new Error("An error occurred in the Server Components render."), {
+      digest: (caught as { digest?: string }).digest,
+    });
+    expect(failureFrom(redacted)).toMatchObject({ ok: false, error: "bytes-cap" });
+  });
 });
