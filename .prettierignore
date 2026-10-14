@@ -1,0 +1,9 @@
+dist
+node_modules
+.next
+package-lock.json
+CHANGELOG.md
+claude-tmp-helpers
+apps/demo/next-env.d.ts
+.superpowers
+docs

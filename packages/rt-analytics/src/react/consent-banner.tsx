@@ -23,6 +23,8 @@ export function ConsentBanner({
   const [state, setState] = useState<ConsentState>("pending");
 
   useEffect(() => {
+    // Consent lives in browser storage, unknown during SSR: render only after mount to avoid a hydration mismatch.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional mount flag, runs once per instance
     setMounted(true);
     setState(analytics.getConsent());
     return analytics.onConsentChange(setState);

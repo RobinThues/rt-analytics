@@ -26,7 +26,7 @@ describe("SessionManager", () => {
   });
 
   it("persists the session in storage when consent is accepted", () => {
-    let t = 0;
+    const t = 0;
     const storage = fakeStorage();
     const a = new SessionManager(storage, () => t);
     const first = a.touch("accepted");
@@ -42,7 +42,7 @@ describe("SessionManager", () => {
   });
 
   it("reset() forgets the current session", () => {
-    let t = 0;
+    const t = 0;
     const storage = fakeStorage();
     const s = new SessionManager(storage, () => t);
     const first = s.touch("accepted");
