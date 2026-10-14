@@ -14,7 +14,8 @@ export const dwdProfile: DemoProfile = {
   // UTC hours: morning and evening peaks in Berlin time (UTC+1/+2).
   hourWeights: [1, 0.5, 0.3, 0.3, 1, 3, 5, 5, 4, 3, 3, 3, 3, 3, 3, 3, 4, 5, 5, 4, 3, 2, 1.5, 1],
   consent: { pending: 0.8, accepted: 0.15, declined: 0.05 },
-  returnChancePerDay: 0.12,
+  // About 1.5 return visits per consented visitor over its lifetime (the chance fades, see simulate.ts).
+  returnChancePerDay: 0.05,
   pages: [
     { value: "/", weight: 70 },
     { value: "/faq", weight: 12 },

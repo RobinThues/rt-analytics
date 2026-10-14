@@ -15,6 +15,8 @@ import type { DemoProfile, Device, ServerEventDef, Subscription, VisitState } fr
 import { createRng, uuid, type Rng } from "./rng.js";
 
 const DAY_MS = 86_400_000;
+/** Return chance of a consented visitor falls by a factor e every 30 days (about half after three weeks). */
+const RETURN_DECAY_DAYS = 30;
 
 export interface Visitor {
   key: string;
@@ -219,7 +221,8 @@ function simulateServerEvents(profile: DemoProfile, def: ServerEventDef, rng: Rn
 export function generateDemoEvents(profile: DemoProfile, opts: GenerateOptions): EventRow[] {
   const rng = createRng(opts.seed);
   const rows: EventRow[] = [];
-  const known = new Set<Visitor>();
+  /** Consented visitors and the day they first accepted; they may come back on later days. */
+  const known = new Map<Visitor, number>();
   let counter = 0;
   const consentKinds = [
     { kind: "pending" as const, weight: profile.consent.pending },
@@ -235,8 +238,15 @@ export function generateDemoEvents(profile: DemoProfile, opts: GenerateOptions):
     const weekday = new Date(dayStart).getUTCDay();
     const visits = Math.round(base * (profile.weekdayFactor[weekday] ?? 1) * (0.85 + rng.next() * 0.3));
     const today: Visitor[] = [];
-    for (const v of known) if (today.length < visits && rng.chance(profile.returnChancePerDay)) today.push(v);
-    while (today.length < visits) {
+    // New visitors fill the daily volume; returning visitors come on top. Their chance to return fades with
+    // age (about half after three weeks), so the persistent share stays near the consent rate.
+    for (const [v, firstDay] of known) {
+      const chance = profile.returnChancePerDay * Math.exp(-(d - firstDay) / RETURN_DECAY_DAYS);
+      if (chance < 0.001) known.delete(v);
+      else if (rng.chance(chance)) today.push(v);
+    }
+    const target = today.length + visits;
+    while (today.length < target) {
       today.push({
         key: `v${counter++}`,
         kind: rng.weighted(consentKinds).kind,
@@ -248,7 +258,7 @@ export function generateDemoEvents(profile: DemoProfile, opts: GenerateOptions):
     for (const v of today) {
       const start = new Date(dayStart + rng.weighted(hours).hour * 3_600_000 + rng.int(0, 3599) * 1000);
       rows.push(...simulateVisit(profile, rng, v, start));
-      if (v.persistentId !== null) known.add(v);
+      if (v.persistentId !== null && !known.has(v)) known.set(v, d);
     }
   }
   for (const def of profile.serverEvents) rows.push(...simulateServerEvents(profile, def, rng, opts));

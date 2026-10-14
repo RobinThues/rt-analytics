@@ -158,3 +158,19 @@ describe("dwdProfile", () => {
     );
   });
 });
+
+describe("dwdProfile visitor mix", () => {
+  it("keeps the persistent share of recent sessions near the consent rate (no drift over 90 days)", () => {
+    const all = generateDemoEvents(dwdProfile, { from, days: 90, seed: 42 });
+    const lastTwoWeeks = from.getTime() + 76 * 86_400_000;
+    const sessions = new Map<string, string>();
+    for (const r of all) {
+      if (r.timestamp.getTime() >= lastTwoWeeks && r.session_id && r.visitor_id)
+        sessions.set(r.session_id, r.visitor_id);
+    }
+    const ids = [...sessions.values()];
+    const persistent = ids.filter((id) => !id.startsWith(DAILY_VISITOR_PREFIX)).length / ids.length;
+    expect(persistent).toBeGreaterThan(0.1);
+    expect(persistent).toBeLessThan(0.3);
+  });
+});
