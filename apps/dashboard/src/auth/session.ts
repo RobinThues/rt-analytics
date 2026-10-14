@@ -7,7 +7,9 @@ import { userFromSession, type SessionUser } from "./validate-user";
 export type { SessionUser };
 
 export async function getUser(): Promise<SessionUser | null> {
-  const session = await getAuth().api.getSession({ headers: await headers() });
+  // headers() first: it makes this request-time, so the build never reads the environment here.
+  const requestHeaders = await headers();
+  const session = await getAuth().api.getSession({ headers: requestHeaders });
   return userFromSession(session, readEnv().allowedEmails);
 }
 
