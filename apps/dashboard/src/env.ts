@@ -87,3 +87,22 @@ export function readEnv(env: Env = process.env): DashboardEnv {
     testLogin: testLoginState(env),
   };
 }
+
+const REQUIRED_AT_STARTUP = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"];
+
+/**
+ * Called from instrumentation.ts: a misconfigured deployment fails at startup instead of on the first
+ * sign-in or query. Previews have no GCP or Google values (they cannot sign in), so only the test-login
+ * guard runs there.
+ */
+export function startupCheck(env: Env): void {
+  assertSafeTestLogin(env);
+  if (env.VERCEL_ENV === "preview") return;
+  for (const name of REQUIRED_AT_STARTUP) {
+    if (!env[name]) throw new Error(`Missing environment variable ${name}`);
+  }
+  if (parseAllowedEmails(env.DASHBOARD_ALLOWED_EMAILS).length === 0) {
+    throw new Error("Missing environment variable DASHBOARD_ALLOWED_EMAILS");
+  }
+  readEnv(env);
+}

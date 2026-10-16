@@ -1,1 +1,4 @@
-{ "ignoreCommand": "bash scripts/ignore-build.sh" }
+{
+  "buildCommand": "cd ../.. && npm run build -w rt-analytics && npm run build -w rt-analytics-dashboard",
+  "ignoreCommand": "bash scripts/ignore-build.sh"
+}

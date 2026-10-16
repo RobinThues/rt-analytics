@@ -3,8 +3,17 @@
 import type { BetterAuthPlugin } from "better-auth";
 import { APIError, createAuthEndpoint } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { isAllowedEmail } from "./validate-user";
+
+const digest = (s: string) => createHash("sha256").update(s).digest();
+
+/** Constant-time comparison (hashing first makes the lengths equal). */
+export function secretMatches(given: string | null | undefined, expected: string): boolean {
+  if (typeof given !== "string") return false;
+  return timingSafeEqual(digest(given), digest(expected));
+}
 
 export function testLoginPlugin(opts: { enabled: boolean; secret: string | null; allowed: readonly string[] }) {
   return {
@@ -15,7 +24,7 @@ export function testLoginPlugin(opts: { enabled: boolean; secret: string | null;
         { method: "POST", body: z.object({ email: z.string() }) },
         async (ctx) => {
           if (!opts.enabled || !opts.secret) throw new APIError("NOT_FOUND");
-          if (ctx.headers?.get("x-test-login-secret") !== opts.secret) throw new APIError("FORBIDDEN");
+          if (!secretMatches(ctx.headers?.get("x-test-login-secret"), opts.secret)) throw new APIError("FORBIDDEN");
           const email = ctx.body.email.trim().toLowerCase();
           if (!isAllowedEmail(email, opts.allowed)) throw new APIError("FORBIDDEN");
           const found = await ctx.context.internalAdapter.findUserByEmail(email);

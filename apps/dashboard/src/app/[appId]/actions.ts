@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/auth/session";
 import { TAGS } from "@/bq/cache-rules";
 import { execute, LIVE_COOKIE } from "@/bq/query";
-import { parseSettings, saveSettingsQuery } from "@/config/settings";
+import { parseHostList, parseSettings, saveSettingsQuery } from "@/config/settings";
 import { APP_ID_RE } from "@/discovery/sql";
 import { readEnv } from "@/env";
 
@@ -21,6 +21,7 @@ function safeQuery(qs: string): string {
 
 export async function toggleLive(appId: string, qs: string) {
   await requireUser();
+  const path = appPath(appId);
   const jar = await cookies();
   if (jar.get(LIVE_COOKIE)?.value === "1") {
     jar.delete(LIVE_COOKIE);
@@ -33,24 +34,24 @@ export async function toggleLive(appId: string, qs: string) {
       maxAge: 7 * 24 * 60 * 60,
     });
   }
-  redirect(appPath(appId) + safeQuery(qs));
+  redirect(path + safeQuery(qs));
 }
 
 export async function refreshApp(appId: string, qs: string) {
   await requireUser();
+  const path = appPath(appId);
   updateTag(TAGS.data(appId));
   updateTag(TAGS.discovery(appId));
   updateTag(TAGS.apps);
-  redirect(appPath(appId) + safeQuery(qs));
+  redirect(path + safeQuery(qs));
 }
 
 export async function saveSettings(appId: string, formData: FormData) {
   const user = await requireUser();
   const path = `${appPath(appId)}/settings`;
   const timezone = String(formData.get("timezone") ?? "");
-  const hosts = String(formData.get("hosts") ?? "")
-    .split(/[\s,]+/)
-    .filter((h) => h.length > 0);
+  const { hosts, invalid } = parseHostList(String(formData.get("hosts") ?? ""));
+  if (invalid.length > 0) redirect(`${path}?error=hosts`);
   const settings = parseSettings({ timezone, hosts });
   if (settings.timezone !== timezone) redirect(`${path}?error=timezone`);
   const res = await execute(saveSettingsQuery(readEnv(), appId, settings, user.email));

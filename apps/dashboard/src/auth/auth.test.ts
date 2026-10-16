@@ -2,6 +2,7 @@
 import { describe, expect, it } from "vitest";
 import { readEnv } from "@/env";
 import { createAuth } from "./auth";
+import { secretMatches } from "./test-login";
 
 const secret = "t".repeat(32);
 const vars = {
@@ -47,5 +48,14 @@ describe("test login", () => {
     const prod = { ...vars, VERCEL_ENV: "production" };
     const auth = createAuth(readEnv(prod), prod);
     expect((await login(auth, "robin@example.com")).status).toBe(404);
+  });
+});
+
+describe("secretMatches", () => {
+  it("compares in constant time and rejects missing values", () => {
+    expect(secretMatches(secret, secret)).toBe(true);
+    expect(secretMatches(`${secret}x`, secret)).toBe(false);
+    expect(secretMatches(null, secret)).toBe(false);
+    expect(secretMatches(undefined, secret)).toBe(false);
   });
 });

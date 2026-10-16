@@ -1,6 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { assertSafeTestLogin, parseAllowedEmails, parseCacheTtl, parseMaxBytes, readEnv, testLoginState } from "./env";
+import {
+  assertSafeTestLogin,
+  parseAllowedEmails,
+  parseCacheTtl,
+  parseMaxBytes,
+  readEnv,
+  startupCheck,
+  testLoginState,
+} from "./env";
 
 const secret = "s".repeat(32);
 
@@ -62,4 +70,27 @@ describe("readEnv", () => {
     expect(() => readEnv({ GCP_PROJECT_ID: "robin-thues", ANALYTICS_DATASET: "a.b" })).toThrow();
   });
   it("needs a project id", () => expect(() => readEnv({})).toThrow());
+});
+
+describe("startupCheck", () => {
+  const full = {
+    GCP_PROJECT_ID: "robin-thues",
+    GOOGLE_CLIENT_ID: "id",
+    GOOGLE_CLIENT_SECRET: "s",
+    BETTER_AUTH_SECRET: "x".repeat(32),
+    BETTER_AUTH_URL: "https://example.vercel.app",
+    DASHBOARD_ALLOWED_EMAILS: "a@b.de",
+  };
+  it("passes with a complete environment", () => expect(() => startupCheck(full)).not.toThrow());
+  it("names the missing variable", () => {
+    expect(() => startupCheck({ ...full, GOOGLE_CLIENT_SECRET: undefined })).toThrow(/GOOGLE_CLIENT_SECRET/);
+    expect(() => startupCheck({ ...full, DASHBOARD_ALLOWED_EMAILS: " , " })).toThrow(/DASHBOARD_ALLOWED_EMAILS/);
+    expect(() => startupCheck({ ...full, GCP_PROJECT_ID: undefined })).toThrow(/GCP_PROJECT_ID/);
+  });
+  it("skips the variable check on previews (no GCP or Google values there)", () => {
+    expect(() => startupCheck({ VERCEL_ENV: "preview" })).not.toThrow();
+  });
+  it("still refuses the test login in a deployment", () => {
+    expect(() => startupCheck({ ...full, VERCEL_ENV: "production", DASHBOARD_TEST_LOGIN: "1" })).toThrow();
+  });
 });

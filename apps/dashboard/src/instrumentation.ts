@@ -1,5 +1,5 @@
-import { assertSafeTestLogin } from "./env";
+import { startupCheck } from "./env";
 
 export function register() {
-  assertSafeTestLogin(process.env);
+  if (process.env.NEXT_RUNTIME === "nodejs") startupCheck(process.env);
 }

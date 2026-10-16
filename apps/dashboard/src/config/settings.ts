@@ -7,14 +7,28 @@ export const DEFAULT_SETTINGS: AppSettings = { timezone: "Europe/Berlin", hosts:
 
 const HOST_RE = /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
 
+let zones: Set<string> | null = null;
+
+/** Only the canonical IANA names Intl lists, plus UTC. Exact case, so the stored value is what BigQuery gets. */
 export function isTimezone(tz: unknown): tz is string {
-  if (typeof tz !== "string" || tz.length === 0) return false;
-  try {
-    new Intl.DateTimeFormat("en", { timeZone: tz });
-    return true;
-  } catch {
-    return false;
+  if (typeof tz !== "string") return false;
+  zones ??= new Set(Intl.supportedValuesOf("timeZone"));
+  return tz === "UTC" || zones.has(tz);
+}
+
+const MAX_HOSTS = 20;
+
+/** Splits the settings textarea; invalid entries are reported so the form can refuse them. */
+export function parseHostList(input: string): { hosts: string[]; invalid: string[] } {
+  const hosts: string[] = [];
+  const invalid: string[] = [];
+  for (const raw of input.split(/[\s,]+/)) {
+    const h = raw.trim().toLowerCase();
+    if (h.length === 0) continue;
+    if (HOST_RE.test(h)) hosts.push(h);
+    else invalid.push(raw.trim());
   }
+  return { hosts: hosts.slice(0, MAX_HOSTS), invalid };
 }
 
 /** Never throws: bad stored values fall back to defaults so an app's queries keep working. */
@@ -27,7 +41,7 @@ export function parseSettings(raw: unknown): AppSettings {
         .filter((h): h is string => typeof h === "string")
         .map((h) => h.trim().toLowerCase())
         .filter((h) => HOST_RE.test(h))
-        .slice(0, 20)
+        .slice(0, MAX_HOSTS)
     : [];
   return { timezone: r.timezone, hosts };
 }

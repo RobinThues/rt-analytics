@@ -37,17 +37,22 @@ function offsetMinutes(tz: string, at: number): number {
   return Math.round((asUtc - at) / 60_000);
 }
 
-/** UTC instant of 00:00 local time on `day` in `tz`. */
+/**
+ * UTC instant of the first moment of `day` in `tz`. Usually 00:00 local; on days that start in a DST gap
+ * (America/Santiago, America/Havana) 00:00 does not exist and the day starts at 01:00.
+ */
 function localMidnight(day: string, tz: string): number {
   const guess = toUtcMs(day);
   const first = guess - offsetMinutes(tz, guess) * 60_000;
-  return guess - offsetMinutes(tz, first) * 60_000;
+  const second = guess - offsetMinutes(tz, first) * 60_000;
+  const onDay = [first, second].filter((t) => todayIn(tz, new Date(t)) === day);
+  return onDay.length > 0 ? Math.min(...onDay) : Math.max(first, second);
 }
+
+/** ISO string of the first instant of `day` in `tz`. */
+export const dayStart = (day: string, tz: string) => new Date(localMidnight(day, tz)).toISOString();
 
 /** [from 00:00, to+1 00:00) in tz, as UTC ISO strings for the partition filter. */
 export function rangeBounds(range: DateRange, tz: string): { fromTs: string; toTs: string } {
-  return {
-    fromTs: new Date(localMidnight(range.from, tz)).toISOString(),
-    toTs: new Date(localMidnight(addDays(range.to, 1), tz)).toISOString(),
-  };
+  return { fromTs: dayStart(range.from, tz), toTs: dayStart(addDays(range.to, 1), tz) };
 }

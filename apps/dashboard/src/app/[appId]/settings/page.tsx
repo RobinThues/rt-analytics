@@ -10,6 +10,7 @@ import { saveSettings } from "../actions";
 
 const ERRORS: Record<string, string> = {
   timezone: "Unknown timezone.",
+  hosts: "Some hostnames are not valid. Use plain hostnames like example.com, one per line.",
   save: "Could not save the settings. Try again.",
 };
 
@@ -19,6 +20,7 @@ async function SettingsView({ params, searchParams }: PageProps<"/[appId]/settin
   await requireUser();
   const [settings, sp] = await Promise.all([getSettings(appId), searchParams]);
   const zones = Intl.supportedValuesOf("timeZone");
+  if (!zones.includes("UTC")) zones.push("UTC");
   if (!zones.includes(settings.timezone)) zones.unshift(settings.timezone);
   const error = typeof sp.error === "string" ? (ERRORS[sp.error] ?? "Something went wrong.") : null;
   return (
