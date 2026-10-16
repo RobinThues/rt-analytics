@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 test.beforeEach(async ({ page }) => {
   const res = await page.request.post("/api/auth/test-login", {
@@ -76,23 +76,39 @@ test("explorer: unknown event in the URL shows the list, no error", async ({ pag
   await expect(page.getByTestId("event-list")).toBeVisible();
 });
 
-test("funnels: build, save, reopen and delete", async ({ page }) => {
-  const name = `e2e ${Date.now()}`;
+/** Deletes every "e2e <n>" funnel, also ones a failed run left in the real config table. */
+async function deleteE2eFunnels(page: Page) {
   await page.goto("/demo/funnels");
-  await page.getByLabel("Step 1 event").selectOption("place_selected");
-  await page.getByLabel("Step 2 event").selectOption("subscribe_click");
-  await page.getByRole("button", { name: "Show funnel" }).click();
-  await expect(page).toHaveURL(/steps=place_selected&steps=subscribe_click/);
-  await expect(page.getByTestId("funnel-sessions-1")).not.toHaveText("0");
-  await page.getByLabel("Funnel name").fill(name);
-  await page.getByRole("button", { name: "Save funnel" }).click();
-  // Saving is a BigQuery MERGE (DML), which often takes several seconds.
-  await expect(page).toHaveURL(/funnel=[0-9a-f-]{36}/, { timeout: 30_000 });
-  await page.goto("/demo/funnels");
-  await page.getByRole("link", { name }).click();
-  await expect(page.getByTestId("funnel-step-2")).toBeVisible();
-  await page.getByRole("button", { name: `Delete ${name}` }).click();
-  await expect(page.getByRole("link", { name })).toHaveCount(0, { timeout: 30_000 });
+  // The list streams in with the editor (one Suspense boundary); count() does not wait.
+  await expect(page.getByRole("button", { name: "Show funnel" })).toBeVisible();
+  const buttons = page.getByRole("button", { name: /^Delete e2e \d+$/ });
+  for (let n = await buttons.count(); n > 0; n--) {
+    await buttons.first().click();
+    await expect(buttons).toHaveCount(n - 1, { timeout: 30_000 });
+  }
+}
+
+test.describe("saved funnels", () => {
+  test.afterEach(async ({ page }) => deleteE2eFunnels(page));
+
+  test("funnels: build, save, reopen and delete", async ({ page }) => {
+    const name = `e2e ${Date.now()}`;
+    await page.goto("/demo/funnels");
+    await page.getByLabel("Step 1 event").selectOption("place_selected");
+    await page.getByLabel("Step 2 event").selectOption("subscribe_click");
+    await page.getByRole("button", { name: "Show funnel" }).click();
+    await expect(page).toHaveURL(/steps=place_selected&steps=subscribe_click/);
+    await expect(page.getByTestId("funnel-sessions-1")).not.toHaveText("0");
+    await page.getByLabel("Funnel name").fill(name);
+    await page.getByRole("button", { name: "Save funnel" }).click();
+    // Saving is a BigQuery MERGE (DML), which often takes several seconds.
+    await expect(page).toHaveURL(/funnel=[0-9a-f-]{36}/, { timeout: 30_000 });
+    await page.goto("/demo/funnels");
+    await page.getByRole("link", { name }).click();
+    await expect(page.getByTestId("funnel-step-2")).toBeVisible();
+    await page.getByRole("button", { name: `Delete ${name}` }).click();
+    await expect(page.getByRole("link", { name })).toHaveCount(0, { timeout: 30_000 });
+  });
 });
 
 test("funnels: a stale saved funnel id and broken steps do not break the page", async ({ page }) => {

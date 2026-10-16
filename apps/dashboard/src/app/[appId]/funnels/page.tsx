@@ -8,7 +8,7 @@ import { FunnelResult } from "@/components/funnel-result";
 import { Header } from "@/components/header";
 import { Panel } from "@/components/panel";
 import { QueryError } from "@/components/query-error";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getFunnels } from "@/config/data";
@@ -99,9 +99,9 @@ async function Funnels({ params, searchParams }: PageProps<"/[appId]/funnels">) 
                     {f.name}
                   </Link>
                   <form action={deleteFunnel.bind(null, appId, f.id, rangeQs)}>
-                    <Button type="submit" variant="outline" size="sm" aria-label={`Delete ${f.name}`}>
+                    <SubmitButton variant="outline" size="sm" aria-label={`Delete ${f.name}`} pendingLabel="Deleting…">
                       Delete
-                    </Button>
+                    </SubmitButton>
                   </form>
                 </li>
               ))}
@@ -136,7 +136,7 @@ async function Funnels({ params, searchParams }: PageProps<"/[appId]/funnels">) 
                       <Label htmlFor="funnel-name">Funnel name</Label>
                       <Input id="funnel-name" name="name" maxLength={80} required className="w-60" />
                     </div>
-                    <Button type="submit">Save funnel</Button>
+                    <SubmitButton pendingLabel="Saving…">Save funnel</SubmitButton>
                   </form>
                 )}
               </div>
