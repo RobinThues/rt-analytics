@@ -32,7 +32,10 @@ export function MobileNavDrawer({ appId, apps, email }: { appId: string; apps: r
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent side="left" className="w-64 p-0">
         <SheetTitle className="sr-only">Menu</SheetTitle>
-        <AppSidebar appId={appId} apps={apps} email={email} onNavigate={() => setOpen(false)} />
+        {/* Top space: the sheet's close button sits in the top right corner. */}
+        <div className="h-full pt-10">
+          <AppSidebar appId={appId} apps={apps} email={email} onNavigate={() => setOpen(false)} />
+        </div>
       </SheetContent>
     </Sheet>
   );
