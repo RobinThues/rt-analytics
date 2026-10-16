@@ -51,3 +51,23 @@ export function explorerParams(sel: ExplorerSelection | null): Array<[string, st
 
 /** The controls form sends fk/fv; the page redirects to the canonical filter=key:value URL. */
 export const needsCanonicalRedirect = (sp: Params) => sp.fk !== undefined || sp.fv !== undefined;
+
+/**
+ * The canonical explorer URL for the controls form (layout spec, "Changes on the same page"): the range
+ * parameters that exist in `base`, then the parsed selection. Built in the browser, so the form never
+ * goes through the server's fk/fv redirect.
+ */
+export function explorerFormQuery(
+  base: string,
+  catalog: Catalog,
+  form: { event: string; metric: string; fk: string; fv: string; by: string },
+): string {
+  const current = new URLSearchParams(base.startsWith("?") ? base.slice(1) : base);
+  const out = new URLSearchParams();
+  for (const k of ["from", "to", "compare"]) {
+    const v = current.get(k);
+    if (v !== null) out.set(k, v);
+  }
+  for (const [k, v] of explorerParams(parseExplorer(form, catalog))) out.append(k, v);
+  return `?${out.toString()}`;
+}

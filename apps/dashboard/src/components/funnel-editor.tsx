@@ -1,9 +1,9 @@
 "use client";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { encodeStep, MAX_STEPS, MIN_STEPS, type FunnelStep } from "@/funnels/steps";
+import { usePendingNavigation } from "@/lib/navigation";
 
 type Row = { event: string; key: string; value: string };
 
@@ -25,7 +25,7 @@ export function FunnelEditor({
   /** from, to, compare */
   baseQuery: ReadonlyArray<readonly [string, string]>;
 }) {
-  const router = useRouter();
+  const { pending, navigate } = usePendingNavigation();
   const [rows, setRows] = useState<Row[]>(() => {
     const start = initial.map(toRow);
     while (start.length < MIN_STEPS) start.push(blank);
@@ -42,11 +42,12 @@ export function FunnelEditor({
       const filter = r.key && r.value ? { key: r.key, value: r.value } : null;
       p.append("steps", encodeStep({ event: r.event, filter }));
     }
-    router.push(`?${p.toString()}`);
+    navigate(`?${p.toString()}`);
   }
 
   return (
     <form
+      data-pending={pending ? "" : undefined}
       className="flex flex-col gap-3"
       onSubmit={(e) => {
         e.preventDefault();

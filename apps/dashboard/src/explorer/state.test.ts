@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCatalog } from "@/discovery/catalog";
 import { catalog } from "./fixtures";
-import { explorerParams, needsCanonicalRedirect, parseExplorer } from "./state";
+import { explorerFormQuery, explorerParams, needsCanonicalRedirect, parseExplorer } from "./state";
 
 describe("parseExplorer", () => {
   it("parses a full selection; the filter value may contain colons", () => {
@@ -66,5 +66,28 @@ describe("prototype-named events", () => {
       filter: null,
       by: null,
     });
+  });
+});
+
+describe("explorerFormQuery", () => {
+  const form = { event: "place_selected", metric: "events", fk: "source", fv: "map", by: "" };
+
+  it("builds the canonical URL from the form (no fk/fv), keeping the range of the base", () => {
+    const q = explorerFormQuery("?from=2026-10-01&to=2026-10-16&event=old", catalog, form);
+    const expected = new URLSearchParams(
+      explorerParams(
+        parseExplorer({ event: "place_selected", metric: "events", fk: "source", fv: "map", by: "" }, catalog),
+      ),
+    ).toString();
+    expect(q).toBe(`?from=2026-10-01&to=2026-10-16&${expected}`);
+    expect(q).toContain("filter=source%3Amap");
+    expect(q).not.toContain("fk=");
+  });
+
+  it("copies only the range parameters that exist", () => {
+    expect(explorerFormQuery("?event=x", catalog, form)).toBe(
+      `?${new URLSearchParams(explorerParams(parseExplorer({ ...form }, catalog))).toString()}`,
+    );
+    expect(explorerFormQuery("?from=a&to=b&compare=0", catalog, form)).toMatch(/^\?from=a&to=b&compare=0&event=/);
   });
 });

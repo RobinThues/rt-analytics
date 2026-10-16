@@ -1,8 +1,11 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { catalog } from "@/explorer/fixtures";
 import { ExplorerControls } from "./explorer-controls";
+
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
 
 const optionLabels = (select: HTMLElement) =>
   within(select)
@@ -71,5 +74,25 @@ describe("ExplorerControls", () => {
     expect(suggestions()).toEqual([]);
     await userEvent.setup().selectOptions(screen.getByLabelText("Filter by"), "place");
     expect(suggestions()).toEqual(["Berlin"]);
+  });
+
+  it("Apply navigates in place to the canonical URL", async () => {
+    window.history.replaceState(null, "", "/demo/events?from=2026-10-01&event=place_selected");
+    render(
+      <ExplorerControls
+        appId="demo"
+        qsBase={[["from", "2026-10-01"]]}
+        catalog={catalog}
+        sel={{ event: "place_selected", metric: { kind: "events" }, filter: { key: "source", value: "map" }, by: null }}
+        values={[]}
+      />,
+    );
+    await userEvent.setup().click(screen.getByRole("button", { name: "Apply" }));
+    expect(push).toHaveBeenCalledTimes(1);
+    const [url, opts] = push.mock.calls[0] as [string, unknown];
+    expect(url).toMatch(/^\/demo\/events\?from=2026-10-01&event=place_selected/);
+    expect(url).toContain("filter=source%3Amap");
+    expect(url).not.toContain("fk=");
+    expect(opts).toEqual({ scroll: false });
   });
 });

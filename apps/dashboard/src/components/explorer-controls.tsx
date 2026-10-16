@@ -1,15 +1,19 @@
+"use client";
+import type { FormEvent } from "react";
 import { FilterFields } from "@/components/filter-fields";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import type { Catalog } from "@/discovery/catalog";
-import { encodeMetric } from "@/explorer/state";
+import { encodeMetric, explorerFormQuery } from "@/explorer/state";
+import { usePendingNavigation } from "@/lib/navigation";
 import type { ExplorerSelection } from "@/queries/explorer";
 
 const selectClass = "h-8 rounded-lg border bg-transparent px-2 text-sm";
 
 /**
- * Plain GET form (works without JavaScript). The filter goes out as fk/fv; the page redirects to the
- * canonical filter=key:value URL.
+ * The explorer controls. Apply builds the canonical URL in the browser and navigates in place, so the
+ * old results stay on screen, dimmed, until the new ones arrive. `catalog` must be a plain object (it
+ * crosses to the client); the page passes only the selected event.
  */
 export function ExplorerControls({
   appId,
@@ -28,8 +32,24 @@ export function ExplorerControls({
 }) {
   const event = catalog.events.find((e) => e.name === sel.event);
   const keys = catalog.keys[sel.event] ?? [];
+  const { pending, navigate } = usePendingNavigation();
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const field = (name: string) => {
+      const el = e.currentTarget.elements.namedItem(name);
+      return el instanceof HTMLInputElement || el instanceof HTMLSelectElement ? el.value : "";
+    };
+    const form = { event: field("event"), metric: field("metric"), fk: field("fk"), fv: field("fv"), by: field("by") };
+    navigate(`/${appId}/events${explorerFormQuery(window.location.search, catalog, form)}`);
+  }
   return (
-    <form method="get" action={`/${appId}/events`} className="flex flex-wrap items-end gap-3">
+    <form
+      method="get"
+      action={`/${appId}/events`}
+      onSubmit={onSubmit}
+      data-pending={pending ? "" : undefined}
+      className="flex flex-wrap items-end gap-3"
+    >
       {qsBase.map(([k, v]) => (
         <input key={k} type="hidden" name={k} value={v} />
       ))}

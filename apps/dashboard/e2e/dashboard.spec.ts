@@ -311,3 +311,17 @@ test("sidebar: phone menu", async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("funnels: Show funnel keeps the old result dimmed", async ({ page }) => {
+  await page.goto("/demo/funnels?steps=place_selected&steps=subscribe_click");
+  await expect(page.getByTestId("funnel-sessions-1")).toBeVisible();
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 2000);
+  await page.getByLabel("Step 2 event").selectOption("$pageview");
+  await page.getByRole("button", { name: "Show funnel" }).click();
+  await expect(page.getByTestId("progress-line")).toBeVisible();
+  await expect(page.getByTestId("page-body")).toHaveCSS("opacity", "0.5");
+  await expect(page.getByTestId("funnel-sessions-1")).toBeVisible();
+  await expect(page).toHaveURL(/steps=%24pageview/, { timeout: 10_000 });
+  await expect(page.getByTestId("progress-line")).toBeHidden();
+});

@@ -140,7 +140,12 @@ async function ControlsPanel({
     <ExplorerControls
       appId={ctx.appId}
       qsBase={qsBase}
-      catalog={catalog}
+      // A plain object with only the selected event: the server catalog has no prototype (event names come
+      // from the ingest), and such objects cannot cross to a client component.
+      catalog={{
+        events: catalog.events.filter((e) => e.name === sel.event),
+        keys: { [sel.event]: catalog.keys[sel.event] ?? [] },
+      }}
       sel={sel}
       values={values?.ok ? valuesByKey(values.rows) : []}
     />

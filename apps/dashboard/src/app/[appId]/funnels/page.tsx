@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PendingLink } from "@/components/pending-link";
 import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
 import { PageBar } from "@/components/page-bar";
@@ -59,12 +59,12 @@ function SavedList({ f }: { f: FunnelPageData }) {
     <ul className="flex flex-col gap-2 text-sm">
       {saved.funnels.map((s) => (
         <li key={s.id} className="flex items-center justify-between gap-2">
-          <Link
+          <PendingLink
             href={`/${page.appId}/funnels${viewQuery(page.state, [["funnel", s.id]])}`}
             className={s.id === open?.id ? "truncate font-semibold" : "truncate underline"}
           >
             {s.name}
-          </Link>
+          </PendingLink>
           <form action={deleteFunnel.bind(null, page.appId, s.id, rangeQs)}>
             <SubmitButton variant="outline" size="sm" aria-label={`Delete ${s.name}`} pendingLabel="Deleting…">
               Delete
