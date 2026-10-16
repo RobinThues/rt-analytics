@@ -3,7 +3,6 @@ import { dataQuery } from "@/bq/query";
 import { PageBar } from "@/components/page-bar";
 import { EventList } from "@/components/event-list";
 import { ExplorerControls } from "@/components/explorer-controls";
-import { Header } from "@/components/header";
 import { KpiTile } from "@/components/kpi-tile";
 import { PageBody } from "@/components/page-body";
 import { Panel } from "@/components/panel";
@@ -201,11 +200,6 @@ export default function ExplorerPage({ params, searchParams }: PageProps<"/[appI
   const column = <BlockSkeleton className="h-[460px]" />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
-      <Suspense fallback={<BlockSkeleton className="mb-4 h-10" />}>
-        <ExplorerPart input={input} fallback={<BlockSkeleton className="mb-4 h-10" />}>
-          {({ page }) => <Header appId={page.appId} apps={page.apps} page="events" state={page.state} />}
-        </ExplorerPart>
-      </Suspense>
       <PageBar title="Events" page="events" input={input} />
       <PageBody>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">

@@ -4,7 +4,6 @@ import { dataQuery } from "@/bq/query";
 import { PageBar } from "@/components/page-bar";
 import { FunnelEditor } from "@/components/funnel-editor";
 import { FunnelResult } from "@/components/funnel-result";
-import { Header } from "@/components/header";
 import { PageBody } from "@/components/page-body";
 import { Panel } from "@/components/panel";
 import { QueryError } from "@/components/query-error";
@@ -141,11 +140,6 @@ export default function FunnelsPage({ params, searchParams }: PageProps<"/[appId
   const resultSkeleton = <BlockSkeleton className="h-64" />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
-      <Suspense fallback={<BlockSkeleton className="mb-4 h-10" />}>
-        <FunnelPart input={input} fallback={<BlockSkeleton className="mb-4 h-10" />}>
-          {({ page }) => <Header appId={page.appId} apps={page.apps} page="funnels" state={page.state} />}
-        </FunnelPart>
-      </Suspense>
       <PageBar title="Funnels" page="funnels" input={input} />
       <PageBody>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">

@@ -258,3 +258,56 @@ test("overview: revisit after a range change never shows old numbers undimmed", 
   }
   await expect(kpi).not.toHaveText(old ?? "", { timeout: 15_000 });
 });
+
+test("sidebar: switching apps keeps the page and range", async ({ page }) => {
+  await page.goto("/demo/events?from=2026-09-20&to=2026-10-10&event=calendar_poll");
+  await page.getByRole("button", { name: "Switch app" }).click();
+  const other = page.getByRole("link", { name: "wetter-in-kalender" });
+  await expect(other, "the e2e environment reads production data, which has wetter-in-kalender").toBeVisible();
+  await other.click();
+  await expect(page).toHaveURL(/\/wetter-in-kalender\/events\?from=2026-09-20&to=2026-10-10$/);
+});
+
+test("sidebar: app switch shows skeletons, never the old app's numbers", async ({ page }) => {
+  await page.goto("/demo");
+  const kpi = page.getByTestId("kpi-pageviews");
+  await expect(kpi).toBeVisible();
+  const old = await kpi.textContent();
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 2000);
+  await page.getByRole("button", { name: "Switch app" }).click();
+  await page.getByRole("link", { name: "wetter-in-kalender" }).click();
+  await expect(page.getByTestId("skeleton").first()).toBeVisible();
+  await expect(page.locator("[data-testid=kpi-pageviews]:visible", { hasText: old ?? "" })).toHaveCount(0);
+  await expect(page).toHaveURL(/\/wetter-in-kalender/, { timeout: 15_000 });
+});
+
+test("sidebar: pages", async ({ page }) => {
+  await page.goto("/demo");
+  const pages = page.getByRole("navigation", { name: "Pages" });
+  await pages.getByRole("link", { name: "Funnels" }).click();
+  await expect(page).toHaveURL(/\/demo\/funnels/);
+  await expect(pages.getByRole("link", { name: "Funnels" })).toHaveAttribute("aria-current", "page");
+});
+
+test("sidebar: sign out", async ({ page }) => {
+  await page.goto("/demo");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await expect(page).toHaveURL(/\/sign-in/);
+  await page.goto("/demo");
+  await expect(page).toHaveURL(/\/sign-in/);
+});
+
+test("sidebar: phone menu", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/demo");
+  await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
+  await page.getByRole("button", { name: "Open menu" }).click();
+  const pages = page.getByRole("navigation", { name: "Pages" });
+  await expect(pages).toBeVisible();
+  await pages.getByRole("link", { name: "Events" }).click();
+  await expect(page).toHaveURL(/\/demo\/events/);
+  await expect(page.getByRole("navigation", { name: "Pages" })).toBeHidden();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});

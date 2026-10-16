@@ -3,6 +3,7 @@ import { refreshApp, toggleLive } from "@/app/[appId]/actions";
 import { loadPage, type PageInput } from "@/app/[appId]/page-data";
 import { CompareToggle } from "@/components/compare-toggle";
 import { CredentialsBanner } from "@/components/credentials-banner";
+import { MobileNavTrigger } from "@/components/mobile-nav";
 import { RangeLine } from "@/components/range-line";
 import { RangePicker } from "@/components/range-picker";
 import { LineSkeleton } from "@/components/skeletons";
@@ -57,7 +58,10 @@ export function PageBar({ title, page, input }: { title: string; page?: AppPage;
   return (
     <div className="mb-4 flex flex-col gap-2">
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <h1 className="text-xl font-semibold">{title}</h1>
+        <div className="flex items-center gap-2">
+          <MobileNavTrigger />
+          <h1 className="text-xl font-semibold">{title}</h1>
+        </div>
         {input && page && (
           <Suspense fallback={controlsSkeleton}>
             <BarControls input={input} page={page} />
