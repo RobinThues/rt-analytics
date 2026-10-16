@@ -1,8 +1,11 @@
 // The only place that runs SQL. Never throws: panels get a result they can render (spec section 5).
+export type QueryParam = string | number | boolean | string[] | null;
+
 export interface QuerySpec {
   sql: string;
-  params: Record<string, string | number | boolean | string[] | null>;
-  types?: Record<string, string>;
+  params: Record<string, QueryParam>;
+  /** Needed for array params (`["STRING"]`), because an empty array has no type BigQuery can infer. */
+  types?: Record<string, string | string[]>;
 }
 
 export type QueryResult<T> = { ok: true; rows: T[] } | { ok: false; error: "bytes-cap" | "failed"; message: string };

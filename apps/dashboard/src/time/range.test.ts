@@ -1,6 +1,16 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { addDays, dayStart, daysBetween, defaultRange, rangeBounds, todayIn } from "./range";
+import {
+  addDays,
+  dayStart,
+  daysBetween,
+  defaultRange,
+  eachDay,
+  previousRange,
+  rangeBounds,
+  rangeDays,
+  todayIn,
+} from "./range";
 
 describe("time", () => {
   it("today in a timezone", () => {
@@ -48,5 +58,14 @@ describe("dayStart", () => {
   it("Berlin summer and winter", () => {
     expect(dayStart("2026-07-01", "Europe/Berlin")).toBe("2026-06-30T22:00:00.000Z");
     expect(dayStart("2026-12-01", "Europe/Berlin")).toBe("2026-11-30T23:00:00.000Z");
+  });
+});
+
+describe("periods", () => {
+  it("previous period: same number of calendar days, ending the day before from", () => {
+    expect(previousRange({ from: "2026-10-01", to: "2026-10-16" })).toEqual({ from: "2026-09-15", to: "2026-09-30" });
+    expect(previousRange({ from: "2026-03-01", to: "2026-03-01" })).toEqual({ from: "2026-02-28", to: "2026-02-28" });
+    expect(rangeDays({ from: "2026-10-01", to: "2026-10-16" })).toBe(16);
+    expect(eachDay({ from: "2026-10-24", to: "2026-10-26" })).toEqual(["2026-10-24", "2026-10-25", "2026-10-26"]);
   });
 });

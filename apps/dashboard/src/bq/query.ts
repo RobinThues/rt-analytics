@@ -2,7 +2,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { cookies } from "next/headers";
 import { readEnv } from "@/env";
-import { cacheProfile, failureFrom, rowsOrThrow, usesCache } from "./cache-rules";
+import { cacheProfile, failureFrom, rowsOrThrow, TAGS, usesCache } from "./cache-rules";
 import { getBigQuery } from "./client";
 import { runQuery, type QueryResult, type QuerySpec } from "./run-query";
 
@@ -35,4 +35,9 @@ export async function query<T>(
   } catch (err) {
     return failureFrom(err);
   }
+}
+
+/** Data panels: tag rtd:bq:<appId>, the configured TTL, and Live skips the cache. */
+export function dataQuery<T>(spec: QuerySpec, appId: string, live: boolean): Promise<QueryResult<T>> {
+  return query<T>(spec, { tags: [TAGS.data(appId)], ttl: readEnv().cacheTtlSeconds, live });
 }

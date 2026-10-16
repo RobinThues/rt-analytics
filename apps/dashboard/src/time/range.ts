@@ -15,6 +15,17 @@ export const addDays = (day: string, n: number) => fromUtcMs(toUtcMs(day) + n * 
 export const daysBetween = (from: string, to: string) => Math.round((toUtcMs(to) - toUtcMs(from)) / DAY_MS);
 export const defaultRange = (today: string): DateRange => ({ from: addDays(today, -27), to: today });
 
+/** Number of calendar days in the range, both ends included. */
+export const rangeDays = (range: DateRange) => daysBetween(range.from, range.to) + 1;
+
+/** Every day of the range in order. */
+export const eachDay = (range: DateRange) => Array.from({ length: rangeDays(range) }, (_, i) => addDays(range.from, i));
+
+/** Same number of calendar days, ending the day before `from` (spec section 6, "Previous period"). */
+export function previousRange(range: DateRange): DateRange {
+  return { from: addDays(range.from, -rangeDays(range)), to: addDays(range.from, -1) };
+}
+
 /** True for a real calendar day like "2026-02-28" (rejects "2026-02-30"). */
 export function isDay(value: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(toUtcMs(value)) && fromUtcMs(toUtcMs(value)) === value;
