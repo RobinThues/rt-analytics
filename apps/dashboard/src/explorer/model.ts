@@ -2,7 +2,7 @@
 // values are per-day averages; events and sessions are range totals).
 import type { Catalog } from "@/discovery/catalog";
 import type { Period, QueryContext } from "@/queries/context";
-import type { BreakdownMetricRow, EventListRow, Metric, MetricRow } from "@/queries/explorer";
+import type { BreakdownMetricRow, EventListRow, Metric, MetricRow, PropValueRow } from "@/queries/explorer";
 import { change, perDay } from "@/queries/series";
 import { eachDay } from "@/time/range";
 
@@ -68,4 +68,15 @@ export function toPropBreakdown(
     };
   });
   return [...out.filter((r) => !r.isOther).sort((a, b) => b.cur - a.cur), ...out.filter((r) => r.isOther)];
+}
+
+/** Value suggestions per prop key, as pairs for the client form (prop keys come from the ingest). */
+export function valuesByKey(rows: readonly PropValueRow[]): Array<[string, string[]]> {
+  const byKey = new Map<string, string[]>();
+  for (const r of rows) {
+    const list = byKey.get(r.key) ?? [];
+    list.push(r.value);
+    byKey.set(r.key, list);
+  }
+  return [...byKey];
 }

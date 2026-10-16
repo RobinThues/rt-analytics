@@ -118,3 +118,26 @@ test("a hand-edited error code does not break a page", async ({ page }) => {
   await page.goto("/demo/settings?error=constructor");
   await expect(page.getByText("Something went wrong.")).toBeVisible();
 });
+
+test("funnels: one stale step keeps the other steps in the editor", async ({ page }) => {
+  await page.goto("/demo/funnels?steps=place_selected&steps=gone_event&steps=subscribe_click");
+  await expect(page.getByText("Some steps are not available any more and were left out.")).toBeVisible();
+  await expect(page.getByLabel("Step 1 event")).toHaveValue("place_selected");
+  await expect(page.getByLabel("Step 2 event")).toHaveValue("subscribe_click");
+});
+
+test("funnels: the result fits a phone screen", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/demo/funnels?steps=place_selected&steps=subscribe_click");
+  const table = page.getByTestId("funnel-result");
+  await expect(page.getByTestId("funnel-sessions-1")).toBeVisible();
+  const { scroll, client } = await table.evaluate((el) => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+  expect(scroll).toBeLessThanOrEqual(client);
+});
+
+test("explorer: a chosen filter key offers its values before Apply", async ({ page }) => {
+  await page.goto("/demo/events?event=calendar_poll");
+  await page.getByLabel("Filter by").selectOption("kind");
+  const listId = await page.getByLabel("Value", { exact: true }).getAttribute("list");
+  await expect(page.locator(`datalist[id="${listId}"] option[value="token"]`)).toHaveCount(1);
+});

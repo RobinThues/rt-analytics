@@ -84,7 +84,7 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
     "explorer breakdown visitors",
     eventBreakdownQuery(ctx, { ...place, metric: { kind: "visitors" }, filter: null, by: "source" }),
   ],
-  ["explorer prop values", propValuesQuery(ctx, "calendar_poll", "kind")],
+  ["explorer prop values", propValuesQuery(ctx, "calendar_poll", ["kind", "subscription"])],
   [
     "funnel 2 steps",
     funnelQuery(ctx, [

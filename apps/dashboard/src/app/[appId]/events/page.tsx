@@ -12,7 +12,7 @@ import { TrendChart } from "@/components/trend-chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { buildCatalog, type Catalog } from "@/discovery/catalog";
 import { listEvents, listPropKeys } from "@/discovery/data";
-import { toEventList, metricTotals, toPropBreakdown } from "@/explorer/model";
+import { toEventList, metricTotals, toPropBreakdown, valuesByKey } from "@/explorer/model";
 import { explorerParams, needsCanonicalRedirect, parseExplorer } from "@/explorer/state";
 import { formatChange, formatDecimal, formatInt } from "@/lib/format";
 import { viewQuery } from "@/lib/query-string";
@@ -26,6 +26,7 @@ import {
   type ExplorerSelection,
   type Metric,
   type MetricRow,
+  type PropValueRow,
 } from "@/queries/explorer";
 import { alignSeries, change } from "@/queries/series";
 import { loadPage, type PanelProps } from "../page-data";
@@ -133,16 +134,16 @@ async function ControlsPanel({
   sel,
   qsBase,
 }: PanelProps & { catalog: Catalog; sel: ExplorerSelection; qsBase: Array<[string, string]> }) {
-  const values = sel.filter
-    ? await dataQuery<{ value: string }>(propValuesQuery(ctx, sel.event, sel.filter.key), ctx.appId, live)
-    : null;
+  const keys = catalog.keys[sel.event] ?? [];
+  const values =
+    keys.length > 0 ? await dataQuery<PropValueRow>(propValuesQuery(ctx, sel.event, keys), ctx.appId, live) : null;
   return (
     <ExplorerControls
       appId={ctx.appId}
       qsBase={qsBase}
       catalog={catalog}
       sel={sel}
-      values={values?.ok ? values.rows.map((r) => r.value) : []}
+      values={values?.ok ? valuesByKey(values.rows) : []}
     />
   );
 }

@@ -80,12 +80,17 @@ export function allowedFor(catalog: Catalog, saved: readonly SavedFunnel[]): All
   return { events, keys };
 }
 
+const isAllowed = (s: FunnelStep | null, allowed: AllowedSteps): s is FunnelStep =>
+  s !== null && allowed.events.has(s.event) && (s.filter === null || allowed.keys[s.event]?.has(s.filter.key) === true);
+
 export function validateSteps(steps: ReadonlyArray<FunnelStep | null>, allowed: AllowedSteps): FunnelStep[] | null {
   if (steps.length < MIN_STEPS || steps.length > MAX_STEPS) return null;
-  const ok = steps.every(
-    (s) => s !== null && allowed.events.has(s.event) && (s.filter === null || allowed.keys[s.event]?.has(s.filter.key)),
-  );
-  return ok ? (steps as FunnelStep[]) : null;
+  return steps.every((s) => isAllowed(s, allowed)) ? (steps as FunnelStep[]) : null;
+}
+
+/** The valid steps of a URL that failed validation, so the editor keeps them instead of starting empty. */
+export function usableSteps(steps: ReadonlyArray<FunnelStep | null>, allowed: AllowedSteps): FunnelStep[] {
+  return steps.filter((s) => isAllowed(s, allowed)).slice(0, MAX_STEPS);
 }
 
 export interface FunnelRow {

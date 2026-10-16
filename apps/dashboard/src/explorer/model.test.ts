@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { EventListRow, MetricRow } from "@/queries/explorer";
 import { catalog } from "./fixtures";
-import { metricTotals, toEventList, toPropBreakdown } from "./model";
+import { metricTotals, toEventList, toPropBreakdown, valuesByKey } from "./model";
 
 const ctx = {
   range: { from: "2026-10-01", to: "2026-10-03" },
@@ -50,5 +50,20 @@ describe("explorer model", () => {
       cur: 1,
       change: undefined,
     });
+  });
+});
+
+describe("valuesByKey", () => {
+  it("groups the value rows per key in row order, also for prototype names", () => {
+    expect(
+      valuesByKey([
+        { key: "kind", value: "token" },
+        { key: "kind", value: "legacy" },
+        { key: "__proto__", value: "x" },
+      ]),
+    ).toEqual([
+      ["kind", ["token", "legacy"]],
+      ["__proto__", ["x"]],
+    ]);
   });
 });

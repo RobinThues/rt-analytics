@@ -60,10 +60,12 @@ describe("explorer queries", () => {
   it("event list excludes built-in events", () => {
     expect(eventListQuery(ctx).sql).toContain("NOT STARTS_WITH(event_name, '$')");
   });
-  it("prop values: current range, event and key as params", () => {
-    const q = propValuesQuery(ctx, "calendar_poll", "kind");
-    expect(q.params).toMatchObject({ event: "calendar_poll", value_key: "kind" });
+  it("prop values: top 20 per key for all keys of the event, keys as an array param", () => {
+    const q = propValuesQuery(ctx, "calendar_poll", ["kind", "subscription"]);
+    expect(q.params).toMatchObject({ event: "calendar_poll", value_keys: ["kind", "subscription"] });
+    expect(q.types).toEqual({ value_keys: ["STRING"] });
+    expect(q.sql).toContain("UNNEST(@value_keys)");
     expect(q.sql).toContain("period = 'cur'");
-    expect(q.sql).toContain("LIMIT 20");
+    expect(q.sql).toContain("rn <= 20");
   });
 });

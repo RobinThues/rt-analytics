@@ -16,7 +16,7 @@ export function FunnelResult({
   compare: boolean;
 }) {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto" data-testid="funnel-result">
       <Table className="text-xs sm:text-sm">
         <TableHeader>
           <TableRow>

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildCatalog } from "@/discovery/catalog";
 import { catalog } from "@/explorer/fixtures";
-import { allowedFor, encodeStep, parseStep, toFunnelView, validateSteps } from "./steps";
+import { allowedFor, encodeStep, parseStep, toFunnelView, usableSteps, validateSteps } from "./steps";
 
 describe("funnel steps", () => {
   it("parse and encode round trip, values may contain colons and pipes", () => {
@@ -44,6 +44,17 @@ describe("funnel steps", () => {
     expect(validateSteps([parseStep("calendar_poll"), parseStep("subscribe_click")], allowed)).toBeNull(); // server event
     expect(validateSteps([null, parseStep("subscribe_click")], allowed)).toBeNull();
   });
+
+  it("usableSteps keeps the valid steps of a stale URL for the editor, in order, at most 5", () => {
+    const allowed = allowedFor(catalog, []);
+    const raw = [parseStep("place_selected"), parseStep("gone_event"), null, parseStep("$pageview:path:/")];
+    expect(usableSteps(raw, allowed)).toEqual([
+      { event: "place_selected", filter: null },
+      { event: "$pageview", filter: { key: "path", value: "/" } },
+    ]);
+    expect(usableSteps(Array(7).fill(parseStep("place_selected")), allowed)).toHaveLength(5);
+  });
+
   it("toFunnelView: conversion from first and previous, no NaN after a 0 step", () => {
     const rows = [
       { period: "cur", step: 1, sessions: 100 },

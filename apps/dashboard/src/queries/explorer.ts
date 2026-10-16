@@ -93,14 +93,25 @@ GROUP BY GROUPING SETS ((period, value, day), (period, value))`;
   return toSpec(sql, { ...selectionParams(ctx, sel), by_key: sel.by });
 }
 
-/** Top values of one prop in the current range, for the filter picker. */
-export function propValuesQuery(ctx: QueryContext, event: string, key: string): QuerySpec {
-  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "props"])}
-SELECT LAX_STRING(props[@value_key]) AS value, COUNT(*) AS n
-FROM evp
-WHERE event_name = @event AND period = 'cur' AND LAX_STRING(props[@value_key]) IS NOT NULL
-GROUP BY value
-ORDER BY n DESC, value
-LIMIT 20`;
-  return toSpec(sql, { ...ctx.params, event, value_key: key });
+export interface PropValueRow {
+  key: string;
+  value: string;
+}
+
+/**
+ * Top 20 values of each of the event's prop keys in the current range, so the filter picker can offer
+ * values for any key before it is applied. One scan for all keys.
+ */
+export function propValuesQuery(ctx: QueryContext, event: string, keys: readonly string[]): QuerySpec {
+  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "props"])},
+counted AS (
+  SELECT k AS key, LAX_STRING(props[k]) AS value, COUNT(*) AS n
+  FROM evp, UNNEST(@value_keys) AS k
+  WHERE event_name = @event AND period = 'cur' AND LAX_STRING(props[k]) IS NOT NULL
+  GROUP BY key, value
+),
+ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY key ORDER BY n DESC, value) AS rn FROM counted)
+SELECT key, value FROM ranked WHERE rn <= 20
+ORDER BY key, rn`;
+  return toSpec(sql, { ...ctx.params, event, value_keys: [...keys] }, { value_keys: ["STRING"] });
 }

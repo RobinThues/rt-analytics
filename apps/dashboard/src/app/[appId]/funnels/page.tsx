@@ -19,6 +19,7 @@ import {
   encodeStep,
   parseStep,
   toFunnelView,
+  usableSteps,
   validateSteps,
   type FunnelRow,
   type FunnelStep,
@@ -52,7 +53,10 @@ async function Funnels({ params, searchParams }: PageProps<"/[appId]/funnels">) 
   const allowed = allowedFor(catalog, saved.funnels);
   const funnelId = typeof sp.funnel === "string" ? sp.funnel : null;
   const open = funnelId ? saved.funnels.find((f) => f.id === funnelId) : undefined;
-  const steps = validateSteps(open ? open.steps : many(sp.steps).map(parseStep), allowed);
+  const requested = open ? open.steps : many(sp.steps).map(parseStep);
+  const steps = validateSteps(requested, allowed);
+  const editorSteps = steps ?? usableSteps(requested, allowed);
+  const leftOut = editorSteps.length < requested.length;
   const pageParams: Array<[string, string]> = open
     ? [["funnel", open.id]]
     : (steps ?? []).map((s): [string, string] => ["steps", encodeStep(s)]);
@@ -72,6 +76,9 @@ async function Funnels({ params, searchParams }: PageProps<"/[appId]/funnels">) 
         <CredentialsBanner />
       </Suspense>
       {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
+      {leftOut && (
+        <p className="mb-4 text-sm text-destructive">Some steps are not available any more and were left out.</p>
+      )}
       {funnelId && !open && !saved.failed && (
         <p className="mb-4 text-sm text-destructive">This saved funnel does not exist any more.</p>
       )}
@@ -108,7 +115,7 @@ async function Funnels({ params, searchParams }: PageProps<"/[appId]/funnels">) 
               key={qs}
               events={editorEvents}
               keys={editorKeys}
-              initial={steps ?? []}
+              initial={editorSteps}
               baseQuery={baseQuery}
             />
           </Panel>
