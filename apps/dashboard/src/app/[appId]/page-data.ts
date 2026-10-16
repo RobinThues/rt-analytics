@@ -26,13 +26,31 @@ export interface PageData {
   maxBytes: number;
 }
 
+/** The request as pages receive it. Pages create it once and pass the same object down. */
+export type PageInput = { params: Promise<{ appId: string }>; searchParams: Promise<SearchParams> };
+
 /** What every panel needs. */
 export type PanelProps = { ctx: QueryContext; live: boolean; maxBytes: number };
 
-export async function loadPage(
-  params: Promise<{ appId: string }>,
-  searchParams: Promise<SearchParams>,
-): Promise<PageData> {
+/** The app list for pickers: the current app is always in it (it may have no recent events). */
+export function appList(appId: string, ids: readonly string[]): string[] {
+  return ids.includes(appId) ? [...ids].sort() : [...ids, appId].sort();
+}
+
+// One load per request: every data part of a page calls loadPage with the same input object. A WeakMap
+// (not React cache) so it also dedupes in tests; each request has its own input object.
+const loaded = new WeakMap<PageInput, Promise<PageData>>();
+
+export function loadPage(input: PageInput): Promise<PageData> {
+  let p = loaded.get(input);
+  if (!p) {
+    p = load(input.params, input.searchParams);
+    loaded.set(input, p);
+  }
+  return p;
+}
+
+async function load(params: Promise<{ appId: string }>, searchParams: Promise<SearchParams>): Promise<PageData> {
   const { appId } = await params;
   if (!APP_ID_RE.test(appId)) notFound();
   await requireUser();
@@ -52,7 +70,7 @@ export async function loadPage(
   return {
     appId,
     settings,
-    apps: appIds.includes(appId) ? appIds : [...appIds, appId].sort(),
+    apps: appList(appId, appIds),
     live,
     state,
     today,

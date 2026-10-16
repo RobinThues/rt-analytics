@@ -46,7 +46,7 @@ async function ResultPanel({ ctx, live, maxBytes, steps }: PanelProps & { steps:
 }
 
 async function Funnels({ params, searchParams }: PageProps<"/[appId]/funnels">) {
-  const data = await loadPage(params, searchParams);
+  const data = await loadPage({ params, searchParams });
   const { appId, apps, state, live, ctx, maxBytes, sp } = data;
   const [events, keys, saved] = await Promise.all([listEvents(appId), listPropKeys(appId), getFunnels(appId)]);
   const catalog = buildCatalog(events.ok ? events.rows : [], keys.ok ? keys.rows : []);

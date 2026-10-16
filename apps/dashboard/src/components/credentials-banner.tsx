@@ -1,8 +1,11 @@
+import { connection } from "next/server";
 import { checkCredentials } from "@/bq/credentials";
 import { getBigQuery } from "@/bq/client";
 import { readEnv } from "@/env";
 
+/** Request-time only: the token check reads the clock, which a prerender must not do. */
 export async function CredentialsBanner() {
+  await connection();
   const { ok } = await checkCredentials(getBigQuery(readEnv()).authClient);
   if (ok) return null;
   return (

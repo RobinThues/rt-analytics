@@ -150,7 +150,7 @@ async function ControlsPanel({
 }
 
 async function Explorer({ params, searchParams }: PageProps<"/[appId]/events">) {
-  const data = await loadPage(params, searchParams);
+  const data = await loadPage({ params, searchParams });
   const { appId, apps, state, live, ctx, maxBytes, sp } = data;
   const [events, keys] = await Promise.all([listEvents(appId), listPropKeys(appId)]);
   const catalog = events.ok ? buildCatalog(events.rows, keys.ok ? keys.rows : []) : null;

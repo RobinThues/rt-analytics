@@ -179,3 +179,14 @@ test("explorer: picking another event keeps the old content dimmed", async ({ pa
   await expect(page).toHaveURL(/event=subscribe_click/, { timeout: 10_000 });
   await expect(page.getByTestId("progress-line")).toBeHidden();
 });
+
+test("overview: page switch shows panel frames with skeletons before data", async ({ page }) => {
+  await page.goto("/demo/events");
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 2000);
+  await page.getByRole("link", { name: "Overview" }).click();
+  await expect(page.getByRole("heading", { name: "Summary" })).toBeVisible();
+  await expect(page.getByTestId("skeleton").first()).toBeVisible();
+  await expect(page.getByText("Loading…")).toHaveCount(0);
+  await expect(page.getByTestId("kpi-pageviews")).toBeVisible({ timeout: 15_000 });
+});
