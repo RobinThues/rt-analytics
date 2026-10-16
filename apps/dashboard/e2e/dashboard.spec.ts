@@ -325,3 +325,17 @@ test("funnels: Show funnel keeps the old result dimmed", async ({ page }) => {
   await expect(page).toHaveURL(/steps=%24pageview/, { timeout: 10_000 });
   await expect(page.getByTestId("progress-line")).toBeHidden();
 });
+
+test("funnels: chart shows one bar per step with a hover tooltip", async ({ page }) => {
+  await page.goto("/demo/funnels?steps=place_selected&steps=subscribe_click");
+  await expect(page.getByTestId("funnel-bar-h-1")).toBeVisible();
+  await expect(page.getByTestId("funnel-bar-h-2")).toBeVisible();
+  await expect(page.getByTestId("funnel-bar-h-3")).toHaveCount(0);
+  await page.getByTestId("funnel-bar-h-2").hover();
+  await expect(page.getByRole("tooltip")).toContainText("sessions");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(page.getByTestId("funnel-bar-v-1")).toBeVisible();
+  await expect(page.getByTestId("funnel-bar-h-1")).toBeHidden();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});

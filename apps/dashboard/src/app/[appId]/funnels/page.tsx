@@ -2,6 +2,7 @@ import { PendingLink } from "@/components/pending-link";
 import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
 import { PageBar } from "@/components/page-bar";
+import { FunnelChart } from "@/components/funnel-chart";
 import { FunnelEditor } from "@/components/funnel-editor";
 import { FunnelResult } from "@/components/funnel-result";
 import { PageBody } from "@/components/page-body";
@@ -29,7 +30,13 @@ const ERRORS: Record<string, string> = {
 async function ResultPanel({ ctx, live, maxBytes, steps }: PanelProps & { steps: FunnelStep[] }) {
   const res = await dataQuery<FunnelRow>(funnelQuery(ctx, steps), ctx.appId, live);
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
-  return <FunnelResult steps={steps} view={toFunnelView(res.rows, steps.length, ctx.compare)} compare={ctx.compare} />;
+  const view = toFunnelView(res.rows, steps.length, ctx.compare);
+  return (
+    <div className="flex flex-col gap-4">
+      <FunnelChart steps={steps} view={view} compare={ctx.compare} />
+      <FunnelResult steps={steps} view={view} compare={ctx.compare} />
+    </div>
+  );
 }
 
 /** A data part of the funnels page: the funnel data, inside a Suspense keyed by the app. */
