@@ -1,6 +1,6 @@
 // Events explorer (spec section 7, "Events explorer"): any app event, one metric, at most one filter,
 // breakdown by one prop. Event names, prop keys and values are always parameters.
-import { EVENTS } from "rt-analytics/schema";
+import { BUILTIN_PREFIX, EVENTS } from "rt-analytics/schema";
 import type { QuerySpec } from "@/bq/run-query";
 import { eventsCte, toSpec, type Period, type QueryContext } from "./context";
 
@@ -37,7 +37,7 @@ export function eventListQuery(ctx: QueryContext): QuerySpec {
   const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp"])}
 SELECT period, event_name, CAST(day AS STRING) AS day, COUNT(*) AS events
 FROM evp
-WHERE period IS NOT NULL AND NOT STARTS_WITH(event_name, '$')
+WHERE period IS NOT NULL AND NOT STARTS_WITH(event_name, '${BUILTIN_PREFIX}')
 GROUP BY period, event_name, day`;
   return toSpec(sql, ctx.params);
 }

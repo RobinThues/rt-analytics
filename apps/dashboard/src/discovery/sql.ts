@@ -1,3 +1,4 @@
+import { BUILTIN_PREFIX } from "rt-analytics/schema";
 import type { QuerySpec } from "@/bq/run-query";
 import type { DashboardEnv } from "@/env";
 
@@ -24,7 +25,7 @@ export function eventNamesQuery(env: DashboardEnv, appId: string): QuerySpec {
 FROM ${env.analyticsTable}
 WHERE app_id = @app_id
   AND timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 DAY)
-  AND NOT STARTS_WITH(event_name, '$')
+  AND NOT STARTS_WITH(event_name, '${BUILTIN_PREFIX}')
 GROUP BY event_name
 ORDER BY events DESC`,
     params: { app_id: appId },
@@ -37,7 +38,7 @@ export function propKeysQuery(env: DashboardEnv, appId: string): QuerySpec {
 FROM ${env.analyticsTable}, UNNEST(JSON_KEYS(props, 1)) AS k
 WHERE app_id = @app_id
   AND timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
-  AND NOT STARTS_WITH(event_name, '$')
+  AND NOT STARTS_WITH(event_name, '${BUILTIN_PREFIX}')
   AND props IS NOT NULL
   AND JSON_TYPE(props[k]) IN ('string', 'number', 'boolean')
 GROUP BY event_name, prop_key

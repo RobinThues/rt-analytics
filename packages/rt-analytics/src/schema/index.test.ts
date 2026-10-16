@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { dailyVisitorId } from "../next/enrich.js";
-import { BUILTIN_EVENTS, DAILY_VISITOR_PREFIX, EVENTS, SERVER_CONSENT_STATE } from "./index.js";
+import { BUILTIN_EVENTS, BUILTIN_PREFIX, DAILY_VISITOR_PREFIX, EVENTS, SERVER_CONSENT_STATE } from "./index.js";
 
 describe("schema", () => {
   it("EVENTS covers exactly the built-in event names", () => {
@@ -8,7 +8,8 @@ describe("schema", () => {
   });
 
   it("built-in names start with $", () => {
-    for (const name of BUILTIN_EVENTS) expect(name.startsWith("$")).toBe(true);
+    expect(BUILTIN_PREFIX).toBe("$");
+    for (const name of BUILTIN_EVENTS) expect(name.startsWith(BUILTIN_PREFIX)).toBe(true);
   });
 
   it("daily visitor ids use the prefix", () => {

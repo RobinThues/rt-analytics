@@ -8,7 +8,7 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
-- `rt-analytics/schema`: `EventRow`, `BUILTIN_EVENTS`, `EVENTS`, `RowConsentState`, `SERVER_CONSENT_STATE`,
+- `rt-analytics/schema`: `EventRow`, `BUILTIN_EVENTS`, `BUILTIN_PREFIX`, `EVENTS`, `RowConsentState`, `SERVER_CONSENT_STATE`,
   `DAILY_VISITOR_PREFIX`, for tools that read the BigQuery table (like the dashboard).
 
 ### Changed

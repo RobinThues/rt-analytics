@@ -1,6 +1,9 @@
 import type { ConsentState } from "../core/types.js";
 
-/** Event names the SDK emits by itself. App events never start with "$". */
+/** Prefix of every built-in event name. App events never start with it. */
+export const BUILTIN_PREFIX = "$";
+
+/** Event names the SDK emits by itself. */
 export const BUILTIN_EVENTS = ["$pageview", "$session_start", "$web_vital", "$error", "$consent", "$identify"] as const;
 export type BuiltinEvent = (typeof BUILTIN_EVENTS)[number];
 
