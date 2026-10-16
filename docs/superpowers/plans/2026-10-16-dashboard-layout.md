@@ -68,7 +68,7 @@ design doc). Work in the main checkout (env files, `.vercel` and `node_modules` 
 4. A funnel whose first step has 0 sessions, or compare off: the chart renders without NaN and without
    previous-period bars. → Task 8 unit tests.
 5. Returning to a recently visited page after changing the range elsewhere (Next keeps the last 3
-   pages in hidden `<Activity>`): the page never shows the old range's numbers undimmed. → Task 2 e2e
+   pages in hidden `<Activity>`): the page never shows the old range's numbers undimmed. → Task 5 e2e
    "revisit after a range change".
 
 ## Shared test helper (used from Task 1 on)
@@ -95,8 +95,9 @@ Proves the core mechanism before anything builds on it.
 
 **Interfaces:**
 - Produces:
-  - `usePendingNavigation(): { pending: boolean; navigate: (href: string) => void }` in
-    `src/lib/navigation.ts` (`"use client"`; `useTransition` + `useRouter().push(href, { scroll: false })`).
+  - `usePendingNavigation(): { pending: boolean; navigate: (href: string, before?: () => void) => void }`
+    in `src/lib/navigation.ts` (`"use client"`; `useTransition`; inside one `startTransition` it runs
+    `before?.()` (for optimistic setters) and then `useRouter().push(href, { scroll: false })`).
   - `PendingLink(props: { href: string; className?: string; children: ReactNode } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href" | "onClick">)`
     in `src/components/pending-link.tsx`: renders `<a href>`; a plain left click without modifier and
     without `target` calls `navigate` and prevents the default; any modifier (ctrl, meta, shift, alt),
@@ -217,35 +218,19 @@ test("overview: page switch shows panel frames with skeletons before data", asyn
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expect(page.getByTestId("kpi-pageviews")).toBeVisible({ timeout: 15_000 });
 });
-test("overview: revisit after a range change never shows old numbers undimmed", async ({ page }) => {
-  await page.goto("/demo");
-  await expect(page.getByTestId("kpi-pageviews")).toBeVisible();
-  const old = await page.getByTestId("kpi-pageviews").textContent();
-  await page.goto("/demo/events?from=2026-09-01&to=2026-09-07");
-  await page.waitForLoadState("networkidle");
-  await slowRsc(page, 2000);
-  await page.getByRole("link", { name: "Overview" }).click();
-  const kpi = page.getByTestId("kpi-pageviews");
-  if ((await kpi.count()) > 0 && (await kpi.textContent()) === old)
-    await expect(page.getByTestId("page-body")).toHaveCSS("opacity", "0.5");
-  await expect(page).toHaveURL(/from=2026-09-01/);
-});
 ```
 
 (Until Task 6 the "Overview" link is the one in today's `Header`.)
 
 - [ ] **Step 3: Run them.** `npx vitest run 'src/app/[appId]/page-data.test.ts'`;
-  `npm run build && npx playwright test -g "overview: page switch|overview: revisit"`.
+  `npm run build && npx playwright test -g "overview: page switch"`.
   Expected: unit FAIL (`loadPage` takes two arguments, `appList` missing); first e2e FAILS
   ("Loading…" fallback, no skeleton test ids).
 - [ ] **Step 4: Implement** the interfaces; rewrite `[appId]/page.tsx` as a synchronous page with the
   panel frames outside Suspense and each body as a data part; the header and range line are rendered
   as data parts for now (Task 5 replaces them); delete `[appId]/loading.tsx` and the page-level
   `<Suspense fallback={<p>Loading…</p>}>`; switch the other pages' `loadPage` calls to `loadPage(input)`.
-- [ ] **Step 5: Run them again** (rebuild). Expected: PASS. If the revisit test fails (old numbers
-  shown undimmed from Next's kept page), rule on the fix (for example marking pending from the
-  sidebar link with `useLinkStatus` inside the content group, or keying the data parts by the range
-  on page switches only) and ledger it.
+- [ ] **Step 5: Run them again** (rebuild). Expected: PASS.
 - [ ] **Step 6: Run the whole e2e suite.** `npx playwright test` Expected: all pass.
 - [ ] **Step 7: Commit** `feat(dashboard): overview renders static panel frames with skeletons`
 
@@ -393,10 +378,14 @@ expect(formatShortDay("2026-07-04")).toBe("4 July");
     applying. Applying = `navigate(window.location.pathname + withView(window.location.search, { range }))`
     and closing the popover. `data-pending` on the root while pending.
   - `CompareToggle({ compare }: { compare: boolean })` (client): checkbox labeled "Compare" whose
-    checked state is `useOptimistic(compare)`; toggling sets the optimistic value and navigates with
-    `withView(window.location.search, { compare })`; `data-pending` while pending. A toggle during a
-    pending range change replaces it (spec: "a new choice replaces the pending one").
-  - `PageBar({ title, input }: { title: string; input?: PageInput })` (server): `<h1>` title outside
+    checked state is `useOptimistic(compare)`; toggling calls
+    `navigate(href, () => setOptimistic(next))` with `href` from
+    `withView(window.location.search, { compare: next })`, so the optimistic value is set inside the
+    same transition (outside a transition it would revert at once); `data-pending` while pending. A
+    toggle during a pending range change replaces it (spec: "a new choice replaces the pending one").
+  - `PageBar({ title, page, input }: { title: string; page?: AppPage; input?: PageInput })` (server;
+    `page` is passed by the three data pages because `toggleLive` and `refreshApp` need it):
+    `<h1>` title outside
     Suspense; with `input`, a data part (fallback: skeleton of the same height) with `RangePicker`,
     `CompareToggle`, the Live badge, "Turn Live on/off" and Refresh forms (existing actions;
     `qs = rawViewQuery(sp)`), and under the bar `RangeLine`
@@ -464,6 +453,37 @@ test("quick second preset wins", async ({ page }) => {
   );
 });
 ```
+
+```ts
+test("overview: revisit after a range change never shows old numbers undimmed", async ({ page }) => {
+  await page.goto("/demo");
+  const kpi = page.locator("[data-testid=kpi-pageviews]:visible");
+  const body = page.locator("[data-testid=page-body]:visible");
+  await expect(kpi).toBeVisible();
+  const old = await kpi.textContent();
+  await page.getByRole("link", { name: "Events" }).click(); // client-side, keeps the router state
+  await page.getByRole("button", { name: "Date range" }).click();
+  await page.getByRole("button", { name: "Last 7 days" }).click();
+  await expect(page.getByTestId("progress-line")).toBeHidden({ timeout: 15_000 });
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 1500);
+  await page.getByRole("link", { name: "Overview" }).click();
+  for (let t = 0; t < 15; t++) {
+    // sample ~1.5 s: the old text may only be visible while dimmed
+    if ((await kpi.count()) === 1 && (await kpi.textContent()) === old) {
+      expect(await body.evaluate((el) => getComputedStyle(el).opacity)).not.toBe("1");
+    }
+    await page.waitForTimeout(100);
+  }
+  await expect(kpi).not.toHaveText(old ?? "", { timeout: 15_000 });
+});
+```
+
+If this test fails (Next reveals the kept page with old numbers at full opacity), rule on the fix
+and ledger it. Options: key each data part's inner Suspense by `appId` plus the range on page
+switches, or mark the content group pending from a client component that compares the rendered range
+with the URL's range. A `useLinkStatus` marker in the sidebar does not work (the sidebar is outside
+`group/content`).
 
 (`daysBetween` and `formatRangeLabel` imported from `../src/…`.)
 - [ ] **Step 6: Run the whole e2e suite** (rebuild). Expected: all pass, including "Live toggle and
@@ -557,8 +577,8 @@ the link "wetter-in-kalender" of `["demo", "wetter-in-kalender"]`.
 - Consumes: `usePendingNavigation`, `PendingLink` (Task 1); `withView` (Task 4).
 - Produces:
   - `explorerFormQuery(base: string, catalog: Catalog, form: { event: string; metric: string; fk: string; fv: string; by: string }): string`
-    in `src/explorer/state.ts`: returns `viewQuery`-style `?from=…&to=…[&compare=0]` from `base`
-    followed by `explorerParams(parseExplorer({ event, metric, fk, fv, by }, catalog))`, so the client
+    in `src/explorer/state.ts`: returns `?` plus whichever of `from`, `to` and `compare` exist in
+    `base` (none are invented; `?event=x` alone yields no `from`), followed by `explorerParams(parseExplorer({ event, metric, fk, fv, by }, catalog))`, so the client
     builds the canonical URL and the server's fk/fv redirect is never hit from the form.
   - `ExplorerControls` (client) gets `catalog`; on submit it reads the form fields by name (strings,
     no `new URLSearchParams(formData)`), calls `navigate(`/${appId}/events${explorerFormQuery(window.location.search, catalog, …)}`)`,
