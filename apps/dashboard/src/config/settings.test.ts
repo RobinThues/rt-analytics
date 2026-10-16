@@ -1,7 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
 import { readEnv } from "@/env";
-import { DEFAULT_SETTINGS, isTimezone, parseHostList, parseSettings, readSettingsQuery, saveSettingsQuery } from "./settings";
+import {
+  DEFAULT_SETTINGS,
+  isTimezone,
+  parseHostList,
+  parseSettings,
+  readSettingsQuery,
+  saveSettingsQuery,
+} from "./settings";
 
 const env = readEnv({ GCP_PROJECT_ID: "robin-thues" });
 

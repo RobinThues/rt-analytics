@@ -55,3 +55,23 @@ test("unauthenticated visitors go to sign-in", async ({ browser }) => {
   await page.goto("http://localhost:3300/demo");
   await expect(page).toHaveURL(/\/sign-in/);
 });
+
+test("explorer: distinct subscriptions per day with a filter", async ({ page }) => {
+  await page.goto("/demo/events");
+  await page.getByTestId("event-list").getByRole("link", { name: "calendar_poll" }).click();
+  await expect(page).toHaveURL(/event=calendar_poll/);
+  await page.getByLabel("Metric").selectOption("distinct:subscription");
+  await page.getByLabel("Filter by").selectOption("kind");
+  await page.getByLabel("Value", { exact: true }).fill("token");
+  await page.getByRole("button", { name: "Apply" }).last().click();
+  await expect(page).toHaveURL(/metric=distinct%3Asubscription/);
+  await expect(page).toHaveURL(/filter=kind%3Atoken/);
+  await expect(page.getByTestId("explorer-total")).not.toHaveText(/^0(\.0)?$/);
+  await expect(page.getByText("Could not load this panel.")).toHaveCount(0);
+});
+
+test("explorer: unknown event in the URL shows the list, no error", async ({ page }) => {
+  await page.goto("/demo/events?event=gone_event&filter=x:y");
+  await expect(page.getByText("Pick an event on the left.")).toBeVisible();
+  await expect(page.getByTestId("event-list")).toBeVisible();
+});

@@ -84,7 +84,11 @@ describe("startupCheck", () => {
   };
   it("passes with a complete environment", () => expect(() => startupCheck(full)).not.toThrow());
   it("local runs (test login only) need no Google values, but still a valid GCP project", () => {
-    const local = { GCP_PROJECT_ID: "robin-thues", DASHBOARD_ALLOWED_EMAILS: "a@b.de", BETTER_AUTH_SECRET: "x".repeat(32) };
+    const local = {
+      GCP_PROJECT_ID: "robin-thues",
+      DASHBOARD_ALLOWED_EMAILS: "a@b.de",
+      BETTER_AUTH_SECRET: "x".repeat(32),
+    };
     expect(() => startupCheck(local)).not.toThrow();
     expect(() => startupCheck({ ...local, GCP_PROJECT_ID: undefined })).toThrow(/GCP_PROJECT_ID/);
   });

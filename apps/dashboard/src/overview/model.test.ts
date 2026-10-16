@@ -15,7 +15,14 @@ describe("overview model", () => {
       pageviews: 400,
       errors: 2,
     };
-    const prev: KpiRow = { ...cur, period: "prev", visitor_days: 150, sessions: 0, persistent_sessions: 0, bounced_sessions: 0 };
+    const prev: KpiRow = {
+      ...cur,
+      period: "prev",
+      visitor_days: 150,
+      sessions: 0,
+      persistent_sessions: 0,
+      bounced_sessions: 0,
+    };
     const k = toKpis([cur, prev], 30, true);
     expect(k.visitorsPerDay).toEqual({ value: 10, change: 100 });
     expect(k.bounceRate.value).toBe(0.25);
@@ -39,7 +46,9 @@ describe("overview model", () => {
     expect(withOther.at(-1)).toMatchObject({ label: "Other", isOther: true, pageviewsChange: -85.71428571428571 });
   });
   it("toBreakdown without compare has no change", () => {
-    expect(toBreakdown([{ period: "cur", value: "/a", pageviews: 1, visitor_days: 1 }], 1, false)[0]?.pageviewsChange).toBeUndefined();
+    expect(
+      toBreakdown([{ period: "cur", value: "/a", pageviews: 1, visitor_days: 1 }], 1, false)[0]?.pageviewsChange,
+    ).toBeUndefined();
   });
   it("toRetention: shares relative to week 0", () => {
     expect(
