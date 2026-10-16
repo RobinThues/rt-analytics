@@ -48,7 +48,7 @@ export async function KpiPanel({ ctx, live, maxBytes }: PanelProps) {
         />
         <KpiTile label="Errors" value={formatInt(k.errors.value)} change={k.errors.change} testId="kpi-errors" />
       </div>
-      <CoverageNote coverage={k.coverage.value} />
+      <CoverageNote coverage={k.coverage.value} sessions={k.sessions.value} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { BreakdownRow, KpiRow } from "@/queries/overview";
-import { toBreakdown, toConsentShares, toKpis, toRetention } from "./model";
+import type { BreakdownRow, KpiRow, VitalRow } from "@/queries/overview";
+import { toBreakdown, toConsentShares, toKpis, toRetention, toVitals } from "./model";
 
 describe("overview model", () => {
   it("toKpis: per-day visitors, shares and change; zero sessions give 0 rates, not NaN", () => {
@@ -72,5 +72,21 @@ describe("overview model", () => {
     expect(toConsentShares([{ period: "cur", consent_state: "pending", pageviews: 5 }])).toEqual([
       { state: "pending", share: 1, prevShare: null },
     ]);
+  });
+});
+
+describe("toVitals", () => {
+  it("value and change per metric; a metric without current data has no value and no change", () => {
+    const rows: VitalRow[] = [
+      { period: "cur", metric: "LCP", p75: 2000, samples: 10 },
+      { period: "prev", metric: "LCP", p75: 2500, samples: 10 },
+      { period: "prev", metric: "INP", p75: 200, samples: 10 },
+    ];
+    expect(toVitals(rows, true)).toEqual({
+      LCP: { value: 2000, change: -20 },
+      INP: { value: null, change: undefined },
+      CLS: { value: null, change: undefined },
+    });
+    expect(toVitals(rows, false).LCP).toEqual({ value: 2000, change: undefined });
   });
 });

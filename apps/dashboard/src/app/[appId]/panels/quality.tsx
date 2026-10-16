@@ -3,7 +3,7 @@ import { QueryError } from "@/components/query-error";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dataQuery } from "@/bq/query";
 import { formatInt, formatShare } from "@/lib/format";
-import { toConsentShares } from "@/overview/model";
+import { toConsentShares, toVitals, type VitalName } from "@/overview/model";
 import {
   consentQuery,
   slowPagesQuery,
@@ -14,31 +14,28 @@ import {
   type SlowPageRow,
   type VitalRow,
 } from "@/queries/overview";
-import { change } from "@/queries/series";
 import type { PanelProps } from "../page-data";
 
 const VITALS = [
   { metric: "LCP", label: "LCP (p75)", format: (n: number) => `${formatInt(n)} ms` },
   { metric: "INP", label: "INP (p75)", format: (n: number) => `${formatInt(n)} ms` },
   { metric: "CLS", label: "CLS (p75)", format: (n: number) => n.toFixed(2) },
-] as const;
+] as const satisfies ReadonlyArray<{ metric: VitalName; label: string; format: (n: number) => string }>;
 
 export async function WebVitalsPanel({ ctx, live, maxBytes }: PanelProps) {
   const res = await dataQuery<VitalRow>(webVitalsQuery(ctx), ctx.appId, live);
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
-  const find = (period: string, metric: string) => res.rows.find((r) => r.period === period && r.metric === metric);
+  const vitals = toVitals(res.rows, ctx.compare);
   return (
     <div className="grid grid-cols-3 gap-3">
       {VITALS.map((v) => {
-        const cur = find("cur", v.metric);
-        const prev = find("prev", v.metric);
-        // Lower is better for all three; the tile shows the plain change.
+        const { value, change } = vitals[v.metric];
         return (
           <KpiTile
             key={v.metric}
             label={v.label}
-            value={cur ? v.format(cur.p75) : "–"}
-            change={ctx.compare ? (cur ? change(cur.p75, prev?.p75 ?? null) : null) : undefined}
+            value={value === null ? "–" : v.format(value)}
+            change={change}
             testId={`vital-${v.metric.toLowerCase()}`}
           />
         );

@@ -14,7 +14,7 @@ export async function PeoplePanel({ ctx, live, maxBytes }: PanelProps) {
   const kpis = await loadKpis(ctx, live);
   if (!kpis.ok) return <QueryError result={kpis} maxBytes={maxBytes} />;
   const k = toKpis(kpis.rows, ctx.days, ctx.compare);
-  if (k.coverage.value <= 0) return <CoverageNote coverage={0} />;
+  if (k.coverage.value <= 0) return <CoverageNote coverage={0} sessions={k.sessions.value} />;
   const res = await dataQuery<RetentionRow>(retentionQuery(ctx), ctx.appId, live);
   const cohorts = res.ok ? toRetention(res.rows) : [];
   const weeks = Math.max(0, ...cohorts.map((c) => c.shares.length));
@@ -28,7 +28,7 @@ export async function PeoplePanel({ ctx, live, maxBytes }: PanelProps) {
           testId="kpi-returning"
         />
       </div>
-      <CoverageNote coverage={k.coverage.value} />
+      <CoverageNote coverage={k.coverage.value} sessions={k.sessions.value} />
       <p className="text-sm text-muted-foreground">
         Returning: active on two or more days. Retention: people new in the range (not seen in the 28 days before), by
         the week of their first visit, share active in each later week.

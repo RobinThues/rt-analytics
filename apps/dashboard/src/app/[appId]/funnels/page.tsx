@@ -23,6 +23,7 @@ import {
   type FunnelRow,
   type FunnelStep,
 } from "@/funnels/steps";
+import { pickMessage } from "@/lib/messages";
 import { viewQuery } from "@/lib/query-string";
 import { funnelQuery } from "@/queries/funnel";
 import { loadPage, type PanelProps } from "../page-data";
@@ -62,7 +63,7 @@ async function Funnels({ params, searchParams }: PageProps<"/[appId]/funnels">) 
     a === EVENTS.pageview ? -1 : b === EVENTS.pageview ? 1 : a.localeCompare(b),
   );
   const editorKeys = Object.fromEntries(editorEvents.map((e) => [e, [...(allowed.keys[e] ?? [])]]));
-  const error = typeof sp.error === "string" ? (ERRORS[sp.error] ?? "Something went wrong.") : null;
+  const error = pickMessage(ERRORS, sp.error);
   const p = { ctx, live, maxBytes };
   return (
     <>

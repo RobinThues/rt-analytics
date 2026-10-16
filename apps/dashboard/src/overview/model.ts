@@ -1,6 +1,6 @@
 // Turns overview rows into what the tiles and tables show (spec section 6, "Metrics").
 import type { Period } from "@/queries/context";
-import type { BreakdownRow, ConsentRow, KpiRow, RetentionRow } from "@/queries/overview";
+import type { BreakdownRow, ConsentRow, KpiRow, RetentionRow, VitalRow } from "@/queries/overview";
 import { change, perDay } from "@/queries/series";
 
 /** `change` is undefined when compare is off, null when there is nothing to compare with. */
@@ -100,4 +100,21 @@ export function toConsentShares(
       prevShare: prevTotal > 0 ? share(prev.get(r.consent_state) ?? 0, prevTotal) : null,
     }))
     .sort((a, b) => b.share - a.share);
+}
+
+export type VitalName = VitalRow["metric"];
+export const VITAL_NAMES: readonly VitalName[] = ["LCP", "INP", "CLS"];
+
+/** p75 per metric; a metric without current samples has no value and no change (not "new"). */
+export function toVitals(
+  rows: readonly VitalRow[],
+  compare: boolean,
+): Record<VitalName, { value: number | null; change: number | null | undefined }> {
+  const find = (period: Period, metric: VitalName) => rows.find((r) => r.period === period && r.metric === metric);
+  const entry = (metric: VitalName) => {
+    const cur = find("cur", metric);
+    if (!cur) return { value: null, change: undefined };
+    return { value: cur.p75, change: compare ? change(cur.p75, find("prev", metric)?.p75 ?? null) : undefined };
+  };
+  return { LCP: entry("LCP"), INP: entry("INP"), CLS: entry("CLS") };
 }

@@ -9,4 +9,9 @@ describe("CoverageNote", () => {
     rerender(<CoverageNote coverage={0} />);
     expect(screen.getByText(/all cookieless/)).toBeInTheDocument();
   });
+  it("no sessions at all is not 'all cookieless'", () => {
+    render(<CoverageNote coverage={0} sessions={0} />);
+    expect(screen.getByText("No sessions in this range.")).toBeInTheDocument();
+    expect(screen.queryByText(/cookieless/)).toBeNull();
+  });
 });

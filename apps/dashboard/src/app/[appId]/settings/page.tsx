@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getSettings } from "@/config/data";
 import { APP_ID_RE } from "@/discovery/sql";
+import { pickMessage } from "@/lib/messages";
 import { saveSettings } from "../actions";
 
 const ERRORS: Record<string, string> = {
@@ -22,7 +23,7 @@ async function SettingsView({ params, searchParams }: PageProps<"/[appId]/settin
   const zones = Intl.supportedValuesOf("timeZone");
   if (!zones.includes("UTC")) zones.push("UTC");
   if (!zones.includes(settings.timezone)) zones.unshift(settings.timezone);
-  const error = typeof sp.error === "string" ? (ERRORS[sp.error] ?? "Something went wrong.") : null;
+  const error = pickMessage(ERRORS, sp.error);
   return (
     <>
       <p className="mb-4 text-sm">

@@ -29,6 +29,9 @@ describe("series", () => {
     expect(change(5, null)).toBeNull();
     expect(change(5, undefined)).toBeNull();
   });
+  it("nothing in both periods is no change, not 'new'", () => {
+    expect(change(0, 0)).toBe(0);
+  });
   it("per day divides by calendar days and never returns NaN", () => {
     expect(perDay(30, 3)).toBe(10);
     expect(perDay(0, 3)).toBe(0);

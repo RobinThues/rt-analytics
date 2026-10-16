@@ -16,8 +16,12 @@ export function alignSeries(
   }));
 }
 
-/** Change in percent; null when there is nothing to compare with (previous value 0 or missing). */
+/**
+ * Change in percent; null ("new") when the previous value is missing or 0 while the current one is not.
+ * Nothing in both periods is no change (0).
+ */
 export function change(cur: number, prev: number | null | undefined): number | null {
+  if (prev === 0 && cur === 0) return 0;
   if (prev === null || prev === undefined || prev === 0) return null;
   return ((cur - prev) / prev) * 100;
 }

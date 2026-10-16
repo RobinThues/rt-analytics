@@ -28,7 +28,7 @@ describe("explorer model", () => {
     ];
     expect(toEventList(rows, ctx, catalog)).toEqual([
       { name: "place_selected", total: 3, change: -50, spark: [0, 3, 0] },
-      { name: "calendar_poll", total: 0, change: null, spark: [0, 0, 0] },
+      { name: "calendar_poll", total: 0, change: 0, spark: [0, 0, 0] },
     ]);
   });
   it("toPropBreakdown: Other last, per-day for distinct, change against prev", () => {

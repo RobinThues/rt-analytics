@@ -100,3 +100,21 @@ test("funnels: a stale saved funnel id and broken steps do not break the page", 
   await expect(page.getByText("This saved funnel does not exist any more.")).toBeVisible();
   await expect(page.getByText("Choose 2 to 5 steps and press Show funnel.")).toBeVisible();
 });
+
+test("explorer: switching events resets the controls", async ({ page }) => {
+  await page.goto("/demo/events?event=place_selected&metric=visitors&filter=source%3Asearch");
+  await expect(page.getByLabel("Metric")).toHaveValue("visitors");
+  // A typed, not yet applied value must not carry over to the next event.
+  await page.getByLabel("Value", { exact: true }).fill("typed");
+  await page.getByTestId("event-list").getByRole("link", { name: "subscribe_click" }).click();
+  await expect(page).toHaveURL(/event=subscribe_click/);
+  await expect(page.getByLabel("Metric")).toHaveValue("events");
+  await expect(page.getByLabel("Value", { exact: true })).toHaveValue("");
+});
+
+test("a hand-edited error code does not break a page", async ({ page }) => {
+  await page.goto("/demo/funnels?error=__proto__");
+  await expect(page.getByText("Something went wrong.")).toBeVisible();
+  await page.goto("/demo/settings?error=constructor");
+  await expect(page.getByText("Something went wrong.")).toBeVisible();
+});

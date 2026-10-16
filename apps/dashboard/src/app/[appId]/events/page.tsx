@@ -194,7 +194,8 @@ async function Explorer({ params, searchParams }: PageProps<"/[appId]/events">) 
                   {event && !event.withVisitor && !event.withSession && (
                     <p className="text-sm text-muted-foreground">Server event: no visitor or session metrics.</p>
                   )}
-                  <ControlsPanel {...p} catalog={catalog} sel={sel} qsBase={qsBase} />
+                  {/* key: the form fields are uncontrolled, so a new selection must remount them. */}
+                  <ControlsPanel key={JSON.stringify(pageParams)} {...p} catalog={catalog} sel={sel} qsBase={qsBase} />
                   <SeriesPanel {...p} sel={sel} />
                 </div>
               </Panel>
