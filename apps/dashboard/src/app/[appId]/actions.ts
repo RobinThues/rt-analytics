@@ -8,20 +8,26 @@ import { execute, LIVE_COOKIE } from "@/bq/query";
 import { parseHostList, parseSettings, saveSettingsQuery } from "@/config/settings";
 import { APP_ID_RE } from "@/discovery/sql";
 import { readEnv } from "@/env";
+import { isAppPage, PAGE_PATHS, type AppPage } from "@/lib/pages";
 
 function appPath(appId: string): string {
   if (!APP_ID_RE.test(appId)) throw new Error("Invalid app id");
   return `/${appId}`;
 }
 
-/** Only our own view parameters survive the redirect. */
-function safeQuery(qs: string): string {
-  return /^\?[A-Za-z0-9=&%._-]*$/.test(qs) ? qs : "";
+function pagePath(appId: string, page: AppPage): string {
+  if (!isAppPage(page)) throw new Error("Invalid page");
+  return appPath(appId) + PAGE_PATHS[page];
 }
 
-export async function toggleLive(appId: string, qs: string) {
+/** Only our own view parameters survive the redirect (URLSearchParams output: + for spaces, * kept). */
+function safeQuery(qs: string): string {
+  return /^\?[A-Za-z0-9=&%._*+-]*$/.test(qs) ? qs : "";
+}
+
+export async function toggleLive(appId: string, page: AppPage, qs: string) {
   await requireUser();
-  const path = appPath(appId);
+  const path = pagePath(appId, page);
   const jar = await cookies();
   if (jar.get(LIVE_COOKIE)?.value === "1") {
     jar.delete(LIVE_COOKIE);
@@ -37,9 +43,9 @@ export async function toggleLive(appId: string, qs: string) {
   redirect(path + safeQuery(qs));
 }
 
-export async function refreshApp(appId: string, qs: string) {
+export async function refreshApp(appId: string, page: AppPage, qs: string) {
   await requireUser();
-  const path = appPath(appId);
+  const path = pagePath(appId, page);
   updateTag(TAGS.data(appId));
   updateTag(TAGS.discovery(appId));
   updateTag(TAGS.apps);

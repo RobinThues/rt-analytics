@@ -29,7 +29,7 @@ async function AppView({ params, searchParams }: PageProps<"/[appId]">) {
   const appIds = apps.ok ? apps.rows.map((a) => a.app_id) : [appId];
   return (
     <>
-      <Header appId={appId} apps={appIds} state={state} live={live} qs={viewQuery(state)} />
+      <Header appId={appId} apps={appIds} page="overview" state={state} live={live} qs={viewQuery(state)} />
       <Card className="max-w-sm">
         <CardHeader>
           <CardTitle>Events in range</CardTitle>

@@ -10,3 +10,23 @@ export function formatBytes(bytes: number): string {
   }
   return `${Number(value.toFixed(1))} ${UNITS[unit]}`;
 }
+
+const intFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+const decimalFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** 1234.4 -> "1,234" */
+export const formatInt = (n: number) => intFormat.format(n);
+
+/** 10 -> "10.0" (per-day averages) */
+export const formatDecimal = (n: number) => decimalFormat.format(n);
+
+/** 0.14 -> "14 %" */
+export const formatShare = (share: number) => `${intFormat.format(share * 100)} %`;
+
+/** Change in percent with a sign; null means there is nothing to compare with. */
+export function formatChange(pct: number | null): string {
+  if (pct === null) return "new";
+  const rounded = Math.round(pct);
+  if (rounded === 0) return "0 %";
+  return `${rounded > 0 ? "+" : "−"}${intFormat.format(Math.abs(rounded))} %`;
+}

@@ -13,3 +13,14 @@ describe("viewQuery", () => {
     );
   });
 });
+
+describe("viewQuery with page params", () => {
+  it("appends extra params in order, encoded", () => {
+    expect(
+      viewQuery({ range: { from: "2026-10-01", to: "2026-10-07" }, compare: true }, [
+        ["event", "a b"],
+        ["filter", "kind:a:b"],
+      ]),
+    ).toBe("?from=2026-10-01&to=2026-10-07&event=a+b&filter=kind%3Aa%3Ab");
+  });
+});
