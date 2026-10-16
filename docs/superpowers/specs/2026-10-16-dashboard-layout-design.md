@@ -105,6 +105,19 @@ session later.
   for an unknown event or a stale saved funnel id).
 - No page-wide "Loading…" text anywhere under `/[appId]`, including the explorer, funnels and settings.
 
+### Changes on the same page keep the old numbers, dimmed (Robin's decision)
+
+- Changing the range, toggling Compare, picking another event or another explorer setting, opening a
+  saved funnel or pressing "Show funnel" navigates to the same page with new URL parameters. During
+  that navigation the current content stays on screen, dimmed (reduced opacity), with a thin progress
+  line at the top of the content area, and is replaced when the new content is ready. It does not
+  fall back to skeletons.
+- Moving to another page (sidebar link) or another app (switcher) shows the skeletons as above.
+- The controls that start such a navigation (range picker, Compare, event links, explorer form,
+  funnel editor and saved funnel links) use a React transition, so the pending state is known and the
+  page does not suspend to its fallback. The range picker and the top bar stay usable during the
+  pending state; a new choice replaces the pending one.
+
 ## Calls I made (Robin can override)
 
 - Sidebar width fixed (about 14 rem); not collapsible in this round.
