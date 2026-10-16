@@ -75,3 +75,28 @@ test("explorer: unknown event in the URL shows the list, no error", async ({ pag
   await expect(page.getByText("Pick an event on the left.")).toBeVisible();
   await expect(page.getByTestId("event-list")).toBeVisible();
 });
+
+test("funnels: build, save, reopen and delete", async ({ page }) => {
+  const name = `e2e ${Date.now()}`;
+  await page.goto("/demo/funnels");
+  await page.getByLabel("Step 1 event").selectOption("place_selected");
+  await page.getByLabel("Step 2 event").selectOption("subscribe_click");
+  await page.getByRole("button", { name: "Show funnel" }).click();
+  await expect(page).toHaveURL(/steps=place_selected&steps=subscribe_click/);
+  await expect(page.getByTestId("funnel-sessions-1")).not.toHaveText("0");
+  await page.getByLabel("Funnel name").fill(name);
+  await page.getByRole("button", { name: "Save funnel" }).click();
+  // Saving is a BigQuery MERGE (DML), which often takes several seconds.
+  await expect(page).toHaveURL(/funnel=[0-9a-f-]{36}/, { timeout: 30_000 });
+  await page.goto("/demo/funnels");
+  await page.getByRole("link", { name }).click();
+  await expect(page.getByTestId("funnel-step-2")).toBeVisible();
+  await page.getByRole("button", { name: `Delete ${name}` }).click();
+  await expect(page.getByRole("link", { name })).toHaveCount(0, { timeout: 30_000 });
+});
+
+test("funnels: a stale saved funnel id and broken steps do not break the page", async ({ page }) => {
+  await page.goto("/demo/funnels?funnel=00000000-0000-0000-0000-000000000000&steps=bad%20name");
+  await expect(page.getByText("This saved funnel does not exist any more.")).toBeVisible();
+  await expect(page.getByText("Choose 2 to 5 steps and press Show funnel.")).toBeVisible();
+});

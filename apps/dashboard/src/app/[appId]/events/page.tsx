@@ -91,7 +91,6 @@ async function SeriesPanel({ ctx, live, maxBytes, sel }: PanelProps & { sel: Exp
   );
 }
 
-
 async function PropBreakdownPanel({
   ctx,
   live,
