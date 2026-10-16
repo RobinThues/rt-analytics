@@ -9,6 +9,17 @@ import type { QuerySpec } from "@/bq/run-query";
 import { readEnv } from "@/env";
 import { addDays, todayIn } from "@/time/range";
 import { buildContext, eventsCte, SESSION_COLUMNS, sessionsCte, toSpec } from "./context";
+import {
+  breakdownQuery,
+  consentQuery,
+  DIMS,
+  kpisQuery,
+  retentionQuery,
+  slowPagesQuery,
+  topErrorsQuery,
+  trafficQuery,
+  webVitalsQuery,
+} from "./overview";
 
 const enabled = process.env.RTD_DRY_RUN === "1";
 const env = readEnv({ ...process.env, GCP_PROJECT_ID: process.env.GCP_PROJECT_ID ?? "robin-thues" });
@@ -31,6 +42,14 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
       ctx.params,
     ),
   ],
+  ["overview kpis", kpisQuery(ctx)],
+  ["overview traffic", trafficQuery(ctx)],
+  ...DIMS.map((d): [string, QuerySpec] => [`overview breakdown ${d}`, breakdownQuery(ctx, d)]),
+  ["overview web vitals", webVitalsQuery(ctx)],
+  ["overview slow pages", slowPagesQuery(ctx)],
+  ["overview top errors", topErrorsQuery(ctx)],
+  ["overview consent", consentQuery(ctx)],
+  ["overview retention", retentionQuery(ctx)],
 ];
 
 describe.skipIf(!enabled)("dry runs against demo (90 days, compare on)", () => {
