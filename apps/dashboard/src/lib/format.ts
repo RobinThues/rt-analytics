@@ -31,6 +31,9 @@ export function formatChange(pct: number | null): string {
   return `${rounded > 0 ? "+" : "−"}${intFormat.format(Math.abs(rounded))} %`;
 }
 
-/** "5 Oct" for a calendar day (YYYY-MM-DD); read as UTC so the server's timezone cannot shift it. */
-export const formatShortDay = (day: string) =>
-  new Date(`${day}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+// en-GB short month names, fixed: server and browser ICU data can differ ("Sep" vs "Sept"), and a
+// difference would break hydration of client components that format days.
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sept", "Oct", "Nov", "Dec"];
+
+/** "5 Oct" for a calendar day (YYYY-MM-DD). Pure string work, so no timezone can shift it. */
+export const formatShortDay = (day: string) => `${Number(day.slice(8, 10))} ${MONTHS[Number(day.slice(5, 7)) - 1]}`;

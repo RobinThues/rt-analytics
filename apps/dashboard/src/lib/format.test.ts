@@ -28,5 +28,7 @@ describe("formatShortDay", () => {
   it("day and short month, independent of the server timezone", () => {
     expect(formatShortDay("2026-10-05")).toBe("5 Oct");
     expect(formatShortDay("2026-09-23")).toBe("23 Sept");
+    expect(formatShortDay("2026-06-01")).toBe("1 Jun");
+    expect(formatShortDay("2026-07-04")).toBe("4 Jul");
   });
 });
