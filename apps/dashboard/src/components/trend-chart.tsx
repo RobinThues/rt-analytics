@@ -23,21 +23,19 @@ export function TrendChart({
   data,
   compare,
   prevFrom,
-  format = formatInt,
 }: {
   title: string;
   data: readonly Point[];
   compare: boolean;
   /** First day of the previous period, for the tooltip. */
   prevFrom: string;
-  format?: (n: number) => string;
 }) {
   return (
     <ChartContainer config={config} className="aspect-auto h-48 w-full" aria-label={title}>
       <LineChart data={[...data]} margin={{ left: 4, right: 12, top: 8 }} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis dataKey="day" tickLine={false} axisLine={false} tickFormatter={shortDay} minTickGap={24} />
-        <YAxis tickLine={false} axisLine={false} width={44} tickFormatter={(v: number) => format(v)} />
+        <YAxis tickLine={false} axisLine={false} width={44} tickFormatter={(v: number) => formatInt(v)} />
         <ChartTooltip
           content={({ active, payload }) => {
             const p = active ? (payload?.[0]?.payload as Point | undefined) : undefined;
@@ -47,11 +45,11 @@ export function TrendChart({
               <div className="rounded-md border bg-background px-3 py-2 text-xs shadow-sm">
                 <p className="font-medium">{title}</p>
                 <p>
-                  {shortDay(p.day)}: <span className="font-medium tabular-nums">{format(p.cur)}</span>
+                  {shortDay(p.day)}: <span className="font-medium tabular-nums">{formatInt(p.cur)}</span>
                 </p>
                 {compare && p.prev !== null && (
                   <p className="text-muted-foreground">
-                    {shortDay(addDays(prevFrom, i))}: <span className="tabular-nums">{format(p.prev)}</span>
+                    {shortDay(addDays(prevFrom, i))}: <span className="tabular-nums">{formatInt(p.prev)}</span>
                   </p>
                 )}
               </div>
