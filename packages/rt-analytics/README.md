@@ -277,6 +277,15 @@ Visitors never get it.
   - `ServerTrackerOptions`: `{ appId: string; salt?: string /* default ANALYTICS_DAILY_SALT */; pseudonymKey?: string /* default ANALYTICS_PSEUDONYM_KEY, else the salt */; writer?: RowWriter; now?: () => Date }`
   - `ServerTracker`: `{ track(name: string, props?: Record<string, unknown>): Promise<void>; pseudonymize(value: string): string | null }`
 
+### `rt-analytics/schema`
+
+For tools that read the BigQuery table, like a dashboard. No runtime dependencies.
+
+- `EventRow` — one row of the `events` table.
+- `BUILTIN_EVENTS`, `EVENTS` (`EVENTS.pageview` is `"$pageview"`, and so on) and `BUILTIN_PREFIX` (`"$"`): app events never start with it.
+- `RowConsentState` and `SERVER_CONSENT_STATE` (`"server"`, the `consent_state` of server-side events).
+- `DAILY_VISITOR_PREFIX` (`"d_"`): cookieless daily visitor ids start with it; persistent ids do not.
+
 ## HTTP ingestion contract
 
 `POST /api/a` (or whatever `endpoint` you configured), JSON body, one batch per request:
@@ -391,11 +400,11 @@ transformIgnorePatterns: ["/node_modules/(?!rt-analytics/)"],
 ## Releasing
 
 Releases are published from GitHub Actions with npm trusted publishing (no npm token). Bump the
-version in `package.json`, `package-lock.json` and `src/core/version.ts`, add a `CHANGELOG.md`
-entry, commit, then push a matching tag:
+version in `package.json`, `src/core/version.ts` and the repo root's `package-lock.json`, add a
+`CHANGELOG.md` entry, commit, then push a matching tag:
 
 ```bash
-git tag v0.2.0 && git push origin main v0.2.0
+git tag v0.4.0 && git push origin main v0.4.0
 ```
 
 `.github/workflows/release.yml` checks that the tag matches the version, runs tests and typecheck,
