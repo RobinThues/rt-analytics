@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes, formatChange, formatDecimal, formatInt, formatShare } from "./format";
+import { formatBytes, formatChange, formatDecimal, formatInt, formatShare, formatShortDay } from "./format";
 
 describe("formatBytes", () => {
   it("uses decimal units", () => {
@@ -21,5 +21,12 @@ describe("number formats", () => {
     expect(formatShare(0.14)).toBe("14 %");
     expect(formatDecimal(10)).toBe("10.0");
     expect(formatInt(1234.4)).toBe("1,234");
+  });
+});
+
+describe("formatShortDay", () => {
+  it("day and short month, independent of the server timezone", () => {
+    expect(formatShortDay("2026-10-05")).toBe("5 Oct");
+    expect(formatShortDay("2026-09-23")).toBe("23 Sept");
   });
 });

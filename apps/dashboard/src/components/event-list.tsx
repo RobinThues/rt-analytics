@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatChange, formatInt } from "@/lib/format";
-import { Sparkline } from "./sparkline";
+import { Sparkline, type SparkPoint } from "./sparkline";
 
 /** Every discovered event with its count in the range, the change and a small trend line. */
 export function EventList({
@@ -10,7 +10,7 @@ export function EventList({
   selected,
   compare,
 }: {
-  rows: ReadonlyArray<{ name: string; total: number; change: number | null | undefined; spark: number[] }>;
+  rows: ReadonlyArray<{ name: string; total: number; change: number | null | undefined; spark: SparkPoint[] }>;
   hrefFor: (event: string) => string;
   selected: string | null;
   compare: boolean;
@@ -39,7 +39,7 @@ export function EventList({
             <TableCell className="text-right tabular-nums">{formatInt(r.total)}</TableCell>
             {compare && <TableCell className="text-right tabular-nums">{formatChange(r.change ?? null)}</TableCell>}
             <TableCell>
-              <Sparkline values={r.spark} />
+              <Sparkline points={r.spark} />
             </TableCell>
           </TableRow>
         ))}

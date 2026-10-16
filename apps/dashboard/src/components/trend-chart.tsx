@@ -1,16 +1,13 @@
 "use client";
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
-import { formatInt } from "@/lib/format";
+import { formatInt, formatShortDay } from "@/lib/format";
 import { addDays } from "@/time/range";
 
 const config = {
   cur: { label: "This period", color: "var(--chart-current)" },
   prev: { label: "Previous period", color: "var(--chart-previous)" },
 } satisfies ChartConfig;
-
-const shortDay = (day: string) =>
-  new Date(`${day}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
 
 type Point = { day: string; cur: number; prev: number | null };
 
@@ -34,7 +31,7 @@ export function TrendChart({
     <ChartContainer config={config} className="aspect-auto h-48 w-full" aria-label={title}>
       <LineChart data={[...data]} margin={{ left: 4, right: 12, top: 8 }} accessibilityLayer>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="day" tickLine={false} axisLine={false} tickFormatter={shortDay} minTickGap={24} />
+        <XAxis dataKey="day" tickLine={false} axisLine={false} tickFormatter={formatShortDay} minTickGap={24} />
         <YAxis tickLine={false} axisLine={false} width={44} tickFormatter={(v: number) => formatInt(v)} />
         <ChartTooltip
           content={({ active, payload }) => {
@@ -45,11 +42,11 @@ export function TrendChart({
               <div className="rounded-md border bg-background px-3 py-2 text-xs shadow-sm">
                 <p className="font-medium">{title}</p>
                 <p>
-                  {shortDay(p.day)}: <span className="font-medium tabular-nums">{formatInt(p.cur)}</span>
+                  {formatShortDay(p.day)}: <span className="font-medium tabular-nums">{formatInt(p.cur)}</span>
                 </p>
                 {compare && p.prev !== null && (
                   <p className="text-muted-foreground">
-                    {shortDay(addDays(prevFrom, i))}: <span className="tabular-nums">{formatInt(p.prev)}</span>
+                    {formatShortDay(addDays(prevFrom, i))}: <span className="tabular-nums">{formatInt(p.prev)}</span>
                   </p>
                 )}
               </div>

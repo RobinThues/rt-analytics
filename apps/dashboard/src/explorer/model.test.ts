@@ -21,14 +21,15 @@ describe("explorer model", () => {
     expect(metricTotals(rows, { kind: "events" }, 3)).toEqual({ cur: 5, prev: 10 });
     expect(metricTotals(rows.slice(0, 3), { kind: "events" }, 3)).toEqual({ cur: 5, prev: null });
   });
-  it("toEventList: every catalog event, zeros when missing, sorted by total, spark per day", () => {
+  const spark = (ns: number[]) => ns.map((n, i) => ({ day: `2026-10-0${i + 1}`, n }));
+  it("toEventList: every catalog event, zeros when missing, sorted by total, spark per day with its date", () => {
     const rows: EventListRow[] = [
       { period: "cur", event_name: "place_selected", day: "2026-10-02", events: 3 },
       { period: "prev", event_name: "place_selected", day: "2026-09-28", events: 6 },
     ];
     expect(toEventList(rows, ctx, catalog)).toEqual([
-      { name: "place_selected", total: 3, change: -50, spark: [0, 3, 0] },
-      { name: "calendar_poll", total: 0, change: 0, spark: [0, 0, 0] },
+      { name: "place_selected", total: 3, change: -50, spark: spark([0, 3, 0]) },
+      { name: "calendar_poll", total: 0, change: 0, spark: spark([0, 0, 0]) },
     ]);
   });
   it("toPropBreakdown: Other last, per-day for distinct, change against prev", () => {

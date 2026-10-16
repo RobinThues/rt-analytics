@@ -157,3 +157,10 @@ test("explorer: a chosen filter key offers its values before Apply", async ({ pa
   const listId = await page.getByLabel("Value", { exact: true }).getAttribute("list");
   await expect(page.locator(`datalist[id="${listId}"] option[value="token"]`)).toHaveCount(1);
 });
+
+test("explorer: hovering a sparkline shows the day and the count", async ({ page }) => {
+  await page.goto("/demo/events");
+  const spark = page.getByTestId("event-list").getByTestId("sparkline").first();
+  await spark.hover({ position: { x: 40, y: 12 } });
+  await expect(spark.getByRole("tooltip")).toHaveText(/^\d{1,2} \w+: [\d,]+$/);
+});

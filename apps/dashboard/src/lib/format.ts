@@ -30,3 +30,7 @@ export function formatChange(pct: number | null): string {
   if (rounded === 0) return "0 %";
   return `${rounded > 0 ? "+" : "−"}${intFormat.format(Math.abs(rounded))} %`;
 }
+
+/** "5 Oct" for a calendar day (YYYY-MM-DD); read as UTC so the server's timezone cannot shift it. */
+export const formatShortDay = (day: string) =>
+  new Date(`${day}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });

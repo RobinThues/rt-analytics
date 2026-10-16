@@ -32,7 +32,7 @@ export function toEventList(
   rows: readonly EventListRow[],
   ctx: Pick<QueryContext, "range" | "prev" | "compare">,
   catalog: Catalog,
-): Array<{ name: string; total: number; change: number | null | undefined; spark: number[] }> {
+): Array<{ name: string; total: number; change: number | null | undefined; spark: Array<{ day: string; n: number }> }> {
   const days = eachDay(ctx.range);
   return catalog.events
     .map(({ name }) => {
@@ -44,7 +44,7 @@ export function toEventList(
         name,
         total: sum("cur"),
         change: ctx.compare ? change(sum("cur"), sum("prev")) : undefined,
-        spark: days.map((d) => byDay.get(d) ?? 0),
+        spark: days.map((day) => ({ day, n: byDay.get(day) ?? 0 })),
       };
     })
     .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
