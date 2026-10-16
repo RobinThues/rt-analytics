@@ -20,6 +20,13 @@ import {
   trafficQuery,
   webVitalsQuery,
 } from "./overview";
+import {
+  eventBreakdownQuery,
+  eventListQuery,
+  eventSeriesQuery,
+  propValuesQuery,
+  type ExplorerSelection,
+} from "./explorer";
 
 const enabled = process.env.RTD_DRY_RUN === "1";
 const env = readEnv({ ...process.env, GCP_PROJECT_ID: process.env.GCP_PROJECT_ID ?? "robin-thues" });
@@ -32,6 +39,19 @@ const ctx = buildContext({
   compare: true,
   today,
 });
+
+const poll: ExplorerSelection = {
+  event: "calendar_poll",
+  metric: { kind: "distinct", key: "subscription" },
+  filter: { key: "kind", value: "token" },
+  by: null,
+};
+const place: ExplorerSelection = {
+  event: "place_selected",
+  metric: { kind: "events" },
+  filter: { key: "source", value: "search" },
+  by: null,
+};
 
 const CASES: Array<[string, QuerySpec]> = [
   [
@@ -50,6 +70,19 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
   ["overview top errors", topErrorsQuery(ctx)],
   ["overview consent", consentQuery(ctx)],
   ["overview retention", retentionQuery(ctx)],
+  ["explorer list", eventListQuery(ctx)],
+  ...(["events", "sessions", "visitors"] as const).map((kind): [string, QuerySpec] => [
+    `explorer series ${kind}`,
+    eventSeriesQuery(ctx, { ...poll, metric: { kind }, filter: null }),
+  ]),
+  ["explorer series distinct + filter", eventSeriesQuery(ctx, poll)],
+  ["explorer series sessions + filter", eventSeriesQuery(ctx, { ...place, metric: { kind: "sessions" } })],
+  ["explorer breakdown distinct + filter", eventBreakdownQuery(ctx, { ...poll, by: "client" })],
+  [
+    "explorer breakdown visitors",
+    eventBreakdownQuery(ctx, { ...place, metric: { kind: "visitors" }, filter: null, by: "source" }),
+  ],
+  ["explorer prop values", propValuesQuery(ctx, "calendar_poll", "kind")],
 ];
 
 describe.skipIf(!enabled)("dry runs against demo (90 days, compare on)", () => {

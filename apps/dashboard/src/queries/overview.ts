@@ -36,7 +36,16 @@ export interface TrafficRow {
 }
 
 export type BreakdownDim = "page" | "entry_page" | "source" | "utm" | "country" | "device" | "browser" | "os";
-export const DIMS: readonly BreakdownDim[] = ["page", "entry_page", "source", "utm", "country", "device", "browser", "os"];
+export const DIMS: readonly BreakdownDim[] = [
+  "page",
+  "entry_page",
+  "source",
+  "utm",
+  "country",
+  "device",
+  "browser",
+  "os",
+];
 
 /** `value` NULL means Other (everything outside the top 20). */
 export interface BreakdownRow {
@@ -154,7 +163,10 @@ const DIM_SQL: Record<BreakdownDim, { level: "event"; column: EventColumn } | { 
   browser: { level: "event", column: "browser" },
   os: { level: "event", column: "os" },
   entry_page: { level: "session", expr: "first_pv.page_path" },
-  source: { level: "session", expr: `IF(IFNULL(${HOST}, '') = '' OR ${HOST} IN UNNEST(@own_hosts), 'direct', ${HOST})` },
+  source: {
+    level: "session",
+    expr: `IF(IFNULL(${HOST}, '') = '' OR ${HOST} IN UNNEST(@own_hosts), 'direct', ${HOST})`,
+  },
   utm: {
     level: "session",
     expr: `IF(COALESCE(first_pv.utm_source, first_pv.utm_medium, first_pv.utm_campaign) IS NULL, '(none)',
