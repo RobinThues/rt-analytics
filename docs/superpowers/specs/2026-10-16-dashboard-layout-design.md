@@ -72,8 +72,6 @@ session later.
 - **Compare** applies as soon as it is toggled.
 - Applying means navigating to the same page with new `from`, `to` and `compare`, keeping every other
   parameter in the URL (event, metric, filter, by, steps, funnel).
-- Without JavaScript, a plain GET form with the two date fields and Apply still works (it can live
-  inside a `<noscript>` or be the server-rendered fallback the client control replaces).
 
 ### Funnel chart
 
@@ -86,14 +84,25 @@ session later.
 - Step names under the bars (event name, and the filter as a second line).
 - Hover on a bar: sessions, share of step 1, and the previous period's sessions and share.
 - 2 to 5 steps. On a phone the chart turns vertical: steps top to bottom, bars as horizontal bars.
-- Colors from the existing chart tokens (`--chart-current`, `--chart-previous`). The mockup is in
-  `.superpowers/brainstorm/` (gitignored), `funnel.html`.
+- Colors from the existing chart tokens (`--chart-current`, `--chart-previous`). Mockups:
+  `docs/superpowers/specs/2026-10-16-dashboard-layout-mockups/funnel.html` (and `layout.html` for the
+  layout).
 
 ### Skeletons instead of "Loading…"
 
-- Navigating between pages shows the sidebar, the top bar and the panel frames (titles included)
-  right away. Each panel shows a skeleton shaped like its content until its data arrives, and panels
-  fill in one by one as their queries finish.
+- Navigating between pages shows the sidebar, the top bar and the panel frames right away. Each panel
+  shows a skeleton shaped like its content until its data arrives, and panels fill in one by one as
+  their queries finish.
+- Frames shown at once, with their titles, are only the ones that do not depend on the URL or on data:
+  - Overview: every panel (the panel list is fixed).
+  - Events: the "Events" list panel. The right-hand column shows one generic skeleton block of the
+    size of the controls plus a chart, without a title, until the selection is known.
+  - Funnels: the "Saved funnels" panel and the editor panel with the generic title "Funnel". The
+    result area shows one generic skeleton block without a title. The saved funnel's name, the
+    "Result" panel and the error lines appear with the data.
+  - Settings: the settings panel frame.
+  This keeps the "no jumping" anti-goal: no optimistic frame appears and then vanishes (for example
+  for an unknown event or a stale saved funnel id).
 - No page-wide "Loading…" text anywhere under `/[appId]`, including the explorer, funnels and settings.
 
 ## Calls I made (Robin can override)
@@ -124,13 +133,19 @@ session later.
 
 - Next.js 16 with `cacheComponents` and `partialPrefetching` on. Reading `params` or `searchParams`
   is dynamic and must sit inside a Suspense boundary; the static shell (sidebar frame, top bar frame,
-  panel frames) should be outside of it so it can be prefetched and shown at once. Read the Next.js
-  docs in `apps/dashboard/node_modules/next/dist/docs/` before changing the layout (see
-  `apps/dashboard/AGENTS.md`).
+  panel frames) should be outside of it so it can be prefetched and shown at once. Layouts receive
+  `params` but not `searchParams`; `useSearchParams`, `useParams` and `usePathname` suspend on a hard
+  load, so client parts that use them need their own Suspense boundary. Read the Next.js docs in
+  `node_modules/next/dist/docs/` at the repo root (the package is hoisted; see
+  `apps/dashboard/AGENTS.md`) before changing the layout. No `[appId]/layout.tsx` exists yet, and
+  `loadPage` has no React `cache` wrapper yet.
 - Keep the v1 query layer as it is: one query per panel, cached as today, Live and Refresh unchanged.
   The page start (`loadPage`) runs once per request even if several panels need it (React `cache`).
-- Everything that works without JavaScript today keeps working without it, except that the app
-  switcher and range picker may fall back to plain links and the plain date form.
+- JavaScript is required. With `cacheComponents`, the page content already streams in after the
+  static shell and React reveals it with inline scripts, so v1 pages do not work with JavaScript off
+  today either. No `<noscript>` or plain-form fallbacks are built; the range picker, app switcher,
+  Live, Refresh and Sign out are client or server-action controls. (The v1 header comment "works
+  without client JavaScript" was never true under `cacheComponents` and goes away with the header.)
 - Playwright e2e tests use labels; keep accessible names for the controls (the range picker button,
   Compare, the app switcher, the sidebar links).
 - Testing as in v1: unit tests for pure logic (range presets, URL building on apply and on app

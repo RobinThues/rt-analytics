@@ -1,0 +1,97 @@
+<style>
+  .lay { display: flex; height: 340px; border: 1px solid #d9d8d3; border-radius: 8px; overflow: hidden; background: #fcfcfb; font-size: 12px; color: #1a1a19; }
+  .side { width: 168px; border-right: 1px solid #e2e1dc; background: #f5f5f2; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+  .app { border: 1px solid #d9d8d3; background: #fff; border-radius: 6px; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; }
+  .app small { color: #8f8e88; font-weight: 400; }
+  .nav { padding: 6px 8px; border-radius: 6px; color: #52514e; }
+  .nav.on { background: #e6eefb; color: #1f5fb4; font-weight: 600; }
+  .grow { flex: 1; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .top { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #e2e1dc; background: #fff; }
+  .top h4 { margin: 0; font-size: 14px; flex: 1; }
+  .ctl { border: 1px solid #d9d8d3; border-radius: 6px; padding: 4px 8px; background: #fff; white-space: nowrap; }
+  .body { padding: 14px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; align-content: start; }
+  .tile { background: #fff; border: 1px solid #e2e1dc; border-radius: 6px; height: 46px; }
+  .wide { grid-column: span 4; height: 120px; }
+  .half { grid-column: span 2; height: 70px; }
+  .bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid #e2e1dc; background: #fff; }
+  .note { font-size: 11px; color: #8f8e88; margin-top: 6px; }
+</style>
+
+<h2>Where should the app switcher and the date controls go?</h2>
+<p class="subtitle">Both have the pages on the left. On a phone the sidebar folds into a menu button.</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>App switcher at the top of the sidebar</h3>
+      <p>Like Search Console. The sidebar is "where am I": app, then page. The top bar of the page holds the title and the date controls.</p>
+      <div class="lay">
+        <div class="side">
+          <div class="app">wetter-in-kalender <small>▾</small></div>
+          <div class="nav on">Overview</div>
+          <div class="nav">Events</div>
+          <div class="nav">Funnels</div>
+          <div class="grow"></div>
+          <div class="nav">Settings</div>
+          <div class="nav" style="color:#8f8e88">robin@… · Sign out</div>
+        </div>
+        <div class="main">
+          <div class="top">
+            <h4>Overview</h4>
+            <span class="ctl">19 Sept – 16 Oct ▾</span>
+            <span class="ctl">☑ Compare</span>
+            <span class="ctl">Live</span>
+            <span class="ctl">↻</span>
+          </div>
+          <div class="body">
+            <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+            <div class="tile wide"></div>
+            <div class="tile half"></div><div class="tile half"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>App switcher in a full-width top bar</h3>
+      <p>Like Vercel. The top bar holds the product name and the app; the sidebar holds only the pages. The date controls sit in a second bar above the content.</p>
+      <div class="lay" style="flex-direction:column">
+        <div class="bar">
+          <b>rt-analytics</b><span style="color:#8f8e88">/</span>
+          <span class="ctl" style="font-weight:600">wetter-in-kalender ▾</span>
+          <span class="grow"></span>
+          <span style="color:#8f8e88">robin@… · Sign out</span>
+        </div>
+        <div style="display:flex;flex:1;min-height:0">
+          <div class="side" style="width:130px">
+            <div class="nav on">Overview</div>
+            <div class="nav">Events</div>
+            <div class="nav">Funnels</div>
+            <div class="grow"></div>
+            <div class="nav">Settings</div>
+          </div>
+          <div class="main">
+            <div class="top">
+              <h4>Overview</h4>
+              <span class="ctl">19 Sept – 16 Oct ▾</span>
+              <span class="ctl">☑ Compare</span>
+              <span class="ctl">Live</span>
+              <span class="ctl">↻</span>
+            </div>
+            <div class="body">
+              <div class="tile"></div><div class="tile"></div><div class="tile"></div><div class="tile"></div>
+              <div class="tile wide"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="note">The app dropdown in both: you can type to filter, and it keeps the current page and date range when you switch apps.</p>

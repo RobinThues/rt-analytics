@@ -1,0 +1,66 @@
+<style>
+  .fn { background: #fff; border: 1px solid #e2e1dc; border-radius: 8px; padding: 16px; font-size: 12px; color: #1a1a19; }
+  .fn h4 { margin: 0 0 12px; font-size: 14px; }
+  .legend { display: flex; gap: 14px; color: #52514e; margin-bottom: 8px; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+  table.t { width: 100%; border-collapse: collapse; margin-top: 14px; }
+  table.t th, table.t td { padding: 6px 8px; border-top: 1px solid #eeede9; text-align: right; }
+  table.t th:first-child, table.t td:first-child { text-align: left; }
+  table.t th { color: #52514e; font-weight: 500; }
+</style>
+
+<h2>Funnel as a left-to-right chart</h2>
+<p class="subtitle">One bar per step. The gray band between bars is the drop-off. The faint bar behind each step is the previous period. The exact numbers stay in a table below.</p>
+
+<div class="fn">
+  <h4>Result</h4>
+  <div class="legend">
+    <span><span class="sw" style="background:#2a78d6"></span>This period</span>
+    <span><span class="sw" style="background:#d9d8d3"></span>Previous period</span>
+    <span><span class="sw" style="background:repeating-linear-gradient(45deg,#f0efeb 0 3px,#e2e1dc 3px 5px)"></span>Dropped off</span>
+  </div>
+  <svg viewBox="0 0 760 260" width="100%" role="img" aria-label="Funnel chart mockup" style="font-family:inherit">
+    <defs>
+      <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="6" height="6" fill="#f3f2ee"/><rect width="2" height="6" fill="#e2e1dc"/>
+      </pattern>
+    </defs>
+    <!-- baseline y=220, full height 180 for 2,807 -->
+    <line x1="20" y1="220" x2="740" y2="220" stroke="#e2e1dc"/>
+    <!-- step 1 -->
+    <rect x="40" y="59" width="150" height="161" fill="#e9e8e4" rx="4"/>
+    <rect x="52" y="40" width="126" height="180" fill="#2a78d6" rx="4"/>
+    <!-- band 1->2 -->
+    <path d="M178 40 L310 147 L310 220 L178 220 Z" fill="url(#hatch)"/>
+    <!-- step 2 -->
+    <rect x="298" y="157" width="150" height="63" fill="#e9e8e4" rx="4"/>
+    <rect x="310" y="147" width="126" height="73" fill="#2a78d6" rx="4"/>
+    <!-- band 2->3 -->
+    <path d="M436 147 L568 200 L568 220 L436 220 Z" fill="url(#hatch)"/>
+    <!-- step 3 -->
+    <rect x="556" y="201" width="150" height="19" fill="#e9e8e4" rx="4"/>
+    <rect x="568" y="200" width="126" height="20" fill="#2a78d6" rx="4"/>
+    <!-- labels -->
+    <text x="115" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a19">2,807</text>
+    <text x="373" y="137" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a19">1,140</text>
+    <text x="631" y="190" text-anchor="middle" font-size="13" font-weight="600" fill="#1a1a19">312</text>
+    <!-- conversion chips -->
+    <rect x="216" y="96" width="58" height="22" rx="11" fill="#fff" stroke="#d9d8d3"/>
+    <text x="245" y="111" text-anchor="middle" font-size="11" fill="#1a1a19">41 % →</text>
+    <rect x="474" y="160" width="58" height="22" rx="11" fill="#fff" stroke="#d9d8d3"/>
+    <text x="503" y="175" text-anchor="middle" font-size="11" fill="#1a1a19">27 % →</text>
+    <!-- step names -->
+    <text x="115" y="240" text-anchor="middle" font-size="12" fill="#1a1a19">1. $pageview</text>
+    <text x="115" y="254" text-anchor="middle" font-size="11" fill="#8f8e88">path = /</text>
+    <text x="373" y="240" text-anchor="middle" font-size="12" fill="#1a1a19">2. place_selected</text>
+    <text x="631" y="240" text-anchor="middle" font-size="12" fill="#1a1a19">3. subscribe_click</text>
+  </svg>
+
+  <table class="t">
+    <tr><th>Step</th><th>Sessions</th><th>From first</th><th>From previous</th><th>Previous period</th></tr>
+    <tr><td>1. $pageview (path = /)</td><td>2,807</td><td>100 %</td><td>–</td><td>2,505 (100 %)</td></tr>
+    <tr><td>2. place_selected</td><td>1,140</td><td>41 %</td><td>41 %</td><td>980 (39 %)</td></tr>
+    <tr><td>3. subscribe_click</td><td>312</td><td>11 %</td><td>27 %</td><td>290 (12 %)</td></tr>
+  </table>
+</div>
+<p class="subtitle" style="margin-top:10px">Hover on a bar would show: sessions, share of step 1, and the previous period. With 5 steps the bars get narrower; on a phone the chart turns vertical (steps top to bottom).</p>

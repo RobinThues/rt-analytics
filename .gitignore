@@ -6,3 +6,6 @@ key.json
 apps/*/.next/
 claude-tmp-helpers/
 .vercel/
+
+# Superpowers workspaces (plan ledgers, brainstorm sessions with a session token)
+.superpowers/
