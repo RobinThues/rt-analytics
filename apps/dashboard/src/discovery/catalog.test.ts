@@ -27,3 +27,21 @@ describe("buildCatalog", () => {
     expect(buildCatalog([], [{ event_name: "x", prop_key: "k" }]).keys).toEqual({});
   });
 });
+
+describe("event names that are Object.prototype keys (the public ingest accepts them)", () => {
+  const evil = ["__proto__", "constructor", "hasOwnProperty"];
+  const c = buildCatalog(
+    evil.map((name) => ({ event_name: name, with_visitor: 1, with_session: 1 })),
+    evil.map((name) => ({ event_name: name, prop_key: "k" })),
+  );
+  it("build a normal catalog without touching prototypes", () => {
+    expect(c.events.map((e) => e.name)).toEqual(evil);
+    for (const name of evil) expect(c.keys[name]).toEqual(["k"]);
+    expect(({} as Record<string, unknown>).k).toBeUndefined();
+  });
+  it("unknown names never resolve to inherited members", () => {
+    const empty = buildCatalog([], []);
+    expect(empty.keys["constructor"]).toBeUndefined();
+    expect(empty.keys["__proto__"]).toBeUndefined();
+  });
+});

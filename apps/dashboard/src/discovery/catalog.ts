@@ -10,7 +10,8 @@ export function buildCatalog(
   keys: ReadonlyArray<{ event_name: string; prop_key: string }>,
 ): Catalog {
   const names = new Set(events.map((e) => e.event_name));
-  const byEvent: Record<string, string[]> = {};
+  // Event names come from the public ingest and may be "__proto__" or "constructor": no prototype here.
+  const byEvent: Record<string, string[]> = Object.create(null);
   for (const k of keys) {
     if (!names.has(k.event_name)) continue;
     (byEvent[k.event_name] ??= []).push(k.prop_key);

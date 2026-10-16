@@ -8,7 +8,9 @@ import { describe, expect, it } from "vitest";
 import type { QuerySpec } from "@/bq/run-query";
 import { readEnv } from "@/env";
 import { addDays, todayIn } from "@/time/range";
+import { listFunnelsQuery } from "@/config/funnels";
 import { buildContext, eventsCte, SESSION_COLUMNS, sessionsCte, toSpec } from "./context";
+import { funnelQuery } from "./funnel";
 import {
   breakdownQuery,
   consentQuery,
@@ -83,6 +85,24 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
     eventBreakdownQuery(ctx, { ...place, metric: { kind: "visitors" }, filter: null, by: "source" }),
   ],
   ["explorer prop values", propValuesQuery(ctx, "calendar_poll", "kind")],
+  [
+    "funnel 2 steps",
+    funnelQuery(ctx, [
+      { event: "place_selected", filter: null },
+      { event: "subscribe_click", filter: null },
+    ]),
+  ],
+  [
+    "funnel 5 steps with filters",
+    funnelQuery(ctx, [
+      { event: "$pageview", filter: { key: "path", value: "/" } },
+      { event: "place_selected", filter: { key: "source", value: "search" } },
+      { event: "subscribe_click", filter: null },
+      { event: "$pageview", filter: null },
+      { event: "subscribe_click", filter: { key: "target", value: "google" } },
+    ]),
+  ],
+  ["saved funnels list", listFunnelsQuery(env, "demo")],
 ];
 
 describe.skipIf(!enabled)("dry runs against demo (90 days, compare on)", () => {

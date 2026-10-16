@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { buildCatalog } from "@/discovery/catalog";
 import { catalog } from "./fixtures";
 import { explorerParams, needsCanonicalRedirect, parseExplorer } from "./state";
 
@@ -53,5 +54,17 @@ describe("parseExplorer", () => {
     expect(explorerParams({ event: "place_selected", metric: { kind: "events" }, filter: null, by: null })).toEqual([
       ["event", "place_selected"],
     ]);
+  });
+});
+
+describe("prototype-named events", () => {
+  it("an event called constructor without discovered keys has no keys", () => {
+    const c = buildCatalog([{ event_name: "constructor", with_visitor: 1, with_session: 1 }], []);
+    expect(parseExplorer({ event: "constructor", by: "k", filter: "k:v" }, c)).toEqual({
+      event: "constructor",
+      metric: { kind: "events" },
+      filter: null,
+      by: null,
+    });
   });
 });
