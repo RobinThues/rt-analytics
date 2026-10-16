@@ -1,11 +1,16 @@
 import { connection } from "next/server";
+import { requireUser } from "@/auth/session";
 import { checkCredentials } from "@/bq/credentials";
 import { getBigQuery } from "@/bq/client";
 import { readEnv } from "@/env";
 
-/** Request-time only: the token check reads the clock, which a prerender must not do. */
+/**
+ * Request-time only: the token check reads the clock, which a prerender must not do. It renders outside
+ * the pages' data parts, so it checks the user itself (signed-out requests learn nothing).
+ */
 export async function CredentialsBanner() {
   await connection();
+  await requireUser();
   const { ok } = await checkCredentials(getBigQuery(readEnv()).authClient);
   if (ok) return null;
   return (

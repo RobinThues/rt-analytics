@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { requireUser } from "@/auth/session";
+import { Panel } from "@/components/panel";
+import { BlockSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getSettings } from "@/config/data";
@@ -15,7 +17,7 @@ const ERRORS: Record<string, string> = {
   save: "Could not save the settings. Try again.",
 };
 
-async function SettingsView({ params, searchParams }: PageProps<"/[appId]/settings">) {
+async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/settings">, "params" | "searchParams">) {
   const { appId } = await params;
   if (!APP_ID_RE.test(appId)) notFound();
   await requireUser();
@@ -25,13 +27,12 @@ async function SettingsView({ params, searchParams }: PageProps<"/[appId]/settin
   if (!zones.includes(settings.timezone)) zones.unshift(settings.timezone);
   const error = pickMessage(ERRORS, sp.error);
   return (
-    <>
+    <Suspense key={appId} fallback={<BlockSkeleton className="h-72" />}>
       <p className="mb-4 text-sm">
         <Link className="underline" href={`/${appId}`}>
           Back to {appId}
         </Link>
       </p>
-      <h1 className="mb-4 text-2xl font-semibold">Settings for {appId}</h1>
       {sp.saved === "1" && <p className="mb-4 text-sm">Saved.</p>}
       {error && <p className="mb-4 text-sm text-destructive">{error}</p>}
       <form action={saveSettings.bind(null, appId)} className="flex max-w-md flex-col gap-4">
@@ -67,16 +68,18 @@ async function SettingsView({ params, searchParams }: PageProps<"/[appId]/settin
           Save
         </Button>
       </form>
-    </>
+    </Suspense>
   );
 }
 
-export default function SettingsPage(props: PageProps<"/[appId]/settings">) {
+// A synchronous page: the title and the panel frame render at once, the form comes with the data.
+export default function SettingsPage({ params, searchParams }: PageProps<"/[appId]/settings">) {
   return (
-    <main className="mx-auto w-full max-w-5xl p-6">
-      <Suspense fallback={<p>Loading…</p>}>
-        <SettingsView {...props} />
-      </Suspense>
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
+      <h1 className="mb-4 text-2xl font-semibold">Settings</h1>
+      <Panel title="App settings" fallback={<BlockSkeleton className="h-72" />}>
+        <SettingsView params={params} searchParams={searchParams} />
+      </Panel>
     </main>
   );
 }

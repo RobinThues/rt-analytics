@@ -1,5 +1,4 @@
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
 import { CredentialsBanner } from "@/components/credentials-banner";
 import { EventList } from "@/components/event-list";
@@ -9,12 +8,11 @@ import { KpiTile } from "@/components/kpi-tile";
 import { PageBody } from "@/components/page-body";
 import { Panel } from "@/components/panel";
 import { QueryError } from "@/components/query-error";
+import { BlockSkeleton, TableSkeleton } from "@/components/skeletons";
 import { TrendChart } from "@/components/trend-chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { buildCatalog, type Catalog } from "@/discovery/catalog";
-import { listEvents, listPropKeys } from "@/discovery/data";
+import type { Catalog } from "@/discovery/catalog";
 import { toEventList, metricTotals, toPropBreakdown, valuesByKey } from "@/explorer/model";
-import { explorerParams, needsCanonicalRedirect, parseExplorer } from "@/explorer/state";
 import { formatChange, formatDecimal, formatInt } from "@/lib/format";
 import { viewQuery } from "@/lib/query-string";
 import {
@@ -30,7 +28,8 @@ import {
   type PropValueRow,
 } from "@/queries/explorer";
 import { alignSeries, change } from "@/queries/series";
-import { loadPage, type PanelProps } from "../page-data";
+import type { PageInput, PanelProps } from "../page-data";
+import { loadExplorer, type ExplorerData } from "./explorer-data";
 
 const perDay = (m: Metric) => m.kind === "visitors" || m.kind === "distinct";
 
@@ -149,87 +148,104 @@ async function ControlsPanel({
   );
 }
 
-async function Explorer({ params, searchParams }: PageProps<"/[appId]/events">) {
-  const data = await loadPage({ params, searchParams });
-  const { appId, apps, state, live, ctx, maxBytes, sp } = data;
-  const [events, keys] = await Promise.all([listEvents(appId), listPropKeys(appId)]);
-  const catalog = events.ok ? buildCatalog(events.rows, keys.ok ? keys.rows : []) : null;
-  const sel = catalog ? parseExplorer(sp, catalog) : null;
-  const pageParams = explorerParams(sel);
-  if (needsCanonicalRedirect(sp)) redirect(`/${appId}/events${viewQuery(state, pageParams)}`);
-  const p = { ctx, live, maxBytes };
-  const rangeQs = viewQuery(state);
-  const qsBase = [...new URLSearchParams(rangeQs.slice(1))] as Array<[string, string]>;
-  const event = sel && catalog?.events.find((e) => e.name === sel.event);
+/** A data part of the explorer page: the explorer data, inside a Suspense keyed by the app. */
+async function ExplorerPart({
+  input,
+  fallback,
+  children,
+}: {
+  input: PageInput;
+  fallback: ReactNode;
+  children: (x: ExplorerData, p: PanelProps) => ReactNode;
+}) {
+  const x = await loadExplorer(input);
+  const p = { ctx: x.page.ctx, live: x.page.live, maxBytes: x.page.maxBytes };
+  return (
+    <Suspense key={x.page.appId} fallback={fallback}>
+      {children(x, p)}
+    </Suspense>
+  );
+}
+
+function SelectionColumn({ x, p }: { x: ExplorerData; p: PanelProps }) {
+  const { catalog, sel, pageParams } = x;
+  if (!sel || !catalog) return <p className="text-sm text-muted-foreground">Pick an event on the left.</p>;
+  const qsBase = [...new URLSearchParams(viewQuery(x.page.state).slice(1))] as Array<[string, string]>;
+  const event = catalog.events.find((e) => e.name === sel.event);
   return (
     <>
-      <Header
-        appId={appId}
-        apps={apps}
-        page="events"
-        state={state}
-        live={live}
-        qs={viewQuery(state, pageParams)}
-        hidden={pageParams}
-      />
+      <Panel title={sel.event} description={metricLabel(sel.metric)}>
+        <div className="flex flex-col gap-4">
+          {event && !event.withVisitor && !event.withSession && (
+            <p className="text-sm text-muted-foreground">Server event: no visitor or session metrics.</p>
+          )}
+          {/* key: the form fields are uncontrolled, so a new selection must remount them. */}
+          <ControlsPanel key={JSON.stringify(pageParams)} {...p} catalog={catalog} sel={sel} qsBase={qsBase} />
+          <SeriesPanel {...p} sel={sel} />
+        </div>
+      </Panel>
+      {sel.by && (
+        <Panel title={`By ${sel.by}`} description="Top 20 values in the range, the rest as Other.">
+          <PropBreakdownPanel {...p} sel={{ ...sel, by: sel.by }} />
+        </Panel>
+      )}
+    </>
+  );
+}
+
+// A synchronous page: the "Events" frame renders at once; the right column depends on the URL and on
+// discovery, so it is one untitled skeleton until the selection is known (layout spec).
+export default function ExplorerPage({ params, searchParams }: PageProps<"/[appId]/events">) {
+  const input: PageInput = { params, searchParams };
+  const list = <TableSkeleton rows={4} />;
+  const column = <BlockSkeleton className="h-[460px]" />;
+  return (
+    <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
+      <Suspense fallback={<BlockSkeleton className="mb-6 h-24" />}>
+        <ExplorerPart input={input} fallback={<BlockSkeleton className="mb-6 h-24" />}>
+          {({ page, pageParams }) => (
+            <Header
+              appId={page.appId}
+              apps={page.apps}
+              page="events"
+              state={page.state}
+              live={page.live}
+              qs={viewQuery(page.state, pageParams)}
+              hidden={pageParams}
+            />
+          )}
+        </ExplorerPart>
+      </Suspense>
       <Suspense fallback={null}>
         <CredentialsBanner />
       </Suspense>
       <PageBody>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-          <Panel title="Events" description="App events seen in the last 30 days.">
-            {catalog ? (
-              <EventListPanel
-                {...p}
-                catalog={catalog}
-                selected={sel?.event ?? null}
-                hrefBase={`/${appId}/events${rangeQs}`}
-              />
-            ) : (
-              !events.ok && <QueryError result={events} maxBytes={maxBytes} />
-            )}
+          <Panel title="Events" description="App events seen in the last 30 days." fallback={list}>
+            <ExplorerPart input={input} fallback={list}>
+              {(x, p) =>
+                x.catalog ? (
+                  <EventListPanel
+                    {...p}
+                    catalog={x.catalog}
+                    selected={x.sel?.event ?? null}
+                    hrefBase={`/${x.page.appId}/events${viewQuery(x.page.state)}`}
+                  />
+                ) : (
+                  !x.events.ok && <QueryError result={x.events} maxBytes={p.maxBytes} />
+                )
+              }
+            </ExplorerPart>
           </Panel>
           <div className="flex min-w-0 flex-col gap-4">
-            {sel && catalog ? (
-              <>
-                <Panel title={sel.event} description={metricLabel(sel.metric)}>
-                  <div className="flex flex-col gap-4">
-                    {event && !event.withVisitor && !event.withSession && (
-                      <p className="text-sm text-muted-foreground">Server event: no visitor or session metrics.</p>
-                    )}
-                    {/* key: the form fields are uncontrolled, so a new selection must remount them. */}
-                    <ControlsPanel
-                      key={JSON.stringify(pageParams)}
-                      {...p}
-                      catalog={catalog}
-                      sel={sel}
-                      qsBase={qsBase}
-                    />
-                    <SeriesPanel {...p} sel={sel} />
-                  </div>
-                </Panel>
-                {sel.by && (
-                  <Panel title={`By ${sel.by}`} description="Top 20 values in the range, the rest as Other.">
-                    <PropBreakdownPanel {...p} sel={{ ...sel, by: sel.by }} />
-                  </Panel>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-muted-foreground">Pick an event on the left.</p>
-            )}
+            <Suspense fallback={column}>
+              <ExplorerPart input={input} fallback={column}>
+                {(x, p) => <SelectionColumn x={x} p={p} />}
+              </ExplorerPart>
+            </Suspense>
           </div>
         </div>
       </PageBody>
-    </>
-  );
-}
-
-export default function ExplorerPage(props: PageProps<"/[appId]/events">) {
-  return (
-    <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
-      <Suspense fallback={<p>Loading…</p>}>
-        <Explorer {...props} />
-      </Suspense>
     </main>
   );
 }

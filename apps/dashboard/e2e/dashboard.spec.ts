@@ -190,3 +190,25 @@ test("overview: page switch shows panel frames with skeletons before data", asyn
   await expect(page.getByText("Loading…")).toHaveCount(0);
   await expect(page.getByTestId("kpi-pageviews")).toBeVisible({ timeout: 15_000 });
 });
+
+for (const path of [
+  "/demo/events?event=calendar_poll&metric=distinct%3Asubscription",
+  "/demo/funnels?steps=place_selected&steps=subscribe_click",
+  "/demo/settings",
+]) {
+  test(`hard load of ${path} shows frames, then data, no Loading text`, async ({ page }) => {
+    await page.goto(path);
+    await expect(page.getByText("Loading…")).toHaveCount(0);
+    await expect(page.getByText("Could not load this panel.")).toHaveCount(0);
+    await expect(page.getByTestId("skeleton")).toHaveCount(0, { timeout: 15_000 });
+  });
+}
+
+test("funnels: page switch shows the static frames first", async ({ page }) => {
+  await page.goto("/demo");
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 2000);
+  await page.getByRole("link", { name: "Funnels" }).click();
+  await expect(page.getByRole("heading", { name: "Saved funnels" })).toBeVisible();
+  await expect(page.getByTestId("skeleton").first()).toBeVisible();
+});
