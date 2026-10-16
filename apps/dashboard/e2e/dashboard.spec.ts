@@ -8,22 +8,24 @@ test.beforeEach(async ({ page }) => {
   expect(res.ok()).toBe(true);
 });
 
-test("app picker lists the demo app and the app page shows events", async ({ page }) => {
+test("app picker lists the demo app and the overview shows data", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("link", { name: "demo", exact: true }).click();
   await expect(page).toHaveURL(/\/demo/);
-  await expect(page.getByTestId("events-in-range")).toBeVisible();
-  await expect(page.getByTestId("events-in-range")).not.toHaveText("0");
+  await expect(page.getByTestId("kpi-pageviews")).toBeVisible();
+  await expect(page.getByTestId("kpi-pageviews")).not.toHaveText("0");
+  await expect(page.getByTestId("breakdown-page").getByRole("row")).not.toHaveCount(1);
+  await expect(page.getByText("Could not load this panel.")).toHaveCount(0);
 });
 
 test("date range and compare stay in the URL", async ({ page }) => {
   await page.goto("/demo");
-  await page.getByLabel("From").fill("2026-09-01");
-  await page.getByLabel("To").fill("2026-09-07");
+  await page.getByLabel("From", { exact: true }).fill("2026-09-01");
+  await page.getByLabel("To", { exact: true }).fill("2026-09-07");
   await page.getByLabel("Compare").uncheck();
   await page.getByRole("button", { name: "Apply" }).click();
   await expect(page).toHaveURL(/from=2026-09-01&to=2026-09-07&compare=0/);
-  await expect(page.getByText("2026-09-01 to 2026-09-07")).toBeVisible();
+  await expect(page.getByLabel("From", { exact: true })).toHaveValue("2026-09-01");
 });
 
 test("Live toggle and Refresh", async ({ page }) => {
@@ -33,7 +35,7 @@ test("Live toggle and Refresh", async ({ page }) => {
   await page.getByRole("button", { name: "Turn Live off" }).click();
   await expect(page.getByText("Live", { exact: true })).toHaveCount(0);
   await page.getByRole("button", { name: "Refresh" }).click();
-  await expect(page.getByTestId("events-in-range")).toBeVisible();
+  await expect(page.getByTestId("kpi-pageviews")).toBeVisible();
 });
 
 test("settings: save and read back the timezone", async ({ page }) => {

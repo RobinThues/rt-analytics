@@ -93,13 +93,16 @@ const REQUIRED_AT_STARTUP = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "BETTER
 /**
  * Called from instrumentation.ts: a misconfigured deployment fails at startup instead of on the first
  * sign-in or query. Previews have no GCP or Google values (they cannot sign in), so only the test-login
- * guard runs there.
+ * guard runs there. Local runs sign in with the test login, so the Google values are required in
+ * production only.
  */
 export function startupCheck(env: Env): void {
   assertSafeTestLogin(env);
   if (env.VERCEL_ENV === "preview") return;
-  for (const name of REQUIRED_AT_STARTUP) {
-    if (!env[name]) throw new Error(`Missing environment variable ${name}`);
+  if (env.VERCEL_ENV === "production") {
+    for (const name of REQUIRED_AT_STARTUP) {
+      if (!env[name]) throw new Error(`Missing environment variable ${name}`);
+    }
   }
   if (parseAllowedEmails(env.DASHBOARD_ALLOWED_EMAILS).length === 0) {
     throw new Error("Missing environment variable DASHBOARD_ALLOWED_EMAILS");
