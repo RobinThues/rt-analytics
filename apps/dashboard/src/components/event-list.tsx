@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { PendingLink } from "@/components/pending-link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatChange, formatInt } from "@/lib/format";
 import { Sparkline, type SparkPoint } from "./sparkline";
@@ -32,9 +32,9 @@ export function EventList({
         {rows.map((r) => (
           <TableRow key={r.name} data-state={r.name === selected ? "selected" : undefined}>
             <TableCell className="max-w-40 truncate">
-              <Link href={hrefFor(r.name)} className={r.name === selected ? "font-semibold" : "underline"}>
+              <PendingLink href={hrefFor(r.name)} className={r.name === selected ? "font-semibold" : "underline"}>
                 {r.name}
-              </Link>
+              </PendingLink>
             </TableCell>
             <TableCell className="text-right tabular-nums">{formatInt(r.total)}</TableCell>
             {compare && <TableCell className="text-right tabular-nums">{formatChange(r.change ?? null)}</TableCell>}

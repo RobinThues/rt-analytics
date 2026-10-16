@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { slowRsc } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   const res = await page.request.post("/api/auth/test-login", {
@@ -163,4 +164,18 @@ test("explorer: hovering a sparkline shows the day and the count", async ({ page
   const spark = page.getByTestId("event-list").getByTestId("sparkline").first();
   await spark.hover({ position: { x: 40, y: 12 } });
   await expect(spark.getByRole("tooltip")).toHaveText(/^\d{1,2} \w+: [\d,]+$/);
+});
+
+test("explorer: picking another event keeps the old content dimmed", async ({ page }) => {
+  await page.goto("/demo/events?event=place_selected");
+  await expect(page.getByTestId("explorer-total")).toBeVisible();
+  const before = await page.getByTestId("explorer-total").textContent();
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 2000);
+  await page.getByTestId("event-list").getByRole("link", { name: "subscribe_click" }).click();
+  await expect(page.getByTestId("progress-line")).toBeVisible();
+  await expect(page.getByTestId("explorer-total")).toHaveText(before ?? "");
+  await expect(page.getByTestId("page-body")).toHaveCSS("opacity", "0.5");
+  await expect(page).toHaveURL(/event=subscribe_click/, { timeout: 10_000 });
+  await expect(page.getByTestId("progress-line")).toBeHidden();
 });

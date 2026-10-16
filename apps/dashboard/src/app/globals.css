@@ -136,3 +136,13 @@
     @apply font-sans;
   }
 }
+
+/* Progress line while a same-page change is pending (components/progress-line.tsx). */
+@keyframes progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}

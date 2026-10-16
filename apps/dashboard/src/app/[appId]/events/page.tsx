@@ -6,6 +6,7 @@ import { EventList } from "@/components/event-list";
 import { ExplorerControls } from "@/components/explorer-controls";
 import { Header } from "@/components/header";
 import { KpiTile } from "@/components/kpi-tile";
+import { PageBody } from "@/components/page-body";
 import { Panel } from "@/components/panel";
 import { QueryError } from "@/components/query-error";
 import { TrendChart } from "@/components/trend-chart";
@@ -174,43 +175,51 @@ async function Explorer({ params, searchParams }: PageProps<"/[appId]/events">) 
       <Suspense fallback={null}>
         <CredentialsBanner />
       </Suspense>
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-        <Panel title="Events" description="App events seen in the last 30 days.">
-          {catalog ? (
-            <EventListPanel
-              {...p}
-              catalog={catalog}
-              selected={sel?.event ?? null}
-              hrefBase={`/${appId}/events${rangeQs}`}
-            />
-          ) : (
-            !events.ok && <QueryError result={events} maxBytes={maxBytes} />
-          )}
-        </Panel>
-        <div className="flex min-w-0 flex-col gap-4">
-          {sel && catalog ? (
-            <>
-              <Panel title={sel.event} description={metricLabel(sel.metric)}>
-                <div className="flex flex-col gap-4">
-                  {event && !event.withVisitor && !event.withSession && (
-                    <p className="text-sm text-muted-foreground">Server event: no visitor or session metrics.</p>
-                  )}
-                  {/* key: the form fields are uncontrolled, so a new selection must remount them. */}
-                  <ControlsPanel key={JSON.stringify(pageParams)} {...p} catalog={catalog} sel={sel} qsBase={qsBase} />
-                  <SeriesPanel {...p} sel={sel} />
-                </div>
-              </Panel>
-              {sel.by && (
-                <Panel title={`By ${sel.by}`} description="Top 20 values in the range, the rest as Other.">
-                  <PropBreakdownPanel {...p} sel={{ ...sel, by: sel.by }} />
+      <PageBody>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+          <Panel title="Events" description="App events seen in the last 30 days.">
+            {catalog ? (
+              <EventListPanel
+                {...p}
+                catalog={catalog}
+                selected={sel?.event ?? null}
+                hrefBase={`/${appId}/events${rangeQs}`}
+              />
+            ) : (
+              !events.ok && <QueryError result={events} maxBytes={maxBytes} />
+            )}
+          </Panel>
+          <div className="flex min-w-0 flex-col gap-4">
+            {sel && catalog ? (
+              <>
+                <Panel title={sel.event} description={metricLabel(sel.metric)}>
+                  <div className="flex flex-col gap-4">
+                    {event && !event.withVisitor && !event.withSession && (
+                      <p className="text-sm text-muted-foreground">Server event: no visitor or session metrics.</p>
+                    )}
+                    {/* key: the form fields are uncontrolled, so a new selection must remount them. */}
+                    <ControlsPanel
+                      key={JSON.stringify(pageParams)}
+                      {...p}
+                      catalog={catalog}
+                      sel={sel}
+                      qsBase={qsBase}
+                    />
+                    <SeriesPanel {...p} sel={sel} />
+                  </div>
                 </Panel>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-muted-foreground">Pick an event on the left.</p>
-          )}
+                {sel.by && (
+                  <Panel title={`By ${sel.by}`} description="Top 20 values in the range, the rest as Other.">
+                    <PropBreakdownPanel {...p} sel={{ ...sel, by: sel.by }} />
+                  </Panel>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Pick an event on the left.</p>
+            )}
+          </div>
         </div>
-      </div>
+      </PageBody>
     </>
   );
 }
