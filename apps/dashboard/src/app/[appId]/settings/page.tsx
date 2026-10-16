@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { requireUser } from "@/auth/session";
+import { PageBar } from "@/components/page-bar";
 import { Panel } from "@/components/panel";
 import { BlockSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
@@ -76,7 +77,7 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
 export default function SettingsPage({ params, searchParams }: PageProps<"/[appId]/settings">) {
   return (
     <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
-      <h1 className="mb-4 text-2xl font-semibold">Settings</h1>
+      <PageBar title="Settings" />
       <Panel title="App settings" fallback={<BlockSkeleton className="h-72" />}>
         <SettingsView params={params} searchParams={searchParams} />
       </Panel>

@@ -1,10 +1,9 @@
 import { Suspense } from "react";
-import { CredentialsBanner } from "@/components/credentials-banner";
 import { Header } from "@/components/header";
+import { PageBar } from "@/components/page-bar";
 import { PageBody } from "@/components/page-body";
 import { Panel } from "@/components/panel";
-import { BlockSkeleton, ChartSkeleton, KpiSkeleton, LineSkeleton, TableSkeleton } from "@/components/skeletons";
-import { viewQuery } from "@/lib/query-string";
+import { BlockSkeleton, ChartSkeleton, KpiSkeleton, TableSkeleton } from "@/components/skeletons";
 import type { PageInput } from "./page-data";
 import { BREAKDOWNS, BreakdownPanel } from "./panels/breakdowns";
 import { PeoplePanel } from "./panels/people";
@@ -19,34 +18,13 @@ export default function OverviewPage({ params, searchParams }: PageProps<"/[appI
   const table = <TableSkeleton rows={5} />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
-      <Suspense fallback={<BlockSkeleton className="mb-6 h-24" />}>
-        <DataPart input={input} fallback={<BlockSkeleton className="mb-6 h-24" />}>
-          {(_, d) => (
-            <Header
-              appId={d.appId}
-              apps={d.apps}
-              page="overview"
-              state={d.state}
-              live={d.live}
-              qs={viewQuery(d.state)}
-            />
-          )}
+      <Suspense fallback={<BlockSkeleton className="mb-4 h-10" />}>
+        <DataPart input={input} fallback={<BlockSkeleton className="mb-4 h-10" />}>
+          {(_, d) => <Header appId={d.appId} apps={d.apps} page="overview" state={d.state} />}
         </DataPart>
       </Suspense>
-      <Suspense fallback={null}>
-        <CredentialsBanner />
-      </Suspense>
+      <PageBar title="Overview" page="overview" input={input} />
       <PageBody>
-        <Suspense fallback={<LineSkeleton className="mb-4" />}>
-          <DataPart input={input} fallback={<LineSkeleton className="mb-4" />}>
-            {(_, { state, settings, ctx }) => (
-              <p className="mb-4 text-sm text-muted-foreground">
-                {state.range.from} to {state.range.to} ({settings.timezone})
-                {state.compare && `, compared with ${ctx.prev.from} to ${ctx.prev.to}`}
-              </p>
-            )}
-          </DataPart>
-        </Suspense>
         <div className="grid gap-4">
           <Panel title="Summary" fallback={<KpiSkeleton />}>
             <DataPart input={input} fallback={<KpiSkeleton />}>

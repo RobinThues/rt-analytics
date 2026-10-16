@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
-import { CredentialsBanner } from "@/components/credentials-banner";
+import { PageBar } from "@/components/page-bar";
 import { FunnelEditor } from "@/components/funnel-editor";
 import { FunnelResult } from "@/components/funnel-result";
 import { Header } from "@/components/header";
@@ -141,24 +141,12 @@ export default function FunnelsPage({ params, searchParams }: PageProps<"/[appId
   const resultSkeleton = <BlockSkeleton className="h-64" />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
-      <Suspense fallback={<BlockSkeleton className="mb-6 h-24" />}>
-        <FunnelPart input={input} fallback={<BlockSkeleton className="mb-6 h-24" />}>
-          {({ page, qs, pageParams }) => (
-            <Header
-              appId={page.appId}
-              apps={page.apps}
-              page="funnels"
-              state={page.state}
-              live={page.live}
-              qs={qs}
-              hidden={pageParams}
-            />
-          )}
+      <Suspense fallback={<BlockSkeleton className="mb-4 h-10" />}>
+        <FunnelPart input={input} fallback={<BlockSkeleton className="mb-4 h-10" />}>
+          {({ page }) => <Header appId={page.appId} apps={page.apps} page="funnels" state={page.state} />}
         </FunnelPart>
       </Suspense>
-      <Suspense fallback={null}>
-        <CredentialsBanner />
-      </Suspense>
+      <PageBar title="Funnels" page="funnels" input={input} />
       <PageBody>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
           <Panel title="Saved funnels" fallback={savedSkeleton}>

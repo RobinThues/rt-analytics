@@ -1,4 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
+import { daysBetween } from "../src/time/range";
+import { formatRangeLabel } from "../src/view/range-ui";
 import { slowRsc } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
@@ -20,13 +22,16 @@ test("app picker lists the demo app and the overview shows data", async ({ page 
 });
 
 test("date range and compare stay in the URL", async ({ page }) => {
-  await page.goto("/demo");
-  await page.getByLabel("From", { exact: true }).fill("2026-09-01");
-  await page.getByLabel("To", { exact: true }).fill("2026-09-07");
+  await page.goto("/demo/events?event=calendar_poll");
+  await page.getByRole("button", { name: "Date range" }).click();
+  await page.getByRole("button", { name: "Last 7 days" }).click();
+  await expect(page).toHaveURL(/from=.*event=calendar_poll/);
+  let url = new URL(page.url());
+  expect(daysBetween(url.searchParams.get("from")!, url.searchParams.get("to")!)).toBe(6);
   await page.getByLabel("Compare").uncheck();
-  await page.getByRole("button", { name: "Apply" }).click();
-  await expect(page).toHaveURL(/from=2026-09-01&to=2026-09-07&compare=0/);
-  await expect(page.getByLabel("From", { exact: true })).toHaveValue("2026-09-01");
+  await expect(page).toHaveURL(/compare=0/);
+  url = new URL(page.url());
+  expect(url.searchParams.get("event")).toBe("calendar_poll");
 });
 
 test("Live toggle and Refresh", async ({ page }) => {
@@ -211,4 +216,45 @@ test("funnels: page switch shows the static frames first", async ({ page }) => {
   await page.getByRole("link", { name: "Funnels" }).click();
   await expect(page.getByRole("heading", { name: "Saved funnels" })).toBeVisible();
   await expect(page.getByTestId("skeleton").first()).toBeVisible();
+});
+
+test("quick second preset wins", async ({ page }) => {
+  await page.goto("/demo");
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 1500);
+  await page.getByRole("button", { name: "Date range" }).click();
+  await page.getByRole("button", { name: "Last 7 days" }).click();
+  await page.getByRole("button", { name: "Date range" }).click();
+  await page.getByRole("button", { name: "Last 90 days" }).click();
+  await expect(page.getByTestId("progress-line")).toBeHidden({ timeout: 15_000 });
+  const url = new URL(page.url());
+  expect(daysBetween(url.searchParams.get("from")!, url.searchParams.get("to")!)).toBe(89);
+  await expect(page.getByRole("button", { name: "Date range" })).toHaveText(
+    formatRangeLabel({ from: url.searchParams.get("from")!, to: url.searchParams.get("to")! }),
+  );
+});
+
+test("overview: revisit after a range change never shows old numbers undimmed", async ({ page }) => {
+  await page.goto("/demo");
+  const kpi = page.locator("[data-testid=kpi-pageviews]:visible");
+  const body = page.locator("[data-testid=page-body]:visible");
+  await expect(kpi).toBeVisible();
+  const old = await kpi.textContent();
+  await page.getByRole("link", { name: "Events" }).click(); // client-side, keeps the router state
+  // Until the Events page commits, the Overview's own bar (and its picker) is still on screen.
+  await expect(page.getByRole("heading", { level: 1, name: "Events" })).toBeVisible();
+  await page.getByRole("button", { name: "Date range" }).click();
+  await page.getByRole("button", { name: "Last 7 days" }).click();
+  await expect(page.getByTestId("progress-line")).toBeHidden({ timeout: 15_000 });
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 1500);
+  await page.getByRole("link", { name: "Overview" }).click();
+  for (let t = 0; t < 15; t++) {
+    // sample ~1.5 s: the old text may only be visible while dimmed
+    if ((await kpi.count()) === 1 && (await kpi.textContent()) === old) {
+      expect(await body.evaluate((el) => getComputedStyle(el).opacity)).not.toBe("1");
+    }
+    await page.waitForTimeout(100);
+  }
+  await expect(kpi).not.toHaveText(old ?? "", { timeout: 15_000 });
 });

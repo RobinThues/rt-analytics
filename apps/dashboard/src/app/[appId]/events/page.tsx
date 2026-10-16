@@ -1,6 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
-import { CredentialsBanner } from "@/components/credentials-banner";
+import { PageBar } from "@/components/page-bar";
 import { EventList } from "@/components/event-list";
 import { ExplorerControls } from "@/components/explorer-controls";
 import { Header } from "@/components/header";
@@ -201,24 +201,12 @@ export default function ExplorerPage({ params, searchParams }: PageProps<"/[appI
   const column = <BlockSkeleton className="h-[460px]" />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
-      <Suspense fallback={<BlockSkeleton className="mb-6 h-24" />}>
-        <ExplorerPart input={input} fallback={<BlockSkeleton className="mb-6 h-24" />}>
-          {({ page, pageParams }) => (
-            <Header
-              appId={page.appId}
-              apps={page.apps}
-              page="events"
-              state={page.state}
-              live={page.live}
-              qs={viewQuery(page.state, pageParams)}
-              hidden={pageParams}
-            />
-          )}
+      <Suspense fallback={<BlockSkeleton className="mb-4 h-10" />}>
+        <ExplorerPart input={input} fallback={<BlockSkeleton className="mb-4 h-10" />}>
+          {({ page }) => <Header appId={page.appId} apps={page.apps} page="events" state={page.state} />}
         </ExplorerPart>
       </Suspense>
-      <Suspense fallback={null}>
-        <CredentialsBanner />
-      </Suspense>
+      <PageBar title="Events" page="events" input={input} />
       <PageBody>
         <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <Panel title="Events" description="App events seen in the last 30 days." fallback={list}>
