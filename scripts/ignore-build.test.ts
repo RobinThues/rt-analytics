@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-// Vercel's "Ignored Build Step" for the dashboard: exit 0 skips the build, anything else builds.
+// Vercel's "Ignored Build Step" for the dashboard: exit 0 skips the build, exit 1 builds, any other code fails
+// the deployment.
 const script = fileURLToPath(new URL("../apps/dashboard/scripts/ignore-build.sh", import.meta.url));
 
 function repo() {
@@ -55,6 +56,6 @@ describe("ignore-build.sh", () => {
   });
 
   it("builds when the previous commit is unknown (shallow clone)", () => {
-    expect(run(repo().dir, "0123456789abcdef0123456789abcdef01234567")).not.toBe(0);
+    expect(run(repo().dir, "0123456789abcdef0123456789abcdef01234567")).toBe(1);
   });
 });
