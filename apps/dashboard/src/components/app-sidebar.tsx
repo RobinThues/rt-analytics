@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { signOut } from "@/auth/actions";
 import { AppSwitcher } from "@/components/app-switcher";
+import { ThemeSwitch } from "@/components/theme-switch";
 import { Button } from "@/components/ui/button";
 import { isPlainClick, usePendingNavigation } from "@/lib/navigation";
 import { PAGE_PATHS, type AppPage } from "@/lib/pages";
@@ -76,6 +77,7 @@ export function AppSidebar({
         </Link>
       </nav>
       <div className="mt-auto flex flex-col gap-1 border-t pt-3">
+        <ThemeSwitch />
         <p className="truncate px-2 text-xs text-muted-foreground" title={email}>
           {email}
         </p>
