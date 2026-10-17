@@ -38,8 +38,10 @@ Optimizely because its frontend feels unreliable (things jump around), and polis
 
 ## Anti-goals (would make this a failure even if it looks good)
 
-- Layout shift: a panel whose skeleton has a different height than its loaded content (more than
-  4 px, see Testing), digits that change width while numbers update, columns that jump.
+- Layout shift: a fixed-shape panel (Summary, Over time, Web vitals, Errors over time) whose skeleton
+  has a different height than its loaded content (more than 4 px, see Testing), digits that change
+  width while numbers update, columns that jump. Tables have a variable number of rows, so their
+  skeleton shows a fixed 5 rows at the real row height; that is "as little shift as reasonable".
 - Spinners. Loading stays skeletons, dimming and the progress line (layout spec).
 - A flash of the wrong theme on page load.
 - The brand color used as a data color, or any color that reads as "good" or "bad" (green, lime,
@@ -129,10 +131,11 @@ Calm's look with tighter spacing. Today's page is close to it in size. Target si
   `#3987e5` dark), previous period `--chart-previous` (`#8f8e88`), dashed.
 - A light area fill under the current line, color `--chart-area`.
 - Lighter grid lines (`--row-line`), axis text 11 px muted and tabular.
-- TrendChart gets a `legend` option (default on). The overview's "Over time" panel turns it off for
-  its three charts and shows one legend line above them, inside the data part (where `compare` is
-  known): "This period", plus "Previous period" only when compare is on. "Errors over time" and the
-  explorer chart keep their own legend. Labels and tooltips keep today's wording.
+- TrendChart loses its built-in Recharts legend. Instead, one legend line sits above the charts of
+  each place, inside the data part (where `compare` is known): "This period", plus "Previous period"
+  only when compare is on. The line always takes the same height, so a skeleton can match it whether
+  compare is on or off. The overview's "Over time" panel has one line for its three charts; "Errors
+  over time" and the explorer chart each have their own. Labels and tooltips keep today's wording.
 - Chart height about 160 px including axes (today 192 px).
 - Tooltips use `bg-popover` (today `bg-background`, which becomes the gray page color). The funnel
   chart's chips use `var(--card)`.
@@ -288,7 +291,7 @@ tokens.
   - The theme switch persists across a reload.
   - Dark mode renders the overview without console errors.
   - The 390 px no-horizontal-scroll check stays green in both themes.
-  - Layout shift: on the overview at 1440 and 390 px, with a custom range that is not cached, each
+  - Layout shift: on the overview at 1440 and 390 px, during a delayed page switch, each fixed-shape
     panel's height while its skeleton shows differs from its loaded height by at most 4 px. Runs only
     in the final full e2e run (BigQuery cost).
 - Manual: one `next dev` load with the console open, to catch React's dev-only warning about the
