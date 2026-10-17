@@ -19,7 +19,7 @@ function Tooltip({ v, compare, left, top }: { v: FunnelStepView; compare: boolea
   return (
     <div
       role="tooltip"
-      className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-md border bg-background px-2 py-1 text-xs whitespace-nowrap shadow-sm tabular-nums"
+      className="pointer-events-none absolute z-10 -translate-x-1/2 rounded-md border bg-popover px-2 py-1 text-xs whitespace-nowrap shadow-sm tabular-nums"
       style={{ left, top }}
     >
       <p className="font-medium">{formatInt(v.cur)} sessions</p>
@@ -124,7 +124,7 @@ function Horizontal({ steps, view, compare }: Props) {
                 width="60"
                 height="22"
                 rx="11"
-                fill="var(--background)"
+                fill="var(--card)"
                 stroke="var(--border)"
               />
               <text x={cx} y={cy + 3} textAnchor="middle" fontSize="11" fill="var(--foreground)">

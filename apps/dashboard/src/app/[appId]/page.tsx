@@ -26,8 +26,8 @@ export default function OverviewPage({ params, searchParams }: PageProps<"/[appI
               {(p) => <KpiPanel {...p} />}
             </DataPart>
           </Panel>
-          <Panel title="Over time" fallback={<ChartSkeleton count={3} />}>
-            <DataPart input={input} fallback={<ChartSkeleton count={3} />}>
+          <Panel title="Over time" fallback={<ChartSkeleton count={3} titles legend />}>
+            <DataPart input={input} fallback={<ChartSkeleton count={3} titles legend />}>
               {(p) => <TrafficCharts {...p} />}
             </DataPart>
           </Panel>
@@ -51,8 +51,8 @@ export default function OverviewPage({ params, searchParams }: PageProps<"/[appI
                 {(p) => <SlowPagesPanel {...p} />}
               </DataPart>
             </Panel>
-            <Panel title="Errors over time" fallback={<ChartSkeleton />}>
-              <DataPart input={input} fallback={<ChartSkeleton />}>
+            <Panel title="Errors over time" fallback={<ChartSkeleton legend />}>
+              <DataPart input={input} fallback={<ChartSkeleton legend />}>
                 {(p) => <ErrorChart {...p} />}
               </DataPart>
             </Panel>

@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
 import { BarLabel, rowBarWidth } from "@/components/bar-label";
 import { Change } from "@/components/change";
+import { ChartLegendLine } from "@/components/chart-legend-line";
 import { PageBar } from "@/components/page-bar";
 import { EventList } from "@/components/event-list";
 import { ExplorerControls } from "@/components/explorer-controls";
@@ -88,12 +89,15 @@ async function SeriesPanel({ ctx, live, maxBytes, sel }: PanelProps & { sel: Exp
           ]}
         />
       </div>
-      <TrendChart
-        title={metricLabel(sel.metric)}
-        data={alignSeries(days, ctx)}
-        compare={ctx.compare}
-        prevFrom={ctx.prev.from}
-      />
+      <div className="flex flex-col gap-2">
+        <ChartLegendLine compare={ctx.compare} />
+        <TrendChart
+          title={metricLabel(sel.metric)}
+          data={alignSeries(days, ctx)}
+          compare={ctx.compare}
+          prevFrom={ctx.prev.from}
+        />
+      </div>
     </div>
   );
 }

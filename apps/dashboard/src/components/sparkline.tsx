@@ -28,7 +28,7 @@ export function Sparkline({ points }: { points: readonly SparkPoint[] }) {
             return (
               <div
                 role="tooltip"
-                className="rounded-md border bg-background px-2 py-0.5 text-xs whitespace-nowrap shadow-sm tabular-nums"
+                className="rounded-md border bg-popover px-2 py-0.5 text-xs whitespace-nowrap shadow-sm tabular-nums"
               >
                 {formatShortDay(p.day)}: {formatInt(p.n)}
               </div>

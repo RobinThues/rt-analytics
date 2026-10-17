@@ -1,3 +1,4 @@
+import { ChartLegendLine } from "@/components/chart-legend-line";
 import { CoverageNote } from "@/components/coverage-note";
 import type { KpiCols } from "@/components/kpi-grid";
 import { KpiRow } from "@/components/kpi-row";
@@ -67,18 +68,21 @@ export async function TrafficCharts({ ctx, live, maxBytes }: PanelProps) {
     ["Pageviews", (r) => r.pageviews],
   ];
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      {charts.map(([title, pick]) => (
-        <div key={title} className="min-w-0">
-          <p className="mb-2 text-sm font-medium">{title}</p>
-          <TrendChart
-            title={title}
-            data={alignSeries(series(res.rows, pick), ctx)}
-            compare={ctx.compare}
-            prevFrom={ctx.prev.from}
-          />
-        </div>
-      ))}
+    <div className="flex flex-col gap-2">
+      <ChartLegendLine compare={ctx.compare} />
+      <div className="grid gap-6 lg:grid-cols-3">
+        {charts.map(([title, pick]) => (
+          <div key={title} className="min-w-0">
+            <p className="mb-2 text-sm font-medium">{title}</p>
+            <TrendChart
+              title={title}
+              data={alignSeries(series(res.rows, pick), ctx)}
+              compare={ctx.compare}
+              prevFrom={ctx.prev.from}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -87,14 +91,17 @@ export async function ErrorChart({ ctx, live, maxBytes }: PanelProps) {
   const res = await loadTraffic(ctx, live);
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
   return (
-    <TrendChart
-      title="Errors"
-      data={alignSeries(
-        series(res.rows, (r) => r.errors),
-        ctx,
-      )}
-      compare={ctx.compare}
-      prevFrom={ctx.prev.from}
-    />
+    <div className="flex flex-col gap-2">
+      <ChartLegendLine compare={ctx.compare} />
+      <TrendChart
+        title="Errors"
+        data={alignSeries(
+          series(res.rows, (r) => r.errors),
+          ctx,
+        )}
+        compare={ctx.compare}
+        prevFrom={ctx.prev.from}
+      />
+    </div>
   );
 }

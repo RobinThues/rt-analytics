@@ -31,14 +31,35 @@ export function KpiSkeleton({ cols, count, coverage }: { cols: KpiCols; count: n
   );
 }
 
-/** One chart, or `count` charts in the overview's three-column chart grid. */
-export function ChartSkeleton({ height = 220, count = 1 }: { height?: number; count?: number }) {
-  if (count === 1) return <Skeleton data-testid="skeleton" className="w-full" style={{ height }} />;
+/**
+ * One chart, or `count` charts in the overview's three-column chart grid; `legend` adds the legend line
+ * above and `titles` a title line above each chart, at the same sizes as the loaded charts.
+ */
+export function ChartSkeleton({
+  height = 160,
+  count = 1,
+  titles = false,
+  legend = false,
+}: {
+  height?: number;
+  count?: number;
+  titles?: boolean;
+  legend?: boolean;
+}) {
+  const chart = (key: number) => (
+    <div key={key} className="min-w-0">
+      {titles && <Skeleton className="mb-2 h-5 w-20" />}
+      <Skeleton className="w-full" style={{ height }} />
+    </div>
+  );
   return (
-    <div data-testid="skeleton" className="grid gap-6 lg:grid-cols-3">
-      {Array.from({ length: count }, (_, i) => (
-        <Skeleton key={i} className="w-full" style={{ height }} />
-      ))}
+    <div data-testid="skeleton" className="flex flex-col gap-2">
+      {legend && <Skeleton className="h-5 w-48" />}
+      {count === 1 ? (
+        chart(0)
+      ) : (
+        <div className="grid gap-6 lg:grid-cols-3">{Array.from({ length: count }, (_, i) => chart(i))}</div>
+      )}
     </div>
   );
 }
