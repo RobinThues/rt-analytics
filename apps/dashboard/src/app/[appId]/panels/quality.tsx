@@ -1,4 +1,5 @@
 import { KpiRow } from "@/components/kpi-row";
+import { SlowPagesTable, TopErrorsTable } from "@/components/quality-tables";
 import { QueryError } from "@/components/query-error";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dataQuery } from "@/bq/query";
@@ -47,56 +48,14 @@ export async function SlowPagesPanel({ ctx, live, maxBytes }: PanelProps) {
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
   if (res.rows.length === 0)
     return <p className="text-sm text-muted-foreground">Not enough LCP samples (5 per page).</p>;
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Page</TableHead>
-          <TableHead className="text-right">LCP p75</TableHead>
-          <TableHead className="text-right">Samples</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {res.rows.map((r) => (
-          <TableRow key={r.page_path}>
-            <TableCell className="max-w-48 truncate" title={r.page_path}>
-              {r.page_path}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">{formatInt(r.p75)} ms</TableCell>
-            <TableCell className="text-right tabular-nums">{formatInt(r.samples)}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  return <SlowPagesTable rows={res.rows} />;
 }
 
 export async function TopErrorsPanel({ ctx, live, maxBytes }: PanelProps) {
   const res = await dataQuery<ErrorRow>(topErrorsQuery(ctx), ctx.appId, live);
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
   if (res.rows.length === 0) return <p className="text-sm text-muted-foreground">No errors in this range.</p>;
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Message</TableHead>
-          <TableHead className="text-right">Count</TableHead>
-          <TableHead className="text-right">Last seen</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {res.rows.map((r) => (
-          <TableRow key={r.message}>
-            <TableCell className="max-w-64 truncate" title={r.message}>
-              {r.message}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">{formatInt(r.occurrences)}</TableCell>
-            <TableCell className="text-right tabular-nums whitespace-nowrap">{r.last_seen}</TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  return <TopErrorsTable rows={res.rows} />;
 }
 
 export async function ConsentPanel({ ctx, live, maxBytes }: PanelProps) {
