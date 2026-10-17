@@ -28,7 +28,7 @@ export async function WebVitalsPanel({ ctx, live, maxBytes }: PanelProps) {
   const vitals = toVitals(res.rows, ctx.compare);
   return (
     <KpiRow
-      cols={{ base: 3 }}
+      cols={{ base: 2, sm: 3 }}
       cells={VITALS.map((v) => {
         const { value, change } = vitals[v.metric];
         return {

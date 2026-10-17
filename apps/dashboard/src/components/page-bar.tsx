@@ -44,10 +44,10 @@ async function RangeLinePart({ input }: { input: PageInput }) {
 
 const controlsSkeleton = (
   <div data-testid="skeleton" className="flex flex-wrap items-center gap-2">
-    <Skeleton className="h-8 w-52" />
-    <Skeleton className="h-8 w-24" />
-    <Skeleton className="h-8 w-28" />
-    <Skeleton className="h-8 w-20" />
+    <Skeleton className="h-7.5 w-52" />
+    <Skeleton className="h-7.5 w-24" />
+    <Skeleton className="h-7.5 w-28" />
+    <Skeleton className="h-7.5 w-20" />
   </div>
 );
 
@@ -57,7 +57,7 @@ const controlsSkeleton = (
  */
 export function PageBar({ title, page, input }: { title: string; page?: AppPage; input?: PageInput }) {
   return (
-    <div className="mb-4 flex flex-col gap-2">
+    <div className="mb-3 flex flex-col gap-2">
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <MobileNavTrigger />

@@ -8,7 +8,8 @@ import { encodeMetric, explorerFormQuery } from "@/explorer/state";
 import { usePendingNavigation } from "@/lib/navigation";
 import type { ExplorerSelection } from "@/queries/explorer";
 
-const selectClass = "h-8 rounded-lg border bg-transparent px-2 text-sm";
+const selectClass =
+  "h-7.5 rounded-md border border-input bg-transparent px-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 /**
  * The explorer controls. Apply builds the canonical URL in the browser and navigates in place, so the

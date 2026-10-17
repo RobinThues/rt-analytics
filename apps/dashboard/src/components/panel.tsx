@@ -22,9 +22,9 @@ export function Panel({
   children: ReactNode;
 }) {
   return (
-    <Card className={cn("min-w-0", className)}>
+    <Card className={cn("min-w-0 gap-3", className)} data-panel={typeof title === "string" ? title : undefined}>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="text-sm font-semibold">
           <h2>{title}</h2>
         </CardTitle>
         {description && <CardDescription>{description}</CardDescription>}

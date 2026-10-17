@@ -1,6 +1,6 @@
 import { ChartLegendLine } from "@/components/chart-legend-line";
 import { CoverageNote } from "@/components/coverage-note";
-import type { KpiCols } from "@/components/kpi-grid";
+import { SUMMARY_COLS } from "@/components/kpi-grid";
 import { KpiRow } from "@/components/kpi-row";
 import { QueryError } from "@/components/query-error";
 import { TrendChart } from "@/components/trend-chart";
@@ -10,9 +10,6 @@ import { alignSeries } from "@/queries/series";
 import type { TrafficRow } from "@/queries/overview";
 import type { PanelProps } from "../page-data";
 import { loadKpis, loadTraffic } from "./shared";
-
-/** Summary columns: 2 on phones, 3 from sm, 6 from lg; its skeleton uses the same. */
-export const SUMMARY_COLS: KpiCols = { base: 2, sm: 3, lg: 6 };
 
 export async function KpiPanel({ ctx, live, maxBytes }: PanelProps) {
   const res = await loadKpis(ctx, live);

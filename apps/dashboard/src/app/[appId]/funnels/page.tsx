@@ -146,16 +146,16 @@ export default function FunnelsPage({ params, searchParams }: PageProps<"/[appId
   const editorSkeleton = <BlockSkeleton className="h-40" />;
   const resultSkeleton = <BlockSkeleton className="h-64" />;
   return (
-    <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
+    <main className="mx-auto w-full max-w-7xl p-4 sm:p-5">
       <PageBar title="Funnels" page="funnels" input={input} />
       <PageBody>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,3fr)]">
           <Panel title="Saved funnels" fallback={savedSkeleton}>
             <FunnelPart input={input} fallback={savedSkeleton}>
               {(f) => <SavedList f={f} />}
             </FunnelPart>
           </Panel>
-          <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-3">
             <Panel
               title={
                 <Suspense fallback="Funnel">

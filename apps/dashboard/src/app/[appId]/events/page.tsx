@@ -220,12 +220,12 @@ function SelectionColumn({ x, p }: { x: ExplorerData; p: PanelProps }) {
 export default function ExplorerPage({ params, searchParams }: PageProps<"/[appId]/events">) {
   const input: PageInput = { params, searchParams };
   const list = <TableSkeleton rows={4} />;
-  const column = <BlockSkeleton className="h-[460px]" />;
+  const column = <BlockSkeleton className="h-[497px]" />;
   return (
-    <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
+    <main className="mx-auto w-full max-w-7xl p-4 sm:p-5">
       <PageBar title="Events" page="events" input={input} />
       <PageBody>
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <Panel title="Events" description="App events seen in the last 30 days." fallback={list}>
             <ExplorerPart input={input} fallback={list}>
               {(x, p) =>
@@ -242,7 +242,7 @@ export default function ExplorerPage({ params, searchParams }: PageProps<"/[appI
               }
             </ExplorerPart>
           </Panel>
-          <div className="flex min-w-0 flex-col gap-4">
+          <div className="flex min-w-0 flex-col gap-3" data-testid="selection-column">
             <Suspense fallback={column}>
               <ExplorerPart input={input} fallback={column}>
                 {(x, p) => <SelectionColumn x={x} p={p} />}

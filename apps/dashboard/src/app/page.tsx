@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireUser } from "@/auth/session";
+import { Wordmark } from "@/components/mark";
 import { QueryError } from "@/components/query-error";
+import { Skeleton } from "@/components/ui/skeleton";
 import { listApps } from "@/discovery/data";
 import { readEnv } from "@/env";
 
@@ -14,7 +16,7 @@ async function Apps() {
     <ul className="space-y-2">
       {apps.rows.map(({ app_id }) => (
         <li key={app_id}>
-          <Link className="underline" href={`/${encodeURIComponent(app_id)}`}>
+          <Link className="text-primary underline underline-offset-2" href={`/${encodeURIComponent(app_id)}`}>
             {app_id}
           </Link>
         </li>
@@ -25,9 +27,18 @@ async function Apps() {
 
 export default function Home() {
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="mx-auto max-w-3xl p-4 sm:p-5">
+      <Wordmark className="mb-4 text-lg" />
       <h1 className="mb-4 text-2xl font-semibold">Apps</h1>
-      <Suspense fallback={<p>Loading…</p>}>
+      <Suspense
+        fallback={
+          <div data-testid="skeleton" className="space-y-2">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-5 w-32" />
+            ))}
+          </div>
+        }
+      >
         <Apps />
       </Suspense>
     </main>

@@ -43,7 +43,7 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
             id="timezone"
             name="timezone"
             defaultValue={settings.timezone}
-            className="h-9 rounded-md border bg-transparent px-2"
+            className="h-7.5 rounded-md border border-input bg-transparent px-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {zones.map((z) => (
               <option key={z} value={z}>
@@ -59,7 +59,7 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
             name="hosts"
             defaultValue={settings.hosts.join("\n")}
             rows={3}
-            className="rounded-md border bg-transparent p-2"
+            className="rounded-md border border-input bg-transparent p-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
           <p className="text-sm text-muted-foreground">
             One per line. Referrers from these hosts count as direct traffic.
@@ -76,7 +76,7 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
 // A synchronous page: the title and the panel frame render at once, the form comes with the data.
 export default function SettingsPage({ params, searchParams }: PageProps<"/[appId]/settings">) {
   return (
-    <main className="mx-auto w-full max-w-5xl p-4 sm:p-6">
+    <main className="mx-auto w-full max-w-5xl p-4 sm:p-5">
       <PageBar title="Settings" />
       <Panel title="App settings" fallback={<BlockSkeleton className="h-72" />}>
         <SettingsView params={params} searchParams={searchParams} />

@@ -7,7 +7,8 @@ import { usePendingNavigation } from "@/lib/navigation";
 
 type Row = { event: string; key: string; value: string };
 
-const selectClass = "h-8 min-w-0 rounded-lg border bg-transparent px-2 text-sm";
+const selectClass =
+  "h-7.5 min-w-0 rounded-md border border-input bg-transparent px-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 const toRow = (s: FunnelStep): Row => ({ event: s.event, key: s.filter?.key ?? "", value: s.filter?.value ?? "" });
 const blank: Row = { event: "", key: "", value: "" };
 

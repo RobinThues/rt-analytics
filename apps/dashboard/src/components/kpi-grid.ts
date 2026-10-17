@@ -3,6 +3,9 @@
 
 export type KpiCols = { base: 1 | 2 | 3 | 6; sm?: 2 | 3 | 6; lg?: 2 | 3 | 6 };
 
+/** Summary columns: 2 on phones, 3 from sm, 6 from lg; its skeletons use the same. */
+export const SUMMARY_COLS: KpiCols = { base: 2, sm: 3, lg: 6 };
+
 /** Which sides of cell `index` (of `count`, in `cols` columns) border another cell. */
 export function kpiEdges(index: number, count: number, cols: number): { left: boolean; top: boolean; bottom: boolean } {
   return {
