@@ -15,6 +15,16 @@ export const presetRange = (days: RangePreset, today: string): DateRange => ({
   to: today,
 });
 
+/** The preset the range is exactly (ends today, that many days long), or null for a custom range. */
+export function selectedPreset(range: DateRange, today: string): RangePreset | null {
+  return (
+    RANGE_PRESETS.find((d) => {
+      const p = presetRange(d, today);
+      return p.from === range.from && p.to === range.to;
+    }) ?? null
+  );
+}
+
 /** Why a range cannot be applied, or null (the rules of parseViewState). */
 export function rangeError(range: DateRange, today: string): string | null {
   if (!isDay(range.from) || !isDay(range.to)) return "Pick a start and an end.";

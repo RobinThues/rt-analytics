@@ -50,6 +50,33 @@ describe("RangePicker", () => {
     expect(push).toHaveBeenCalledWith("/demo/events?from=2026-10-02&to=2026-10-09&event=x", { scroll: false });
   });
 
+  it("marks the preset that matches the range", async () => {
+    const { opened } = open();
+    await opened;
+    expect(await screen.findByRole("button", { name: "Last 28 days" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Last 7 days" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "Last 90 days" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("no preset is marked for a custom range", async () => {
+    render(<RangePicker range={{ from: "2026-10-01", to: "2026-10-05" }} today="2026-10-16" label="1 – 5 Oct 2026" />);
+    await userEvent.setup().click(screen.getByRole("button", { name: "Date range" }));
+    for (const name of ["Last 7 days", "Last 28 days", "Last 90 days"]) {
+      expect(await screen.findByRole("button", { name })).toHaveAttribute("aria-pressed", "false");
+    }
+  });
+
+  it("shows the current range, then only the clicked first day", async () => {
+    const { user, opened } = open();
+    await opened;
+    expect(await screen.findByRole("button", { name: /October 16th, 2026/ })).toHaveAttribute("data-range-end", "true");
+    await user.click(screen.getByRole("button", { name: /October 1st, 2026/ }));
+    const picked = document.querySelectorAll('[data-range-start="true"], [data-selected-single="true"]');
+    expect(picked).toHaveLength(1);
+    expect(picked[0]?.getAttribute("aria-label") ?? picked[0]?.textContent).toMatch(/October 1st, 2026|^1$/);
+    expect(document.querySelectorAll('[data-range-middle="true"], [data-range-end="true"]')).toHaveLength(0);
+  });
+
   it("days after today cannot be picked", async () => {
     const { opened } = open();
     await opened;

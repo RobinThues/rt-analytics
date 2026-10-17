@@ -5,7 +5,15 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { usePendingNavigation } from "@/lib/navigation";
 import type { DateRange } from "@/time/range";
-import { dateToDay, dayToDate, presetRange, RANGE_PRESETS, rangeError, withView } from "@/view/range-ui";
+import {
+  dateToDay,
+  dayToDate,
+  presetRange,
+  RANGE_PRESETS,
+  rangeError,
+  selectedPreset,
+  withView,
+} from "@/view/range-ui";
 
 /** Two months side by side from 640 px, one below (layout spec, "Range picker"). */
 function useMonths(): 1 | 2 {
@@ -54,6 +62,7 @@ export function RangePicker({ range, today, label }: { range: DateRange; today: 
     apply(day < start ? { from: day, to: start } : { from: start, to: day });
   }
 
+  const selected = selectedPreset(range, today);
   const endMonth = dayToDate(range.to);
   const defaultMonth = months === 2 ? new Date(endMonth.getFullYear(), endMonth.getMonth() - 1, 1) : endMonth;
 
@@ -76,7 +85,12 @@ export function RangePicker({ range, today, label }: { range: DateRange; today: 
                   key={days}
                   variant="ghost"
                   size="sm"
-                  className="justify-start"
+                  aria-pressed={selected === days}
+                  className={
+                    selected === days
+                      ? "justify-start bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar-accent dark:hover:bg-sidebar-accent"
+                      : "justify-start"
+                  }
                   onClick={() => apply(presetRange(days, today))}
                 >
                   Last {days} days
@@ -89,7 +103,13 @@ export function RangePicker({ range, today, label }: { range: DateRange; today: 
                 numberOfMonths={months}
                 showOutsideDays={false}
                 defaultMonth={defaultMonth}
-                selected={start ? { from: dayToDate(start), to: undefined } : undefined}
+                // Controlled: without onSelect react-day-picker takes `selected` only as the initial value.
+                selected={
+                  start
+                    ? { from: dayToDate(start), to: undefined }
+                    : { from: dayToDate(range.from), to: dayToDate(range.to) }
+                }
+                onSelect={() => {}}
                 onDayClick={onDayClick}
                 disabled={{ after: dayToDate(today) }}
                 weekStartsOn={1}

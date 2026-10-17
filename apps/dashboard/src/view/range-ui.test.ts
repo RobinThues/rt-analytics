@@ -1,11 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { dateToDay, dayToDate, formatRangeLabel, presetRange, rangeError, withView } from "./range-ui";
+import { dateToDay, dayToDate, formatRangeLabel, presetRange, rangeError, selectedPreset, withView } from "./range-ui";
 
 describe("range presets and limits", () => {
   it("presets end today and include it", () => {
     expect(presetRange(7, "2026-10-16")).toEqual({ from: "2026-10-10", to: "2026-10-16" });
     expect(presetRange(28, "2026-10-16")).toEqual({ from: "2026-09-19", to: "2026-10-16" });
     expect(presetRange(90, "2026-10-16")).toEqual({ from: "2026-07-19", to: "2026-10-16" });
+  });
+
+  it("selectedPreset names the preset only for an exact preset ending today", () => {
+    const today = "2026-10-17";
+    expect(selectedPreset(presetRange(28, today), today)).toBe(28);
+    expect(selectedPreset(presetRange(7, today), today)).toBe(7);
+    expect(selectedPreset(presetRange(90, today), today)).toBe(90);
+    expect(selectedPreset({ from: "2026-09-19", to: "2026-10-16" }, today)).toBeNull();
+    expect(selectedPreset({ from: "2026-09-18", to: "2026-10-17" }, today)).toBeNull();
   });
 
   it("rangeError uses the parseViewState rules", () => {
