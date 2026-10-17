@@ -339,3 +339,20 @@ test("funnels: chart shows one bar per step with a hover tooltip", async ({ page
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+test("sidebar: returning to a recent page gives feedback at once", async ({ page }) => {
+  await page.goto("/demo");
+  await expect(page.getByTestId("kpi-pageviews")).toBeVisible();
+  const pages = page.getByRole("navigation", { name: "Pages" });
+  await pages.getByRole("link", { name: "Events" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Events" })).toBeVisible();
+  await page.getByRole("button", { name: "Date range" }).click();
+  await page.getByRole("button", { name: "Last 7 days" }).click();
+  await expect(page.getByTestId("progress-line")).toBeHidden({ timeout: 15_000 });
+  await page.waitForLoadState("networkidle");
+  await slowRsc(page, 2500);
+  await pages.getByRole("link", { name: "Overview" }).click();
+  // Either the progress line (old page dimmed) or the new page's skeletons, quickly; never a dead click.
+  const feedback = page.getByTestId("progress-line").or(page.locator("[data-testid=skeleton]:visible").first());
+  await expect(feedback).toBeVisible({ timeout: 500 });
+});

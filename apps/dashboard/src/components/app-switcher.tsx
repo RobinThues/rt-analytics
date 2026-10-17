@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { isPlainClick, usePendingNavigation } from "@/lib/navigation";
 import { appSwitchHref } from "@/view/app-switch";
 
 /**
@@ -26,6 +27,7 @@ export function AppSwitcher({
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const shown = apps.filter((a) => a.toLowerCase().includes(filter.trim().toLowerCase()));
+  const { navigate } = usePendingNavigation();
   return (
     <Popover
       open={open}
@@ -54,9 +56,13 @@ export function AppSwitcher({
               <Link
                 href={appSwitchHref(pathname, a, search)}
                 aria-current={a === appId ? "true" : undefined}
-                onClick={() => {
+                onClick={(e) => {
+                  if (!isPlainClick(e)) return;
+                  // Through the layout's shared transition: the page dims until the other app is ready.
+                  e.preventDefault();
                   setOpen(false);
                   onNavigate?.();
+                  navigate(appSwitchHref(pathname, a, search));
                 }}
                 className={`block truncate rounded-md px-2 py-1.5 hover:bg-muted ${a === appId ? "font-semibold" : ""}`}
               >

@@ -1,10 +1,12 @@
 "use client";
+import type { MouseEvent } from "react";
 import { LogOutIcon, SettingsIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { signOut } from "@/auth/actions";
 import { AppSwitcher } from "@/components/app-switcher";
 import { Button } from "@/components/ui/button";
+import { isPlainClick, usePendingNavigation } from "@/lib/navigation";
 import { PAGE_PATHS, type AppPage } from "@/lib/pages";
 import { pageHref } from "@/view/app-switch";
 
@@ -35,6 +37,15 @@ export function AppSidebar({
   const pathname = usePathname();
   const search = useSearchParams().toString();
   const segment = pathname.replace(/^\/[^/]+/, "");
+  const { navigate } = usePendingNavigation();
+  // Plain clicks go through the layout's shared transition, so the page dims with a progress line until
+  // the next page is ready (also when Next shows a recently visited page again).
+  const go = (href: string) => (e: MouseEvent<HTMLAnchorElement>) => {
+    if (!isPlainClick(e)) return;
+    e.preventDefault();
+    onNavigate?.();
+    navigate(href);
+  };
   return (
     <div className="flex h-full flex-col gap-4 p-3">
       <AppSwitcher appId={appId} apps={apps} onNavigate={onNavigate} />
@@ -46,7 +57,7 @@ export function AppSidebar({
               key={page}
               href={pageHref(appId, page, search)}
               aria-current={current ? "page" : undefined}
-              onClick={onNavigate}
+              onClick={go(pageHref(appId, page, search))}
               className={linkClass(current)}
             >
               {label}
@@ -57,7 +68,7 @@ export function AppSidebar({
         <Link
           href={pageHref(appId, "settings", search)}
           aria-current={segment === "/settings" ? "page" : undefined}
-          onClick={onNavigate}
+          onClick={go(pageHref(appId, "settings", search))}
           className={linkClass(segment === "/settings")}
         >
           <SettingsIcon className="size-4" aria-hidden />

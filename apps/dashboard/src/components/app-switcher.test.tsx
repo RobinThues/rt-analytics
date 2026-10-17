@@ -6,6 +6,7 @@ import { AppSwitcher } from "./app-switcher";
 vi.mock("next/navigation", () => ({
   usePathname: () => "/demo/events",
   useSearchParams: () => new URLSearchParams("from=a&to=b&event=x"),
+  useRouter: () => ({ push: vi.fn() }),
 }));
 
 describe("AppSwitcher", () => {

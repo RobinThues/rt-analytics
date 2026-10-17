@@ -4,6 +4,7 @@ import { requireUser } from "@/auth/session";
 import { AppSidebar } from "@/components/app-sidebar";
 import { MobileNavDrawer, MobileNavProvider } from "@/components/mobile-nav";
 import { ProgressLine } from "@/components/progress-line";
+import { PendingNavigationProvider } from "@/lib/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listApps } from "@/discovery/data";
 import { APP_ID_RE } from "@/discovery/sql";
@@ -37,22 +38,25 @@ function SidebarSkeleton() {
 
 /**
  * Shell of every app page (layout spec, option A): the sidebar on the left (a drawer on phones) and the
- * content area. The content area is a Tailwind group: a control with `data-pending` inside it dims the
- * page body and shows the progress line.
+ * content area. The whole shell is a Tailwind group: any `data-pending` inside it (a control, or the
+ * shared navigation's marker for sidebar, switcher and drawer links) dims the page body and shows the
+ * progress line.
  */
 export default function AppLayout({ children, params }: LayoutProps<"/[appId]">) {
   return (
     <MobileNavProvider>
-      <div className="flex min-h-dvh">
-        <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r bg-muted/30 md:flex">
-          <Suspense fallback={<SidebarSkeleton />}>
-            <SidebarData params={params} />
-          </Suspense>
-        </aside>
-        <div className="group/content min-w-0 flex-1">
-          <ProgressLine />
-          {children}
-        </div>
+      <div className="group/content flex min-h-dvh">
+        <PendingNavigationProvider>
+          <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r bg-muted/30 md:flex">
+            <Suspense fallback={<SidebarSkeleton />}>
+              <SidebarData params={params} />
+            </Suspense>
+          </aside>
+          <div className="min-w-0 flex-1">
+            <ProgressLine />
+            {children}
+          </div>
+        </PendingNavigationProvider>
       </div>
     </MobileNavProvider>
   );

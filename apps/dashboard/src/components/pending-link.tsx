@@ -1,6 +1,6 @@
 "use client";
 import type { AnchorHTMLAttributes, MouseEvent, ReactNode } from "react";
-import { usePendingNavigation } from "@/lib/navigation";
+import { isPlainClick, usePendingNavigation } from "@/lib/navigation";
 
 type Props = { href: string; className?: string; children: ReactNode } & Omit<
   AnchorHTMLAttributes<HTMLAnchorElement>,
@@ -14,7 +14,7 @@ type Props = { href: string; className?: string; children: ReactNode } & Omit<
 export function PendingLink({ href, children, ...rest }: Props) {
   const { pending, navigate } = usePendingNavigation();
   function onClick(e: MouseEvent<HTMLAnchorElement>) {
-    if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || rest.target) return;
+    if (!isPlainClick(e, rest.target)) return;
     e.preventDefault();
     navigate(href);
   }
