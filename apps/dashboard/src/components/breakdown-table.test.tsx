@@ -8,6 +8,12 @@ const rows = [
 ];
 
 describe("BreakdownTable", () => {
+  it("draws row bars relative to the top row, none for Other", () => {
+    render(<BreakdownTable rows={rows} valueLabel="Page" compare testId="t" />);
+    const bars = screen.getAllByTestId("row-bar");
+    expect(bars).toHaveLength(1);
+    expect(bars[0]).toHaveStyle({ width: "100.0%" });
+  });
   it("renders rows, Other last and the change column only with compare", () => {
     const { rerender } = render(<BreakdownTable rows={rows} valueLabel="Page" compare testId="t" />);
     expect(screen.getAllByRole("row").at(-1)).toHaveTextContent("Other");

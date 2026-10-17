@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
+import { BarLabel, rowBarWidth } from "@/components/bar-label";
 import { Change } from "@/components/change";
 import { PageBar } from "@/components/page-bar";
 import { EventList } from "@/components/event-list";
@@ -108,20 +109,23 @@ async function PropBreakdownPanel({
   const rows = toPropBreakdown(res.rows, sel.metric, ctx.days, ctx.compare);
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">No data in this range.</p>;
   const fmt = perDay(sel.metric) ? formatDecimal : formatInt;
+  const top = rows.find((r) => !r.isOther)?.cur ?? 0;
   return (
-    <Table data-testid="explorer-breakdown" className="text-xs sm:text-sm">
+    <Table data-testid="explorer-breakdown" className="table-fixed text-xs sm:text-sm">
       <TableHeader>
         <TableRow>
           <TableHead>{sel.by}</TableHead>
-          <TableHead className="text-right">{perDay(sel.metric) ? "Per day" : "Total"}</TableHead>
-          {ctx.compare && <TableHead className="text-right">Change</TableHead>}
+          <TableHead className="w-20 text-right">{perDay(sel.metric) ? "Per day" : "Total"}</TableHead>
+          {ctx.compare && <TableHead className="w-20 text-right">Change</TableHead>}
         </TableRow>
       </TableHeader>
       <TableBody>
         {rows.map((r) => (
           <TableRow key={r.isOther ? "\u0000other" : r.label} className={r.isOther ? "text-muted-foreground" : ""}>
-            <TableCell className="max-w-48 truncate" title={r.label}>
-              {r.label}
+            <TableCell className="relative">
+              <BarLabel width={r.isOther ? null : rowBarWidth(r.cur, top)} title={r.label}>
+                {r.label}
+              </BarLabel>
             </TableCell>
             <TableCell className="text-right tabular-nums">{fmt(r.cur)}</TableCell>
             {ctx.compare && (

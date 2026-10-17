@@ -36,9 +36,9 @@ export function FunnelResult({
                   <p className="max-w-64 truncate" title={step ? stepLabel(step) : ""}>
                     {v.step}. {step ? stepLabel(step) : ""}
                   </p>
-                  <div className="mt-1 h-1.5 w-full max-w-64 rounded-full bg-muted" aria-hidden>
+                  <div className="mt-1 h-1.5 w-full max-w-64 rounded-sm bg-muted" aria-hidden>
                     <div
-                      className="h-1.5 rounded-full bg-chart-current"
+                      className="h-1.5 rounded-sm bg-chart-current"
                       style={{ width: `${Math.round((v.fromFirst ?? 0) * 100)}%` }}
                     />
                   </div>

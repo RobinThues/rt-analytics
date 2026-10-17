@@ -43,12 +43,15 @@ export function ChartSkeleton({ height = 220, count = 1 }: { height?: number; co
   );
 }
 
+/** A header and `rows` rows at the table's own heights (32 px header, 30 px rows). */
 export function TableSkeleton({ rows }: { rows: number }) {
   return (
-    <div data-testid="skeleton" className="flex flex-col gap-2">
+    <div data-testid="skeleton" className="flex flex-col">
       <Skeleton className="h-8 w-full" />
       {Array.from({ length: rows }, (_, i) => (
-        <Skeleton key={i} className="h-7 w-full" />
+        <div key={i} className="h-[30px] py-[5px]">
+          <Skeleton className="h-5 w-full" />
+        </div>
       ))}
     </div>
   );
