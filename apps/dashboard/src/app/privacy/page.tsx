@@ -15,7 +15,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         Contact:{" "}
-        <a className="underline" href="mailto:robinthues@googlemail.com">
+        <a className="text-primary underline underline-offset-2" href="mailto:robinthues@googlemail.com">
           robinthues@googlemail.com
         </a>
       </p>

@@ -6,7 +6,7 @@ export function ProgressLine() {
       aria-hidden
       className="pointer-events-none sticky top-0 z-20 hidden h-0.5 w-full overflow-hidden group-has-data-pending/content:block"
     >
-      <div className="h-full w-1/3 animate-[progress_1.2s_ease-in-out_infinite] bg-chart-current" />
+      <div className="h-full w-1/3 animate-[progress_1.2s_ease-in-out_infinite] bg-primary" />
     </div>
   );
 }

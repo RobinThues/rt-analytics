@@ -2,6 +2,7 @@
 import { MenuIcon } from "lucide-react";
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Wordmark } from "@/components/mark";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
@@ -30,10 +31,13 @@ export function MobileNavDrawer({ appId, apps, email }: { appId: string; apps: r
   const { open, setOpen } = useContext(MobileNavContext);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetContent side="left" className="w-64 p-0">
+      <SheetContent side="left" className="w-64 bg-sidebar p-0">
         <SheetTitle className="sr-only">Menu</SheetTitle>
-        {/* Top space: the sheet's close button sits in the top right corner. */}
-        <div className="h-full pt-10">
+        <div className="flex h-full flex-col">
+          {/* Top row: the wordmark; the sheet's close button sits in the top right corner. */}
+          <div className="flex h-10 shrink-0 items-center px-4">
+            <Wordmark />
+          </div>
           <AppSidebar appId={appId} apps={apps} email={email} onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>

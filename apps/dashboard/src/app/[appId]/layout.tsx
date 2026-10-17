@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { requireUser } from "@/auth/session";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Wordmark } from "@/components/mark";
 import { MobileNavDrawer, MobileNavProvider } from "@/components/mobile-nav";
 import { ProgressLine } from "@/components/progress-line";
 import { PendingNavigationProvider } from "@/lib/navigation";
@@ -47,7 +48,11 @@ export default function AppLayout({ children, params }: LayoutProps<"/[appId]">)
     <MobileNavProvider>
       <div className="group/content flex min-h-dvh">
         <PendingNavigationProvider>
-          <aside className="sticky top-0 hidden h-dvh w-56 shrink-0 flex-col border-r bg-muted/30 md:flex">
+          <aside className="sticky top-0 hidden h-dvh w-52 shrink-0 flex-col border-r bg-sidebar md:flex">
+            {/* Static, outside the Suspense: the wordmark shows at once while user and apps load. */}
+            <div className="px-5 pt-4">
+              <Wordmark />
+            </div>
             <Suspense fallback={<SidebarSkeleton />}>
               <SidebarData params={params} />
             </Suspense>

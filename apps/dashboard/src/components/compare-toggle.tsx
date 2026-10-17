@@ -13,7 +13,7 @@ export function CompareToggle({ compare }: { compare: boolean }) {
   }
   return (
     <label className="flex items-center gap-1.5 text-sm" data-pending={pending ? "" : undefined}>
-      <input type="checkbox" checked={checked} onChange={(e) => toggle(e.target.checked)} />
+      <input type="checkbox" className="accent-primary" checked={checked} onChange={(e) => toggle(e.target.checked)} />
       Compare
     </label>
   );

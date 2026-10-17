@@ -34,4 +34,7 @@ describe("proxy matcher", () => {
     expect(runsProxy("/api/auth/callback/google")).toBe(false);
     expect(runsProxy("/privacy")).toBe(false);
   });
+  it("serves the favicon to signed-out visitors", () => {
+    expect(runsProxy("/icon.svg")).toBe(false);
+  });
 });

@@ -18,7 +18,7 @@ const PAGES: ReadonlyArray<{ page: AppPage; label: string }> = [
 ];
 
 const linkClass = (current: boolean) =>
-  `flex items-center gap-2 rounded-md px-2 py-1.5 text-sm ${current ? "bg-muted font-semibold" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`;
+  `flex items-center gap-2 rounded-md px-2 py-1.5 text-sm ${current ? "bg-sidebar-accent font-semibold text-sidebar-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`;
 
 /**
  * Sidebar (layout spec, option A): app switcher, the pages, then Settings, the signed-in email and Sign
@@ -48,7 +48,7 @@ export function AppSidebar({
     navigate(href);
   };
   return (
-    <div className="flex h-full flex-col gap-4 p-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-4 p-3">
       <AppSwitcher appId={appId} apps={apps} onNavigate={onNavigate} />
       <nav aria-label="Pages" className="flex flex-1 flex-col gap-0.5">
         {PAGES.map(({ page, label }) => {

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { Wordmark } from "@/components/mark";
 import { SignInButton } from "./sign-in-button";
 
 const ERRORS: Record<string, string> = {
@@ -16,7 +17,9 @@ async function SignInError({ searchParams }: { searchParams: Promise<Record<stri
 export default function SignInPage({ searchParams }: PageProps<"/sign-in">) {
   return (
     <main className="mx-auto flex max-w-sm flex-col gap-4 p-6 pt-24">
-      <h1 className="text-2xl font-semibold">rt-analytics</h1>
+      <h1 className="text-2xl">
+        <Wordmark />
+      </h1>
       <p>Sign in with your Google account.</p>
       <SignInButton />
       <Suspense fallback={null}>

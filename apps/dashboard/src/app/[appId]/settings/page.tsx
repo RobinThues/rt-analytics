@@ -30,7 +30,7 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
   return (
     <Suspense key={appId} fallback={<BlockSkeleton className="h-72" />}>
       <p className="mb-4 text-sm">
-        <Link className="underline" href={`/${appId}`}>
+        <Link className="text-primary underline underline-offset-2" href={`/${appId}`}>
           Back to {appId}
         </Link>
       </p>

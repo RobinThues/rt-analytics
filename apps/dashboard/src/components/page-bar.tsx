@@ -6,6 +6,7 @@ import { CredentialsBanner } from "@/components/credentials-banner";
 import { MobileNavTrigger } from "@/components/mobile-nav";
 import { RangeLine } from "@/components/range-line";
 import { RangePicker } from "@/components/range-picker";
+import { Mark } from "@/components/mark";
 import { LineSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ async function BarControls({ input, page }: { input: PageInput; page: AppPage })
     <div className="flex flex-wrap items-center gap-2">
       <RangePicker range={d.state.range} today={d.today} label={formatRangeLabel(d.state.range)} />
       <CompareToggle compare={d.state.compare} />
-      {d.live && <Badge>Live</Badge>}
+      {d.live && <Badge className="bg-sidebar-accent text-sidebar-accent-foreground">Live</Badge>}
       <form action={toggleLive.bind(null, d.appId, page, qs)}>
         <Button type="submit" variant="outline">
           {d.live ? "Turn Live off" : "Turn Live on"}
@@ -60,6 +61,7 @@ export function PageBar({ title, page, input }: { title: string; page?: AppPage;
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           <MobileNavTrigger />
+          <Mark className="size-4 md:hidden" />
           <h1 className="text-xl font-semibold">{title}</h1>
         </div>
         {input && page && (
