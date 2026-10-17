@@ -6,7 +6,7 @@ import type { PageInput } from "./page-data";
 import { BREAKDOWNS, BreakdownPanel } from "./panels/breakdowns";
 import { PeoplePanel } from "./panels/people";
 import { ConsentPanel, SlowPagesPanel, TopErrorsPanel, WebVitalsPanel } from "./panels/quality";
-import { ErrorChart, KpiPanel, TrafficCharts } from "./panels/traffic";
+import { ErrorChart, KpiPanel, SUMMARY_COLS, TrafficCharts } from "./panels/traffic";
 import { DataPart } from "./with-page";
 
 // A synchronous page: the panel frames render at once (and are prefetched); every body is a data part
@@ -14,13 +14,15 @@ import { DataPart } from "./with-page";
 export default function OverviewPage({ params, searchParams }: PageProps<"/[appId]">) {
   const input: PageInput = { params, searchParams };
   const table = <TableSkeleton rows={5} />;
+  const summary = <KpiSkeleton cols={SUMMARY_COLS} count={6} coverage />;
+  const vitals = <KpiSkeleton cols={{ base: 3 }} count={3} coverage={false} />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-6">
       <PageBar title="Overview" page="overview" input={input} />
       <PageBody>
         <div className="grid gap-4">
-          <Panel title="Summary" fallback={<KpiSkeleton />}>
-            <DataPart input={input} fallback={<KpiSkeleton />}>
+          <Panel title="Summary" fallback={summary}>
+            <DataPart input={input} fallback={summary}>
               {(p) => <KpiPanel {...p} />}
             </DataPart>
           </Panel>
@@ -39,8 +41,8 @@ export default function OverviewPage({ params, searchParams }: PageProps<"/[appI
             ))}
           </div>
           <div className="grid gap-4 lg:grid-cols-2">
-            <Panel title="Web vitals" description="75th percentile; lower is better." fallback={table}>
-              <DataPart input={input} fallback={table}>
+            <Panel title="Web vitals" description="75th percentile; lower is better." fallback={vitals}>
+              <DataPart input={input} fallback={vitals}>
                 {(p) => <WebVitalsPanel {...p} />}
               </DataPart>
             </Panel>

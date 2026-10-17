@@ -1,5 +1,5 @@
 import { CoverageNote } from "@/components/coverage-note";
-import { KpiTile } from "@/components/kpi-tile";
+import { KpiRow } from "@/components/kpi-row";
 import { QueryError } from "@/components/query-error";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dataQuery } from "@/bq/query";
@@ -21,11 +21,16 @@ export async function PeoplePanel({ ctx, live, maxBytes }: PanelProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="max-w-48">
-        <KpiTile
-          label="Returning people"
-          value={formatInt(k.returningPeople.value)}
-          change={k.returningPeople.change}
-          testId="kpi-returning"
+        <KpiRow
+          cols={{ base: 1 }}
+          cells={[
+            {
+              label: "Returning people",
+              value: formatInt(k.returningPeople.value),
+              change: k.returningPeople.change,
+              testId: "kpi-returning",
+            },
+          ]}
         />
       </div>
       <CoverageNote coverage={k.coverage.value} sessions={k.sessions.value} />

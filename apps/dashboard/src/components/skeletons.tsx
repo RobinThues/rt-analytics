@@ -1,5 +1,6 @@
 import { cn } from "cn";
 import { Skeleton } from "@/components/ui/skeleton";
+import { kpiCellClass, kpiGridClass, type KpiCols } from "./kpi-grid";
 
 // Loading shapes for panels. Each takes about the size of what it stands for, so nothing jumps when the
 // data arrives (layout spec, "Skeletons instead of Loading…").
@@ -12,16 +13,20 @@ export function LineSkeleton({ className }: { className?: string }) {
   return <Skeleton data-testid="skeleton" className={cn("h-5 w-64 max-w-full", className)} />;
 }
 
-/** Six KPI tiles in the grid the KPI panel uses, plus the coverage note line. */
-export function KpiSkeleton() {
+/** `count` KPI cells in the grid and with the lines `KpiRow` uses, plus the coverage note when asked. */
+export function KpiSkeleton({ cols, count, coverage }: { cols: KpiCols; count: number; coverage: boolean }) {
   return (
     <div data-testid="skeleton" className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {Array.from({ length: 6 }, (_, i) => (
-          <Skeleton key={i} className="h-[78px] w-full" />
+      <div className={`grid ${kpiGridClass(cols)}`}>
+        {Array.from({ length: count }, (_, i) => (
+          <div key={i} className={`flex min-w-0 flex-col ${kpiCellClass(i, count, cols)}`}>
+            <Skeleton className="h-4 w-24 max-w-full" />
+            <Skeleton className="h-7.5 w-16 max-w-full" />
+            <Skeleton className="h-4 w-32 max-w-full" />
+          </div>
         ))}
       </div>
-      <Skeleton className="h-4 w-72 max-w-full" />
+      {coverage && <Skeleton className="h-10 w-full sm:h-5 sm:w-72" />}
     </div>
   );
 }

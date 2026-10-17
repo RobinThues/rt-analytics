@@ -4,7 +4,7 @@ import { Change } from "@/components/change";
 import { PageBar } from "@/components/page-bar";
 import { EventList } from "@/components/event-list";
 import { ExplorerControls } from "@/components/explorer-controls";
-import { KpiTile } from "@/components/kpi-tile";
+import { KpiRow } from "@/components/kpi-row";
 import { PageBody } from "@/components/page-body";
 import { Panel } from "@/components/panel";
 import { QueryError } from "@/components/query-error";
@@ -75,11 +75,16 @@ async function SeriesPanel({ ctx, live, maxBytes, sel }: PanelProps & { sel: Exp
   return (
     <div className="flex flex-col gap-4">
       <div className="max-w-64">
-        <KpiTile
-          label={perDay(sel.metric) ? "Average per day" : "Total in range"}
-          value={fmt(t.cur)}
-          change={ctx.compare ? change(t.cur, t.prev) : undefined}
-          testId="explorer-total"
+        <KpiRow
+          cols={{ base: 1 }}
+          cells={[
+            {
+              label: perDay(sel.metric) ? "Average per day" : "Total in range",
+              value: fmt(t.cur),
+              change: ctx.compare ? change(t.cur, t.prev) : undefined,
+              testId: "explorer-total",
+            },
+          ]}
         />
       </div>
       <TrendChart

@@ -1,5 +1,6 @@
 import { CoverageNote } from "@/components/coverage-note";
-import { KpiTile } from "@/components/kpi-tile";
+import type { KpiCols } from "@/components/kpi-grid";
+import { KpiRow } from "@/components/kpi-row";
 import { QueryError } from "@/components/query-error";
 import { TrendChart } from "@/components/trend-chart";
 import { formatDecimal, formatInt, formatShare } from "@/lib/format";
@@ -9,45 +10,46 @@ import type { TrafficRow } from "@/queries/overview";
 import type { PanelProps } from "../page-data";
 import { loadKpis, loadTraffic } from "./shared";
 
+/** Summary columns: 2 on phones, 3 from sm, 6 from lg; its skeleton uses the same. */
+export const SUMMARY_COLS: KpiCols = { base: 2, sm: 3, lg: 6 };
+
 export async function KpiPanel({ ctx, live, maxBytes }: PanelProps) {
   const res = await loadKpis(ctx, live);
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
   const k = toKpis(res.rows, ctx.days, ctx.compare);
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <KpiTile
-          label="Visitors per day"
-          value={formatDecimal(k.visitorsPerDay.value)}
-          change={k.visitorsPerDay.change}
-          testId="kpi-visitors"
-        />
-        <KpiTile
-          label="Persistent people"
-          value={formatInt(k.persistentPeople.value)}
-          change={k.persistentPeople.change}
-          testId="kpi-people"
-        />
-        <KpiTile
-          label="Sessions"
-          value={formatInt(k.sessions.value)}
-          change={k.sessions.change}
-          testId="kpi-sessions"
-        />
-        <KpiTile
-          label="Pageviews"
-          value={formatInt(k.pageviews.value)}
-          change={k.pageviews.change}
-          testId="kpi-pageviews"
-        />
-        <KpiTile
-          label="Bounce rate"
-          value={formatShare(k.bounceRate.value)}
-          change={k.bounceRate.change}
-          testId="kpi-bounce"
-        />
-        <KpiTile label="Errors" value={formatInt(k.errors.value)} change={k.errors.change} testId="kpi-errors" />
-      </div>
+      <KpiRow
+        cols={SUMMARY_COLS}
+        cells={[
+          {
+            label: "Visitors per day",
+            value: formatDecimal(k.visitorsPerDay.value),
+            change: k.visitorsPerDay.change,
+            testId: "kpi-visitors",
+          },
+          {
+            label: "Persistent people",
+            value: formatInt(k.persistentPeople.value),
+            change: k.persistentPeople.change,
+            testId: "kpi-people",
+          },
+          { label: "Sessions", value: formatInt(k.sessions.value), change: k.sessions.change, testId: "kpi-sessions" },
+          {
+            label: "Pageviews",
+            value: formatInt(k.pageviews.value),
+            change: k.pageviews.change,
+            testId: "kpi-pageviews",
+          },
+          {
+            label: "Bounce rate",
+            value: formatShare(k.bounceRate.value),
+            change: k.bounceRate.change,
+            testId: "kpi-bounce",
+          },
+          { label: "Errors", value: formatInt(k.errors.value), change: k.errors.change, testId: "kpi-errors" },
+        ]}
+      />
       <CoverageNote coverage={k.coverage.value} sessions={k.sessions.value} />
     </div>
   );

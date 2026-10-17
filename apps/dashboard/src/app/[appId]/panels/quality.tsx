@@ -1,4 +1,4 @@
-import { KpiTile } from "@/components/kpi-tile";
+import { KpiRow } from "@/components/kpi-row";
 import { QueryError } from "@/components/query-error";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { dataQuery } from "@/bq/query";
@@ -27,20 +27,18 @@ export async function WebVitalsPanel({ ctx, live, maxBytes }: PanelProps) {
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
   const vitals = toVitals(res.rows, ctx.compare);
   return (
-    <div className="grid grid-cols-3 gap-3">
-      {VITALS.map((v) => {
+    <KpiRow
+      cols={{ base: 3 }}
+      cells={VITALS.map((v) => {
         const { value, change } = vitals[v.metric];
-        return (
-          <KpiTile
-            key={v.metric}
-            label={v.label}
-            value={value === null ? "–" : v.format(value)}
-            change={change}
-            testId={`vital-${v.metric.toLowerCase()}`}
-          />
-        );
+        return {
+          label: v.label,
+          value: value === null ? "–" : v.format(value),
+          change,
+          testId: `vital-${v.metric.toLowerCase()}`,
+        };
       })}
-    </div>
+    />
   );
 }
 
