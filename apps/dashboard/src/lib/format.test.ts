@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes, formatChange, formatDecimal, formatInt, formatShare, formatShortDay } from "./format";
+import { changeParts, formatBytes, formatDecimal, formatInt, formatShare, formatShortDay } from "./format";
 
 describe("formatBytes", () => {
   it("uses decimal units", () => {
@@ -11,11 +11,12 @@ describe("formatBytes", () => {
 });
 
 describe("number formats", () => {
-  it("change in percent with sign, 'new' when there is nothing to compare with", () => {
-    expect(formatChange(12.4)).toBe("+12 %");
-    expect(formatChange(-5)).toBe("−5 %");
-    expect(formatChange(0)).toBe("0 %");
-    expect(formatChange(null)).toBe("new");
+  it("change as a direction and the rounded percent, 'new' when there is nothing to compare with", () => {
+    expect(changeParts(12.4)).toEqual({ dir: "up", text: "12 %" });
+    expect(changeParts(-5)).toEqual({ dir: "down", text: "5 %" });
+    expect(changeParts(0.4)).toEqual({ dir: "none", text: "0 %" });
+    expect(changeParts(null)).toEqual({ dir: "none", text: "new" });
+    expect(changeParts(1234)).toEqual({ dir: "up", text: "1,234 %" });
   });
   it("shares, decimals and integers", () => {
     expect(formatShare(0.14)).toBe("14 %");

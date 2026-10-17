@@ -1,4 +1,4 @@
-import { formatChange } from "@/lib/format";
+import { Change } from "@/components/change";
 
 /** A stat tile: label, value and (when compare is on) the change against the previous period. */
 export function KpiTile({
@@ -21,7 +21,10 @@ export function KpiTile({
       </p>
       {change !== undefined && (
         <p className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">{formatChange(change)}</span> vs previous period
+          <span className="font-medium text-foreground">
+            <Change pct={change} />
+          </span>{" "}
+          vs previous period
         </p>
       )}
     </div>

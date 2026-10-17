@@ -1,6 +1,7 @@
 import { PendingLink } from "@/components/pending-link";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatChange, formatInt } from "@/lib/format";
+import { Change } from "@/components/change";
+import { formatInt } from "@/lib/format";
 import { Sparkline, type SparkPoint } from "./sparkline";
 
 /** Every discovered event with its count in the range, the change and a small trend line. */
@@ -37,7 +38,11 @@ export function EventList({
               </PendingLink>
             </TableCell>
             <TableCell className="text-right tabular-nums">{formatInt(r.total)}</TableCell>
-            {compare && <TableCell className="text-right tabular-nums">{formatChange(r.change ?? null)}</TableCell>}
+            {compare && (
+              <TableCell className="text-right tabular-nums">
+                <Change pct={r.change ?? null} />
+              </TableCell>
+            )}
             <TableCell>
               <Sparkline points={r.spark} />
             </TableCell>

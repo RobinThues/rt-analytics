@@ -23,12 +23,14 @@ export const formatDecimal = (n: number) => decimalFormat.format(n);
 /** 0.14 -> "14 %" */
 export const formatShare = (share: number) => `${intFormat.format(share * 100)} %`;
 
-/** Change in percent with a sign; null means there is nothing to compare with. */
-export function formatChange(pct: number | null): string {
-  if (pct === null) return "new";
+/** Change as a direction and the rounded percent; null means there is nothing to compare with ("new"). */
+export function changeParts(pct: number | null): { dir: "up" | "down" | "none"; text: string } {
+  if (pct === null) return { dir: "none", text: "new" };
   const rounded = Math.round(pct);
-  if (rounded === 0) return "0 %";
-  return `${rounded > 0 ? "+" : "−"}${intFormat.format(Math.abs(rounded))} %`;
+  // No-break space, so "12 %" never wraps between number and sign.
+  const text = `${intFormat.format(Math.abs(rounded))} %`;
+  if (rounded === 0) return { dir: "none", text };
+  return { dir: rounded > 0 ? "up" : "down", text };
 }
 
 // en-GB short month names, fixed: server and browser ICU data can differ ("Sep" vs "Sept"), and a

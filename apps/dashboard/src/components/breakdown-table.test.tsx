@@ -11,9 +11,9 @@ describe("BreakdownTable", () => {
   it("renders rows, Other last and the change column only with compare", () => {
     const { rerender } = render(<BreakdownTable rows={rows} valueLabel="Page" compare testId="t" />);
     expect(screen.getAllByRole("row").at(-1)).toHaveTextContent("Other");
-    expect(screen.getByText("+100 %")).toBeInTheDocument();
+    expect(screen.getByTestId("t")).toHaveTextContent("up 100 %");
     rerender(<BreakdownTable rows={rows} valueLabel="Page" compare={false} testId="t" />);
-    expect(screen.queryByText("+100 %")).toBeNull();
+    expect(screen.getByTestId("t")).not.toHaveTextContent("100 %");
   });
   it("empty table says so", () => {
     render(<BreakdownTable rows={[]} valueLabel="Page" compare testId="t" />);

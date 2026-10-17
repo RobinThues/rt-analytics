@@ -1,5 +1,6 @@
 import { Suspense, type ReactNode } from "react";
 import { dataQuery } from "@/bq/query";
+import { Change } from "@/components/change";
 import { PageBar } from "@/components/page-bar";
 import { EventList } from "@/components/event-list";
 import { ExplorerControls } from "@/components/explorer-controls";
@@ -12,7 +13,7 @@ import { TrendChart } from "@/components/trend-chart";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Catalog } from "@/discovery/catalog";
 import { toEventList, metricTotals, toPropBreakdown, valuesByKey } from "@/explorer/model";
-import { formatChange, formatDecimal, formatInt } from "@/lib/format";
+import { formatDecimal, formatInt } from "@/lib/format";
 import { viewQuery } from "@/lib/query-string";
 import {
   eventBreakdownQuery,
@@ -118,7 +119,11 @@ async function PropBreakdownPanel({
               {r.label}
             </TableCell>
             <TableCell className="text-right tabular-nums">{fmt(r.cur)}</TableCell>
-            {ctx.compare && <TableCell className="text-right tabular-nums">{formatChange(r.change ?? null)}</TableCell>}
+            {ctx.compare && (
+              <TableCell className="text-right tabular-nums">
+                <Change pct={r.change ?? null} />
+              </TableCell>
+            )}
           </TableRow>
         ))}
       </TableBody>

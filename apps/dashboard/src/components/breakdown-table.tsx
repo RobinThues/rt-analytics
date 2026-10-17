@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatChange, formatDecimal, formatInt } from "@/lib/format";
+import { Change } from "@/components/change";
+import { formatDecimal, formatInt } from "@/lib/format";
 import type { BreakdownView } from "@/overview/model";
 
 /** Breakdown rows with pageviews and visitors per day (spec section 6); Other comes last, muted. */
@@ -36,7 +37,9 @@ export function BreakdownTable({
             </TableCell>
             <TableCell className="text-right tabular-nums">{formatInt(r.pageviews)}</TableCell>
             {compare && (
-              <TableCell className="text-right tabular-nums">{formatChange(r.pageviewsChange ?? null)}</TableCell>
+              <TableCell className="text-right tabular-nums">
+                <Change pct={r.pageviewsChange ?? null} />
+              </TableCell>
             )}
             <TableCell className="text-right tabular-nums">{formatDecimal(r.visitorsPerDay)}</TableCell>
           </TableRow>
