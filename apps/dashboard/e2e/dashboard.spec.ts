@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { daysBetween } from "../src/time/range";
 import { formatRangeLabel } from "../src/view/range-ui";
-import { slowRsc } from "./helpers";
+import { setTheme, slowRsc } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   const res = await page.request.post("/api/auth/test-login", {
@@ -200,6 +200,7 @@ for (const path of [
   "/demo/events?event=calendar_poll&metric=distinct%3Asubscription",
   "/demo/funnels?steps=place_selected&steps=subscribe_click",
   "/demo/settings",
+  "/",
 ]) {
   test(`hard load of ${path} shows frames, then data, no Loading text`, async ({ page }) => {
     await page.goto(path);
@@ -311,6 +312,28 @@ test("sidebar: phone menu", async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });
+
+for (const theme of ["light", "dark"] as const) {
+  test(`390 px: no horizontal scroll in the ${theme} theme, drawer included`, async ({ page }) => {
+    await setTheme(page, theme);
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const path of [
+      "/demo",
+      "/demo/events?event=calendar_poll",
+      "/demo/funnels?steps=place_selected&steps=subscribe_click",
+    ]) {
+      await page.goto(path);
+      await expect(page.getByTestId("skeleton")).toHaveCount(0, { timeout: 15_000 });
+      await expect(page.locator("html")).toHaveAttribute("data-theme-choice", theme);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow, path).toBeLessThanOrEqual(0);
+    }
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.getByRole("group", { name: "Theme" }).last()).toBeInViewport();
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+}
 
 test("funnels: Show funnel keeps the old result dimmed", async ({ page }) => {
   await page.goto("/demo/funnels?steps=place_selected&steps=subscribe_click");
