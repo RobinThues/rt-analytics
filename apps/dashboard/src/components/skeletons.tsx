@@ -64,14 +64,17 @@ export function ChartSkeleton({
   );
 }
 
-/** A header and `rows` rows at the table's own heights (32 px header, 30 px rows). */
-export function TableSkeleton({ rows }: { rows: number }) {
+/**
+ * A header and `rows` rows at the heights of a text-xs sm:text-sm table (32 px header; rows 27 px on phones,
+ * 31 px from sm on, border included). `sparklines`: rows with a 24 px sparkline, 35 px everywhere.
+ */
+export function TableSkeleton({ rows, sparklines = false }: { rows: number; sparklines?: boolean }) {
   return (
     <div data-testid="skeleton" className="flex flex-col">
       <Skeleton className="h-8 w-full" />
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="h-[30px] py-[5px]">
-          <Skeleton className="h-5 w-full" />
+        <div key={i} className={sparklines ? "h-[35px] py-[5px]" : "h-[27px] py-[5px] sm:h-[31px]"}>
+          <Skeleton className={sparklines ? "h-6 w-full" : "h-4 w-full sm:h-5"} />
         </div>
       ))}
     </div>

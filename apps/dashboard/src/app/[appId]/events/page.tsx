@@ -219,7 +219,7 @@ function SelectionColumn({ x, p }: { x: ExplorerData; p: PanelProps }) {
 // discovery, so it is one untitled skeleton until the selection is known (layout spec).
 export default function ExplorerPage({ params, searchParams }: PageProps<"/[appId]/events">) {
   const input: PageInput = { params, searchParams };
-  const list = <TableSkeleton rows={4} />;
+  const list = <TableSkeleton rows={4} sparklines />;
   const column = <BlockSkeleton className="h-[497px]" />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-5">
