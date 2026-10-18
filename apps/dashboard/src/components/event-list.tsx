@@ -25,7 +25,7 @@ export function EventList({
         <TableRow>
           <TableHead>Event</TableHead>
           <TableHead className="w-16 text-right sm:w-20">Count</TableHead>
-          {compare && <TableHead className="w-16 text-right sm:w-20">Change</TableHead>}
+          {compare && <TableHead className="w-18 text-right sm:w-20">Change</TableHead>}
           <TableHead className="w-24">
             <span className="sr-only">Trend</span>
           </TableHead>

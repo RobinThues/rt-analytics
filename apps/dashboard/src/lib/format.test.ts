@@ -16,7 +16,14 @@ describe("number formats", () => {
     expect(changeParts(-5)).toEqual({ dir: "down", text: "5 %" });
     expect(changeParts(0.4)).toEqual({ dir: "none", text: "0 %" });
     expect(changeParts(null)).toEqual({ dir: "none", text: "new" });
-    expect(changeParts(1234)).toEqual({ dir: "up", text: "1,234 %" });
+  });
+  it("changes from 1,000 % on are short, so they fit the Change column", () => {
+    expect(changeParts(999.4)).toEqual({ dir: "up", text: "999 %" });
+    expect(changeParts(999.6)).toEqual({ dir: "up", text: "1K %" });
+    expect(changeParts(15_400)).toEqual({ dir: "up", text: "15K %" });
+    expect(changeParts(153_000)).toEqual({ dir: "up", text: "150K %" });
+    expect(changeParts(2_460_000)).toEqual({ dir: "up", text: "2.5M %" });
+    expect(changeParts(1234)).toEqual({ dir: "up", text: "1.2K %" });
   });
   it("shares, decimals and integers", () => {
     expect(formatShare(0.14)).toBe("14 %");

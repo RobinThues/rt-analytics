@@ -13,6 +13,7 @@ export function formatBytes(bytes: number): string {
 
 const intFormat = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
 const decimalFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const compactFormat = new Intl.NumberFormat("en-US", { notation: "compact", maximumSignificantDigits: 2 });
 
 /** 1234.4 -> "1,234" */
 export const formatInt = (n: number) => intFormat.format(n);
@@ -27,8 +28,10 @@ export const formatShare = (share: number) => `${intFormat.format(share * 100)} 
 export function changeParts(pct: number | null): { dir: "up" | "down" | "none"; text: string } {
   if (pct === null) return { dir: "none", text: "new" };
   const rounded = Math.round(pct);
+  const abs = Math.abs(rounded);
+  // From 1,000 % on the short form ("1.2K %"), so the text fits the fixed Change column.
   // No-break space, so "12 %" never wraps between number and sign.
-  const text = `${intFormat.format(Math.abs(rounded))} %`;
+  const text = `${(abs >= 1000 ? compactFormat : intFormat).format(abs)} %`;
   if (rounded === 0) return { dir: "none", text };
   return { dir: rounded > 0 ? "up" : "down", text };
 }

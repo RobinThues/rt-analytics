@@ -27,7 +27,7 @@ export function BreakdownTable({
         <TableRow>
           <TableHead>{valueLabel}</TableHead>
           <TableHead className="w-16 text-right sm:w-20">Pageviews</TableHead>
-          {compare && <TableHead className="w-16 text-right sm:w-20">Change</TableHead>}
+          {compare && <TableHead className="w-18 text-right sm:w-20">Change</TableHead>}
           <TableHead className="w-20 text-right sm:w-24">Visitors/day</TableHead>
         </TableRow>
       </TableHeader>
