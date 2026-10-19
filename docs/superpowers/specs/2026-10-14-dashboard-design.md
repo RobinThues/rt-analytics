@@ -408,6 +408,7 @@ Cleanup: `DELETE FROM analytics.events WHERE app_id = 'demo'`. The ingest writes
 | `DASHBOARD_CACHE_TTL_SECONDS` | production | default 3600 |
 | `DASHBOARD_MAX_BYTES_PER_QUERY` | production, development | default 1000000000 |
 | `DASHBOARD_TEST_LOGIN`, `DASHBOARD_TEST_LOGIN_SECRET` | never | local only |
+| `DASHBOARD_JOB_SOURCE` | never (a deployment with it does not start) | `e2e` in the Playwright config; the `rtd_source` job label is `production` in production, else `development` |
 
 Local development: Vercel cannot give sensitive variables to the development environment. So `vercel env pull .env.development.local` brings the non-secret values and the `VERCEL_OIDC_TOKEN`, and a hand-written `apps/dashboard/.env.local` (gitignored) holds the local secrets: `BETTER_AUTH_SECRET` (a separate local value), `BETTER_AUTH_URL=http://localhost:3000`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `DASHBOARD_ALLOWED_EMAILS`, and the test-login values. `apps/dashboard` is linked with `vercel link`, so `@vercel/oidc` can refresh an expired development token by itself (it uses `.vercel/project.json` and the CLI login).
 

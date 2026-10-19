@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { runQuery, toPlain, type QueryClient } from "./run-query";
+import { JOB_SOURCES, QUERY_NAMES, runQuery, toPlain, type QueryClient, type QuerySpec } from "./run-query";
 
-const spec = { sql: "SELECT 1 AS n", params: { app_id: "demo" } };
+const spec: QuerySpec = { name: "check", sql: "SELECT 1 AS n", params: { app_id: "demo" } };
 const client = (impl: QueryClient["query"]): QueryClient => ({ query: impl });
 
 describe("runQuery", () => {
@@ -15,6 +15,7 @@ describe("runQuery", () => {
       }),
       spec,
       1000,
+      "development",
     );
     expect(res).toEqual({ ok: true, rows: [{ n: 1 }] });
     expect(seen).toMatchObject({
@@ -35,6 +36,7 @@ describe("runQuery", () => {
       }),
       spec,
       1000,
+      "development",
     );
     expect(res).toMatchObject({ ok: false, error: "bytes-cap" });
   });
@@ -46,6 +48,7 @@ describe("runQuery", () => {
       }),
       spec,
       1000,
+      "development",
     );
     expect(res).toEqual({ ok: false, error: "failed", message: "boom" });
   });
@@ -66,5 +69,24 @@ describe("toPlain", () => {
   });
   it("turns Date into an ISO string", () => {
     expect(toPlain(new Date("2026-10-01T00:00:00Z"))).toBe("2026-10-01T00:00:00.000Z");
+  });
+});
+
+describe("job labels", () => {
+  it("labels every job with its source and query name", async () => {
+    let seen: Record<string, unknown> = {};
+    await runQuery(
+      client(async (o) => {
+        seen = o;
+        return [[]];
+      }),
+      { ...spec, name: "kpis" },
+      1000,
+      "e2e",
+    );
+    expect(seen.labels).toEqual({ rtd_source: "e2e", rtd_query: "kpis" });
+  });
+  it("uses only label values BigQuery accepts", () => {
+    for (const v of [...QUERY_NAMES, ...JOB_SOURCES]) expect(v).toMatch(/^[a-z0-9_-]{1,63}$/);
   });
 });

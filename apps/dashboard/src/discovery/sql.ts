@@ -8,6 +8,7 @@ export const APP_ID_RE = /^[a-z0-9_-]{1,32}$/i;
 /** The one query without an app_id filter: which apps exist (spec section 5, Discovery). */
 export function appListQuery(env: DashboardEnv): QuerySpec {
   return {
+    name: "app_list",
     sql: `SELECT app_id FROM (
   SELECT DISTINCT app_id FROM ${env.analyticsTable}
   WHERE timestamp >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 7 DAY)
@@ -20,6 +21,7 @@ export function appListQuery(env: DashboardEnv): QuerySpec {
 
 export function eventNamesQuery(env: DashboardEnv, appId: string): QuerySpec {
   return {
+    name: "event_names",
     sql: `SELECT event_name, COUNT(*) AS events,
   COUNTIF(visitor_id IS NOT NULL) AS with_visitor, COUNTIF(session_id IS NOT NULL) AS with_session
 FROM ${env.analyticsTable}
@@ -34,6 +36,7 @@ ORDER BY events DESC`,
 
 export function propKeysQuery(env: DashboardEnv, appId: string): QuerySpec {
   return {
+    name: "prop_keys",
     sql: `SELECT event_name, k AS prop_key, COUNT(*) AS n
 FROM ${env.analyticsTable}, UNNEST(JSON_KEYS(props, 1)) AS k
 WHERE app_id = @app_id

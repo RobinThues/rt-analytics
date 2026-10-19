@@ -10,6 +10,7 @@ export const MAX_NAME = 80;
 
 export function listFunnelsQuery(env: DashboardEnv, appId: string): QuerySpec {
   return {
+    name: "funnels_list",
     sql: `SELECT id, name, TO_JSON_STRING(value) AS value FROM ${env.configTable}
 WHERE kind = 'funnel' AND app_id = @app_id
 ORDER BY name, updated_at`,
@@ -19,6 +20,7 @@ ORDER BY name, updated_at`,
 
 export function saveFunnelQuery(env: DashboardEnv, appId: string, funnel: SavedFunnel, email: string): QuerySpec {
   return {
+    name: "funnel_save",
     sql: `MERGE ${env.configTable} T
 USING (SELECT 'funnel' AS kind, @id AS id) S
 ON T.kind = S.kind AND T.id = S.id
@@ -37,6 +39,7 @@ WHEN NOT MATCHED THEN INSERT (kind, id, app_id, name, value, updated_at, updated
 
 export function deleteFunnelQuery(env: DashboardEnv, appId: string, id: string): QuerySpec {
   return {
+    name: "funnel_delete",
     sql: `DELETE FROM ${env.configTable} WHERE kind = 'funnel' AND id = @id AND app_id = @app_id`,
     params: { id, app_id: appId },
   };

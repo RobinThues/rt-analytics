@@ -66,7 +66,7 @@ describe("SQL fragments", () => {
     expect(sql).toContain("STARTS_WITH(visitor_id, 'd_')");
   });
   it("toSpec drops params the SQL does not use", () => {
-    const spec = toSpec("SELECT @a, @ab", { a: 1, ab: 2, abc: 3 });
+    const spec = toSpec("check", "SELECT @a, @ab", { a: 1, ab: 2, abc: 3 });
     expect(spec.params).toEqual({ a: 1, ab: 2 });
   });
 });

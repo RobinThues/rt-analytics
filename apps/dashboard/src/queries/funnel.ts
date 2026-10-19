@@ -54,5 +54,5 @@ ev AS (
 ),
 ${stepCtes.join(",\n")}
 ${counts}`;
-  return toSpec(sql, params);
+  return toSpec("funnel", sql, params);
 }

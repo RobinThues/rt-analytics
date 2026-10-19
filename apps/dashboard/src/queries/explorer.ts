@@ -39,7 +39,7 @@ SELECT period, event_name, CAST(day AS STRING) AS day, COUNT(*) AS events
 FROM evp
 WHERE period IS NOT NULL AND NOT STARTS_WITH(event_name, '${BUILTIN_PREFIX}')
 GROUP BY period, event_name, day`;
-  return toSpec(sql, ctx.params);
+  return toSpec("event_list", sql, ctx.params);
 }
 
 const METRIC_SQL: Record<Metric["kind"], string> = {
@@ -78,7 +78,7 @@ export function eventSeriesQuery(ctx: QueryContext, sel: ExplorerSelection): Que
 SELECT period, CAST(day AS STRING) AS day, ${METRIC_SQL[sel.metric.kind]} AS n
 FROM sel
 GROUP BY GROUPING SETS ((period, day), (period))`;
-  return toSpec(sql, selectionParams(ctx, sel));
+  return toSpec("event_series", sql, selectionParams(ctx, sel));
 }
 
 export function eventBreakdownQuery(ctx: QueryContext, sel: ExplorerSelection & { by: string }): QuerySpec {
@@ -90,7 +90,7 @@ bucketed AS (SELECT v.*, t.by_value AS value FROM valued v LEFT JOIN top t USING
 SELECT period, value, CAST(day AS STRING) AS day, ${METRIC_SQL[sel.metric.kind]} AS n
 FROM bucketed
 GROUP BY GROUPING SETS ((period, value, day), (period, value))`;
-  return toSpec(sql, { ...selectionParams(ctx, sel), by_key: sel.by });
+  return toSpec("event_breakdown", sql, { ...selectionParams(ctx, sel), by_key: sel.by });
 }
 
 export interface PropValueRow {
@@ -113,5 +113,5 @@ counted AS (
 ranked AS (SELECT *, ROW_NUMBER() OVER (PARTITION BY key ORDER BY n DESC, value) AS rn FROM counted)
 SELECT key, value FROM ranked WHERE rn <= 20
 ORDER BY key, rn`;
-  return toSpec(sql, { ...ctx.params, event, value_keys: [...keys] }, { value_keys: ["STRING"] });
+  return toSpec("prop_values", sql, { ...ctx.params, event, value_keys: [...keys] }, { value_keys: ["STRING"] });
 }

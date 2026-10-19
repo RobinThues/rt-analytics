@@ -15,7 +15,7 @@ export async function isLive(): Promise<boolean> {
 /** Runs now, without the cache. Also used for DML writes (config). */
 export function execute<T>(spec: QuerySpec): Promise<QueryResult<T>> {
   const env = readEnv();
-  return runQuery<T>(getBigQuery(env), spec, env.maxBytesPerQuery);
+  return runQuery<T>(getBigQuery(env), spec, env.maxBytesPerQuery, env.jobSource);
 }
 
 async function runCached(spec: QuerySpec, tags: string[], ttl: number): Promise<unknown[]> {

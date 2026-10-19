@@ -1,5 +1,7 @@
 // Reads and validates the dashboard's environment (spec section 10). Throws on invalid values so a
 // misconfigured deployment fails at startup instead of on the first query.
+import { JOB_SOURCES, type JobSource } from "@/bq/run-query";
+
 type Env = Record<string, string | undefined>;
 
 export interface GcpEnv {
@@ -19,6 +21,7 @@ export interface DashboardEnv {
   analyticsTable: string;
   configTable: string;
   testLogin: { enabled: boolean; secret: string | null };
+  jobSource: JobSource;
 }
 
 const PROJECT_RE = /^[a-z][a-z0-9-]{4,61}[a-z0-9]$/;
@@ -61,6 +64,26 @@ export function assertSafeTestLogin(env: Env): void {
   }
 }
 
+/** Switches for local runs and e2e only; a deployment that has any of them must not start. */
+const LOCAL_ONLY = ["DASHBOARD_JOB_SOURCE"] as const;
+
+export function assertLocalOnly(env: Env): void {
+  if (!inDeployment(env)) return;
+  for (const name of LOCAL_ONLY) {
+    if (env[name] !== undefined) throw new Error(`${name} must never be set in a Vercel deployment`);
+  }
+}
+
+export function parseJobSource(env: Env): JobSource {
+  if (env.VERCEL_ENV === "production") return "production";
+  const raw = env.DASHBOARD_JOB_SOURCE;
+  if (raw === undefined) return "development";
+  if (!(JOB_SOURCES as readonly string[]).includes(raw)) {
+    throw new Error(`DASHBOARD_JOB_SOURCE must be one of ${JOB_SOURCES.join(", ")}`);
+  }
+  return raw as JobSource;
+}
+
 const orNull = (v: string | undefined) => (v && v.length > 0 ? v : null);
 
 export function readEnv(env: Env = process.env): DashboardEnv {
@@ -85,6 +108,7 @@ export function readEnv(env: Env = process.env): DashboardEnv {
     analyticsTable: `\`${projectId}.${analyticsDataset}.events\``,
     configTable: `\`${projectId}.${configDataset}.dashboard_config\``,
     testLogin: testLoginState(env),
+    jobSource: parseJobSource(env),
   };
 }
 
@@ -98,6 +122,7 @@ const REQUIRED_AT_STARTUP = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "BETTER
  */
 export function startupCheck(env: Env): void {
   assertSafeTestLogin(env);
+  assertLocalOnly(env);
   if (env.VERCEL_ENV === "preview") return;
   if (env.VERCEL_ENV === "production") {
     for (const name of REQUIRED_AT_STARTUP) {

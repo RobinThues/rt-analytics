@@ -104,3 +104,18 @@ describe("startupCheck", () => {
     expect(() => startupCheck({ ...full, VERCEL_ENV: "production", DASHBOARD_TEST_LOGIN: "1" })).toThrow();
   });
 });
+
+describe("job source", () => {
+  const base = { GCP_PROJECT_ID: "robin-thues" };
+  it("is production in a production deployment", () =>
+    expect(readEnv({ ...base, VERCEL_ENV: "production" }).jobSource).toBe("production"));
+  it("is e2e when the Playwright config says so", () =>
+    expect(readEnv({ ...base, DASHBOARD_JOB_SOURCE: "e2e" }).jobSource).toBe("e2e"));
+  it("is development otherwise", () => expect(readEnv(base).jobSource).toBe("development"));
+  it("rejects unknown values", () => expect(() => readEnv({ ...base, DASHBOARD_JOB_SOURCE: "x" })).toThrow());
+  it("refuses DASHBOARD_JOB_SOURCE in a deployment", () => {
+    expect(() =>
+      startupCheck({ ...base, DASHBOARD_ALLOWED_EMAILS: "a@b.de", VERCEL_ENV: "preview", DASHBOARD_JOB_SOURCE: "e2e" }),
+    ).toThrow(/DASHBOARD_JOB_SOURCE/);
+  });
+});

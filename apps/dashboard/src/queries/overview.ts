@@ -133,7 +133,7 @@ LEFT JOIN visitors USING (period)
 LEFT JOIN people USING (period)
 LEFT JOIN sess USING (period)
 LEFT JOIN counts USING (period)`;
-  return toSpec(sql, ctx.params);
+  return toSpec("kpis", sql, ctx.params);
 }
 
 export function trafficQuery(ctx: QueryContext): QuerySpec {
@@ -150,7 +150,7 @@ SELECT period, CAST(day AS STRING) AS day,
   IFNULL(pageviews, 0) AS pageviews, IFNULL(errors, 0) AS errors
 FROM ev FULL JOIN ss USING (period, day)
 ORDER BY period, day`;
-  return toSpec(sql, ctx.params);
+  return toSpec("traffic", sql, ctx.params);
 }
 
 const HOST = "LOWER(NET.HOST(first_pv.referrer))";
@@ -200,8 +200,8 @@ daily AS (
 SELECT period, value, SUM(pv) AS pageviews, SUM(v) AS visitor_days
 FROM daily GROUP BY period, value`;
   return dim === "source"
-    ? toSpec(sql, { ...ctx.params, own_hosts: [...ctx.hosts] }, { own_hosts: ["STRING"] })
-    : toSpec(sql, ctx.params);
+    ? toSpec("breakdown", sql, { ...ctx.params, own_hosts: [...ctx.hosts] }, { own_hosts: ["STRING"] })
+    : toSpec("breakdown", sql, ctx.params);
 }
 
 export function webVitalsQuery(ctx: QueryContext): QuerySpec {
@@ -211,7 +211,7 @@ SELECT period, LAX_STRING(props.metric) AS metric,
 FROM evp
 WHERE event_name = ${VITAL} AND period IS NOT NULL AND LAX_STRING(props.metric) IN ('LCP', 'INP', 'CLS')
 GROUP BY period, metric`;
-  return toSpec(sql, ctx.params);
+  return toSpec("web_vitals", sql, ctx.params);
 }
 
 export function slowPagesQuery(ctx: QueryContext): QuerySpec {
@@ -224,7 +224,7 @@ GROUP BY page_path
 HAVING COUNT(*) >= 5
 ORDER BY p75 DESC
 LIMIT 10`;
-  return toSpec(sql, ctx.params);
+  return toSpec("slow_pages", sql, ctx.params);
 }
 
 export function topErrorsQuery(ctx: QueryContext): QuerySpec {
@@ -236,7 +236,7 @@ WHERE event_name = ${ERR} AND period = 'cur'
 GROUP BY message
 ORDER BY occurrences DESC, message
 LIMIT 10`;
-  return toSpec(sql, ctx.params);
+  return toSpec("top_errors", sql, ctx.params);
 }
 
 export function consentQuery(ctx: QueryContext): QuerySpec {
@@ -245,7 +245,7 @@ SELECT period, IFNULL(consent_state, 'unknown') AS consent_state, COUNT(*) AS pa
 FROM evp
 WHERE event_name = ${PV} AND period IS NOT NULL
 GROUP BY period, consent_state`;
-  return toSpec(sql, ctx.params);
+  return toSpec("consent", sql, ctx.params);
 }
 
 /**
@@ -273,5 +273,5 @@ SELECT CAST(n.cohort_week AS STRING) AS cohort, DIV(DATE_DIFF(a.week, n.cohort_w
 FROM new_people n JOIN activity a USING (person)
 GROUP BY 1, 2
 ORDER BY 1, 2`;
-  return toSpec(sql, { ...ctx.params, lookback_ts: dayStart(addDays(ctx.range.from, -28), ctx.tz) });
+  return toSpec("retention", sql, { ...ctx.params, lookback_ts: dayStart(addDays(ctx.range.from, -28), ctx.tz) });
 }

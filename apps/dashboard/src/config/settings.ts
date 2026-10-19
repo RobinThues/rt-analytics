@@ -48,6 +48,7 @@ export function parseSettings(raw: unknown): AppSettings {
 
 export function readSettingsQuery(env: DashboardEnv, appId: string): QuerySpec {
   return {
+    name: "settings_read",
     sql: `SELECT TO_JSON_STRING(value) AS value FROM ${env.configTable}
 WHERE kind = 'app_settings' AND id = @app_id
 LIMIT 1`,
@@ -57,6 +58,7 @@ LIMIT 1`,
 
 export function saveSettingsQuery(env: DashboardEnv, appId: string, settings: AppSettings, email: string): QuerySpec {
   return {
+    name: "settings_save",
     sql: `MERGE ${env.configTable} T
 USING (SELECT 'app_settings' AS kind, @app_id AS id) S
 ON T.kind = S.kind AND T.id = S.id

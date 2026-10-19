@@ -3,7 +3,7 @@
 // previous period come from the same scan. All params depend only on the range, today's date and settings,
 // never on the time of day, so cached entries stay valid all day.
 import { DAILY_VISITOR_PREFIX, EVENTS, type EventRow } from "rt-analytics/schema";
-import type { QueryParam, QuerySpec } from "@/bq/run-query";
+import type { QueryName, QueryParam, QuerySpec } from "@/bq/run-query";
 import type { AppSettings } from "@/config/settings";
 import { addDays, dayStart, previousRange, rangeDays, type DateRange } from "@/time/range";
 
@@ -141,10 +141,11 @@ export function sessionsCte(): string {
 
 /** Keeps only the params the SQL references, so unrelated values never split the cache key. */
 export function toSpec(
+  name: QueryName,
   sql: string,
   params: Record<string, QueryParam> | PeriodParams,
   types?: Record<string, string | string[]>,
 ): QuerySpec {
-  const used = Object.entries(params).filter(([name]) => new RegExp(`@${name}\\b`).test(sql));
-  return { sql, params: Object.fromEntries(used), ...(types ? { types } : {}) };
+  const used = Object.entries(params).filter(([param]) => new RegExp(`@${param}\\b`).test(sql));
+  return { name, sql, params: Object.fromEntries(used), ...(types ? { types } : {}) };
 }

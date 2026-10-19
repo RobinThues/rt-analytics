@@ -59,6 +59,7 @@ const CASES: Array<[string, QuerySpec]> = [
   [
     "periodOf + sessionsCte",
     toSpec(
+      "check",
       `WITH ${eventsCte(ctx.table, SESSION_COLUMNS)}, ${sessionsCte()}
 SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
       ctx.params,

@@ -1,7 +1,40 @@
 // The only place that runs SQL. Never throws: panels get a result they can render (spec section 5).
 export type QueryParam = string | number | boolean | string[] | null;
 
+/** Every query's name; it becomes the `rtd_query` job label and the fixture file prefix. */
+export const QUERY_NAMES = [
+  "kpis",
+  "traffic",
+  "breakdown",
+  "web_vitals",
+  "slow_pages",
+  "top_errors",
+  "consent",
+  "retention",
+  "event_list",
+  "event_series",
+  "event_breakdown",
+  "prop_values",
+  "funnel",
+  "app_list",
+  "event_names",
+  "prop_keys",
+  "settings_read",
+  "settings_save",
+  "funnels_list",
+  "funnel_save",
+  "funnel_delete",
+  /** Test-only and dry-run-only specs. */
+  "check",
+] as const;
+export type QueryName = (typeof QUERY_NAMES)[number];
+
+/** Where a job comes from; the `rtd_source` job label. */
+export const JOB_SOURCES = ["production", "development", "e2e"] as const;
+export type JobSource = (typeof JOB_SOURCES)[number];
+
 export interface QuerySpec {
+  name: QueryName;
   sql: string;
   params: Record<string, QueryParam>;
   /** Needed for array params (`["STRING"]`), because an empty array has no type BigQuery can infer. */
@@ -35,7 +68,12 @@ function isBytesCap(err: unknown): boolean {
   );
 }
 
-export async function runQuery<T>(client: QueryClient, spec: QuerySpec, maxBytes: number): Promise<QueryResult<T>> {
+export async function runQuery<T>(
+  client: QueryClient,
+  spec: QuerySpec,
+  maxBytes: number,
+  source: JobSource,
+): Promise<QueryResult<T>> {
   try {
     const [rows] = await client.query({
       query: spec.sql,
@@ -43,6 +81,7 @@ export async function runQuery<T>(client: QueryClient, spec: QuerySpec, maxBytes
       ...(spec.types ? { types: spec.types } : {}),
       location: "EU",
       maximumBytesBilled: String(maxBytes),
+      labels: { rtd_source: source, rtd_query: spec.name },
     });
     return { ok: true, rows: rows.map((r) => toPlain(r) as T) };
   } catch (err) {
