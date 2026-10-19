@@ -2,7 +2,9 @@
  * Idempotent GCP setup for rt-analytics.
  * Usage: npm run setup:gcp [-- --project <gcp-project-id>] [--query-quota-gib <n> | --no-query-quota]
  *        npm run setup:gcp -- --dashboard --vercel-team <slug> [--vercel-project <name>] [--project <id>]
- *          (only the dashboard resources: config dataset, keyless service account, Vercel OIDC pool)
+ *          [--per-user-query-quota-gib <n>] [--keep-pool-binding]
+ *          (only the dashboard resources: config dataset, keyless service accounts for production and
+ *          development, Vercel OIDC pool, per-user query quota)
  * Requires: gcloud CLI authenticated (`gcloud auth login` and `gcloud auth application-default login`).
  */
 import { BigQuery } from "@google-cloud/bigquery";
@@ -19,6 +21,7 @@ const SA_NAME = "rt-analytics-writer";
 const KEY_FILE = "key.json";
 // 30 GiB/day caps queries at ~0.9 TiB/month, inside BigQuery's 1 TiB/month free tier.
 const DEFAULT_QUERY_QUOTA_GIB = 30;
+const DEFAULT_PER_USER_QUERY_QUOTA_GIB = 10;
 const QUOTA_PREFERENCE_ID = "rt-analytics-query-usage-per-day";
 
 const SCHEMA = [
@@ -84,7 +87,13 @@ async function main(): Promise<void> {
       console.error("--dashboard needs --vercel-team <slug> (and optionally --vercel-project <name>)");
       process.exit(2);
     }
-    await setupDashboard(projectId, { team, project });
+    const perUserQuotaGib = Number(flagValue("--per-user-query-quota-gib") ?? DEFAULT_PER_USER_QUERY_QUOTA_GIB);
+    if (!Number.isFinite(perUserQuotaGib) || perUserQuotaGib <= 0) {
+      console.error("--per-user-query-quota-gib must be a positive number");
+      process.exit(1);
+    }
+    const keepPoolBinding = process.argv.includes("--keep-pool-binding");
+    await setupDashboard(projectId, { team, project, perUserQuotaGib, keepPoolBinding });
     return;
   }
   const queryQuotaMiB = resolveQueryQuotaMiB();

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONFIG_SCHEMA, wifConfig } from "./gcp-dashboard.js";
+import { CONFIG_SCHEMA, DASHBOARD_DEV_SA, wifConfig } from "./gcp-dashboard.js";
 
 describe("wifConfig", () => {
   const c = wifConfig("robinthues-projects", "rt-analytics-dashboard", "123456789");
@@ -24,6 +24,16 @@ describe("wifConfig", () => {
       "principalSet://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/vercel/*",
     );
   });
+
+  it("binds one subject per environment", () => {
+    expect(c.subjectPrincipal("production")).toBe(
+      "principal://iam.googleapis.com/projects/123456789/locations/global/workloadIdentityPools/vercel/subject/" +
+        "owner:robinthues-projects:project:rt-analytics-dashboard:environment:production",
+    );
+    expect(c.subjectPrincipal("development")).toMatch(/:environment:development$/);
+  });
+
+  it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-analytics-dashboard-dev"));
 
   it("rejects slugs that could break the condition", () => {
     expect(() => wifConfig('a"b', "p", "1")).toThrow();

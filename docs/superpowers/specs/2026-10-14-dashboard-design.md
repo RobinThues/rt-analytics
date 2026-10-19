@@ -108,7 +108,9 @@ Writes use DML: `MERGE` on `kind, id` to save, `DELETE` to remove.
 
 The dashboard runs with no service account key. Vercel issues OIDC tokens to the deployment; GCP Workload Identity Federation exchanges them for a short-lived token of a service account ([Vercel: OIDC with GCP](https://vercel.com/docs/oidc/gcp)).
 
-- Service account `rt-analytics-dashboard`, no keys:
+- Two service accounts, no keys, same roles: `rt-analytics-dashboard` for production and
+  `rt-analytics-dashboard-dev` for development tokens (local runs, e2e; added 2026-10-19, see
+  `2026-10-19-e2e-bigquery-cost-design.md`):
   - `roles/bigquery.jobUser` on the project (needed to run queries),
   - `roles/bigquery.dataViewer` on dataset `analytics`,
   - `roles/bigquery.dataEditor` on dataset `analytics_dashboard`.
@@ -119,12 +121,19 @@ The dashboard runs with no service account key. Vercel issues OIDC tokens to the
   - attribute condition: only the dashboard project, production and development:
     `assertion.sub in ["owner:<team-slug>:project:<dashboard-project>:environment:production", "owner:<team-slug>:project:<dashboard-project>:environment:development"]`.
     Previews are left out: they cannot sign in (section 4) and are built from a public repo.
-- `roles/iam.workloadIdentityUser` on the service account for that pool's principals.
+- `roles/iam.workloadIdentityUser` per environment: the production account only for the production
+  subject, the dev account only for the development subject
+  (`principal://…/workloadIdentityPools/vercel/subject/owner:<team-slug>:project:<dashboard-project>:environment:<env>`).
+  The earlier pool-wide binding (`principalSet://…/*`) on the production account is removed, so a
+  development token can never act as the production account.
 - The script prints the non-secret values the app needs (project number, pool ID, provider ID, service account email). `<team-slug>` and `<dashboard-project>` are script flags.
 
 In code (`apps/dashboard/src/bq/client.ts`): `ExternalAccountClient.fromJSON(...)` from `google-auth-library` with `subject_token_supplier.getSubjectToken` calling `getVercelOidcToken()` from `@vercel/oidc`, as in Vercel's guide. Locally, `vercel env pull` writes a development `VERCEL_OIDC_TOKEN` (valid for 12 hours).
 
-Cost guards: the existing project quota (30 GiB/day) and budget alert stay. Every dashboard query also sets `maximumBytesBilled` (section 5).
+Cost guards: the existing project quota (30 GiB/day) and budget alert stay. A per-user quota
+(`QueryUsagePerUserPerDay`, 10 GiB/day) applies to every user and service account separately, so local runs
+can never use up what production needs; it also caps Robin's own console queries. Every dashboard query also
+sets `maximumBytesBilled` (section 5).
 
 ### Google OAuth client
 
@@ -392,7 +401,7 @@ Cleanup: `DELETE FROM analytics.events WHERE app_id = 'demo'`. The ingest writes
 | `GOOGLE_CLIENT_SECRET` | production, sensitive | OAuth client |
 | `DASHBOARD_ALLOWED_EMAILS` | production | Robin's email |
 | `GCP_PROJECT_ID`, `GCP_PROJECT_NUMBER` | production, development | from setup |
-| `GCP_SERVICE_ACCOUNT_EMAIL` | production, development | `rt-analytics-dashboard@...` |
+| `GCP_SERVICE_ACCOUNT_EMAIL` | production, development (one entry each) | production `rt-analytics-dashboard@...`, development `rt-analytics-dashboard-dev@...` |
 | `GCP_WORKLOAD_IDENTITY_POOL_ID`, `GCP_WORKLOAD_IDENTITY_POOL_PROVIDER_ID` | production, development | from setup |
 | `ANALYTICS_DATASET` | production, development | `analytics` |
 | `DASHBOARD_CONFIG_DATASET` | production, development | `analytics_dashboard` |
