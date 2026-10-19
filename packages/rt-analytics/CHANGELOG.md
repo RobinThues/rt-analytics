@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-10-19
+
+### Changed
+
+- The ingest handler detects bots with [isbot](https://www.npmjs.com/package/isbot) instead of a short own
+  pattern. It now also drops crawlers and test tools that run JavaScript without "bot" in the user agent
+  (Google-InspectionTool, Google-Read-Aloud, WebPageTest, Cypress), link previews and HTTP clients, and it
+  no longer drops real phones whose user agent contains "bot" (Cubot). A missing user agent still counts as
+  a bot. Expect slightly lower counts from crawlers you could not see before.
+- New dependency: `isbot`.
+
 ## [0.4.0] - 2026-10-16
 
 ### Added
@@ -68,6 +79,7 @@ All notable changes to this project are documented here. The format follows
   provider and consent banner; Next.js pageview tracker and ingest handler writing to BigQuery via
   the Storage Write API; `setup:gcp` script, SQL views and query templates.
 
+[0.5.0]: https://github.com/RobinThues/rt-analytics/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/RobinThues/rt-analytics/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/RobinThues/rt-analytics/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/RobinThues/rt-analytics/compare/v0.1.0...v0.2.0
