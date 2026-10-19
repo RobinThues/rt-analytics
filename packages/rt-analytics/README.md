@@ -271,7 +271,7 @@ Visitors never get it.
   - Reads GCP credentials from `process.env.ANALYTICS_GCP_CREDENTIALS` (one-line service-account JSON) unless a `writer` is injected. Checks credentials first, then the salt; the salt rule also applies with an injected writer.
   - `GET` serves the [ignore link](#exclude-your-own-visits) and answers `200` or `404`.
   - Always responds `202 Accepted` (even on malformed input, bot traffic, or write failure) so the client never retries or surfaces errors to users; failures are logged server-side via `console.error`.
-  - Drops requests from bots (user-agent sniffing), cross-origin requests, and oversized bodies before touching BigQuery.
+  - Drops requests from bots (user agent checked with [isbot](https://www.npmjs.com/package/isbot); a missing user agent counts as a bot), cross-origin requests, and oversized bodies before touching BigQuery.
   - Types: `EventRow`, `RowWriter`, `WriterConfig`.
 - `createServerTracker(options: ServerTrackerOptions): ServerTracker` — server-side events (see [Server-side events](#server-side-events)).
   - `ServerTrackerOptions`: `{ appId: string; salt?: string /* default ANALYTICS_DAILY_SALT */; pseudonymKey?: string /* default ANALYTICS_PSEUDONYM_KEY, else the salt */; writer?: RowWriter; now?: () => Date }`

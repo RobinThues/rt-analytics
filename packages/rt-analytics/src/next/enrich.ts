@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isbot } from "isbot";
 import { DAILY_VISITOR_PREFIX } from "../schema/index.js";
 
 export interface UAInfo {
@@ -7,11 +8,9 @@ export interface UAInfo {
   deviceType: string;
 }
 
-const BOT_RE =
-  /bot|crawl|spider|slurp|headless|lighthouse|pingdom|uptime|monitor|scrape|curl|wget|python-requests|node-fetch|axios/i;
-
+// isbot treats a missing UA as human, we count it as a bot.
 export function isBot(ua: string | null): boolean {
-  return !ua || BOT_RE.test(ua);
+  return !ua || isbot(ua);
 }
 
 export function parseUserAgent(ua: string): UAInfo {
