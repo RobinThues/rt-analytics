@@ -8,9 +8,12 @@ const appDir = dirname(fileURLToPath(import.meta.url));
 const { combinedEnv } = nextEnv.loadEnvConfig(appDir, true);
 const port = 3300;
 const env = Object.fromEntries(
-  Object.entries({ ...combinedEnv, BETTER_AUTH_URL: `http://localhost:${port}`, DASHBOARD_JOB_SOURCE: "e2e" }).filter(
-    ([, v]) => v !== undefined,
-  ),
+  Object.entries({
+    ...combinedEnv,
+    BETTER_AUTH_URL: `http://localhost:${port}`,
+    DASHBOARD_JOB_SOURCE: "e2e",
+    DASHBOARD_FIXED_TODAY: "2026-10-13",
+  }).filter(([, v]) => v !== undefined),
 ) as Record<string, string>;
 Object.assign(process.env, env);
 
