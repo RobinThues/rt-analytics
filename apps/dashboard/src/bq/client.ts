@@ -4,7 +4,10 @@
 import { BigQuery } from "@google-cloud/bigquery";
 import { getVercelOidcToken } from "@vercel/oidc";
 import { ExternalAccountClient } from "google-auth-library";
+import { join } from "node:path";
 import type { DashboardEnv } from "@/env";
+import { createRecordClient, createReplayClient } from "./fixtures";
+import type { QueryClient } from "./run-query";
 
 export function createBigQuery(env: DashboardEnv): BigQuery {
   const { projectId, projectNumber, serviceAccountEmail, poolId, providerId } = env.gcp;
@@ -21,6 +24,19 @@ export function createBigQuery(env: DashboardEnv): BigQuery {
   });
   if (!authClient) throw new Error("Could not build the GCP external account client");
   return new BigQuery({ projectId, location: "EU", authClient });
+}
+
+let replayClient: QueryClient | null = null;
+
+/**
+ * The client queries run on: recorded files in e2e replay, the real client that also records in e2e record,
+ * else BigQuery. `next start` runs in apps/dashboard, so the fixtures live in apps/dashboard/e2e/fixtures.
+ */
+export function getQueryClient(env: DashboardEnv): QueryClient {
+  const dir = join(process.cwd(), "e2e", "fixtures");
+  if (env.fixtures === "replay") return (replayClient ??= createReplayClient(dir));
+  if (env.fixtures === "record") return createRecordClient(getBigQuery(env), dir);
+  return getBigQuery(env);
 }
 
 const clients = new Map<string, BigQuery>();

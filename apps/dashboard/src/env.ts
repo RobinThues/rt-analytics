@@ -25,6 +25,8 @@ export interface DashboardEnv {
   jobSource: JobSource;
   /** Local runs only: replaces the clock's "today" (e2e, so fixtures and the demo data stay valid). */
   fixedToday: string | null;
+  /** Local runs only: e2e answers queries from recorded files (replay) or records them (record). */
+  fixtures: "replay" | "record" | null;
 }
 
 const PROJECT_RE = /^[a-z][a-z0-9-]{4,61}[a-z0-9]$/;
@@ -68,7 +70,13 @@ export function assertSafeTestLogin(env: Env): void {
 }
 
 /** Switches for local runs and e2e only; a deployment that has any of them must not start. */
-const LOCAL_ONLY = ["DASHBOARD_JOB_SOURCE", "DASHBOARD_FIXED_TODAY"] as const;
+const LOCAL_ONLY = ["DASHBOARD_JOB_SOURCE", "DASHBOARD_FIXED_TODAY", "DASHBOARD_FIXTURES"] as const;
+
+export function parseFixtures(raw?: string): "replay" | "record" | null {
+  if (raw === undefined) return null;
+  if (raw !== "replay" && raw !== "record") throw new Error("DASHBOARD_FIXTURES must be replay or record");
+  return raw;
+}
 
 export function parseFixedToday(raw?: string): string | null {
   if (raw === undefined) return null;
@@ -119,6 +127,7 @@ export function readEnv(env: Env = process.env): DashboardEnv {
     testLogin: testLoginState(env),
     jobSource: parseJobSource(env),
     fixedToday: parseFixedToday(env.DASHBOARD_FIXED_TODAY),
+    fixtures: parseFixtures(env.DASHBOARD_FIXTURES),
   };
 }
 

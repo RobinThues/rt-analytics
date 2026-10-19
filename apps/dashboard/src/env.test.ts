@@ -135,3 +135,24 @@ describe("fixed today", () => {
     );
   });
 });
+
+describe("fixtures switch", () => {
+  const base = { GCP_PROJECT_ID: "robin-thues" };
+  it("is off by default", () => expect(readEnv(base).fixtures).toBeNull());
+  it("accepts replay and record", () => {
+    expect(readEnv({ ...base, DASHBOARD_FIXTURES: "replay" }).fixtures).toBe("replay");
+    expect(readEnv({ ...base, DASHBOARD_FIXTURES: "record" }).fixtures).toBe("record");
+  });
+  it("rejects other values", () =>
+    expect(() => readEnv({ ...base, DASHBOARD_FIXTURES: "x" })).toThrow(/DASHBOARD_FIXTURES/));
+  it("refuses DASHBOARD_FIXTURES in a deployment", () => {
+    expect(() =>
+      startupCheck({
+        ...base,
+        DASHBOARD_ALLOWED_EMAILS: "a@b.de",
+        VERCEL_ENV: "production",
+        DASHBOARD_FIXTURES: "replay",
+      }),
+    ).toThrow(/DASHBOARD_FIXTURES/);
+  });
+});

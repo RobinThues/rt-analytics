@@ -11,7 +11,10 @@ import { readEnv } from "@/env";
 export async function CredentialsBanner() {
   await connection();
   await requireUser();
-  const { ok } = await checkCredentials(getBigQuery(readEnv()).authClient);
+  const env = readEnv();
+  // e2e replay has no GCP credentials and needs none.
+  if (env.fixtures === "replay") return null;
+  const { ok } = await checkCredentials(getBigQuery(env).authClient);
   if (ok) return null;
   return (
     <p role="alert" className="mb-4 rounded-md border border-destructive p-3 text-sm text-destructive">

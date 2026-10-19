@@ -3,7 +3,7 @@ import { cacheLife, cacheTag } from "next/cache";
 import { cookies } from "next/headers";
 import { readEnv } from "@/env";
 import { cacheProfile, failureFrom, rowsOrThrow, TAGS, usesCache } from "./cache-rules";
-import { getBigQuery } from "./client";
+import { getQueryClient } from "./client";
 import { runQuery, type QueryResult, type QuerySpec } from "./run-query";
 
 export const LIVE_COOKIE = "rtd_live";
@@ -15,7 +15,7 @@ export async function isLive(): Promise<boolean> {
 /** Runs now, without the cache. Also used for DML writes (config). */
 export function execute<T>(spec: QuerySpec): Promise<QueryResult<T>> {
   const env = readEnv();
-  return runQuery<T>(getBigQuery(env), spec, env.maxBytesPerQuery, env.jobSource);
+  return runQuery<T>(getQueryClient(env), spec, env.maxBytesPerQuery, env.jobSource);
 }
 
 async function runCached(spec: QuerySpec, tags: string[], ttl: number): Promise<unknown[]> {
