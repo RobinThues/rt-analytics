@@ -1,0 +1,66 @@
+[
+  {
+    "key": "fields",
+    "value": "temp,rain"
+  },
+  {
+    "key": "fields",
+    "value": "temp,rain,wind"
+  },
+  {
+    "key": "fields",
+    "value": "temp,rain,uv"
+  },
+  {
+    "key": "fields",
+    "value": "temp"
+  },
+  {
+    "key": "place",
+    "value": "Zürich"
+  },
+  {
+    "key": "place",
+    "value": "München"
+  },
+  {
+    "key": "place",
+    "value": "Düsseldorf"
+  },
+  {
+    "key": "place",
+    "value": "Hamburg"
+  },
+  {
+    "key": "place",
+    "value": "Wien"
+  },
+  {
+    "key": "place",
+    "value": "Berlin"
+  },
+  {
+    "key": "place",
+    "value": "Köln"
+  },
+  {
+    "key": "place",
+    "value": "Leipzig"
+  },
+  {
+    "key": "target",
+    "value": "apple"
+  },
+  {
+    "key": "target",
+    "value": "google"
+  },
+  {
+    "key": "target",
+    "value": "copy"
+  },
+  {
+    "key": "target",
+    "value": "outlook"
+  }
+]

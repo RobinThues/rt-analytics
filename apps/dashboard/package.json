@@ -13,7 +13,10 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "e2e:bq": "RTD_E2E_MODE=bq playwright test",
+    "e2e:record": "RTD_E2E_MODE=record playwright test",
+    "e2e:all": "npm run e2e && npm run e2e:bq && RTD_DRY_RUN=1 GCP_PROJECT_ID=robin-thues vitest run src/queries/dry-run.integration.test.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

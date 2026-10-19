@@ -1,0 +1,722 @@
+[
+  {
+    "period": "cur",
+    "day": "2026-07-16",
+    "visitors": 46,
+    "sessions": 54,
+    "pageviews": 73,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-17",
+    "visitors": 51,
+    "sessions": 56,
+    "pageviews": 78,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-18",
+    "visitors": 38,
+    "sessions": 44,
+    "pageviews": 55,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-19",
+    "visitors": 39,
+    "sessions": 45,
+    "pageviews": 68,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-20",
+    "visitors": 47,
+    "sessions": 51,
+    "pageviews": 67,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-21",
+    "visitors": 60,
+    "sessions": 67,
+    "pageviews": 107,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-22",
+    "visitors": 47,
+    "sessions": 54,
+    "pageviews": 83,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-23",
+    "visitors": 46,
+    "sessions": 52,
+    "pageviews": 81,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-24",
+    "visitors": 53,
+    "sessions": 57,
+    "pageviews": 84,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-25",
+    "visitors": 48,
+    "sessions": 55,
+    "pageviews": 72,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-26",
+    "visitors": 43,
+    "sessions": 46,
+    "pageviews": 64,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-27",
+    "visitors": 66,
+    "sessions": 74,
+    "pageviews": 111,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-28",
+    "visitors": 68,
+    "sessions": 69,
+    "pageviews": 94,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-29",
+    "visitors": 59,
+    "sessions": 65,
+    "pageviews": 87,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-30",
+    "visitors": 62,
+    "sessions": 64,
+    "pageviews": 83,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-07-31",
+    "visitors": 63,
+    "sessions": 66,
+    "pageviews": 86,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-01",
+    "visitors": 56,
+    "sessions": 61,
+    "pageviews": 97,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-02",
+    "visitors": 51,
+    "sessions": 58,
+    "pageviews": 85,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-03",
+    "visitors": 74,
+    "sessions": 76,
+    "pageviews": 109,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-04",
+    "visitors": 62,
+    "sessions": 66,
+    "pageviews": 92,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-05",
+    "visitors": 78,
+    "sessions": 81,
+    "pageviews": 128,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-06",
+    "visitors": 77,
+    "sessions": 83,
+    "pageviews": 112,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-07",
+    "visitors": 64,
+    "sessions": 72,
+    "pageviews": 106,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-08",
+    "visitors": 63,
+    "sessions": 68,
+    "pageviews": 98,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-09",
+    "visitors": 61,
+    "sessions": 62,
+    "pageviews": 80,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-10",
+    "visitors": 77,
+    "sessions": 87,
+    "pageviews": 121,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-11",
+    "visitors": 79,
+    "sessions": 89,
+    "pageviews": 128,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-12",
+    "visitors": 83,
+    "sessions": 85,
+    "pageviews": 123,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-13",
+    "visitors": 80,
+    "sessions": 89,
+    "pageviews": 135,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-14",
+    "visitors": 86,
+    "sessions": 88,
+    "pageviews": 119,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-15",
+    "visitors": 69,
+    "sessions": 71,
+    "pageviews": 100,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-16",
+    "visitors": 72,
+    "sessions": 83,
+    "pageviews": 107,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-17",
+    "visitors": 93,
+    "sessions": 108,
+    "pageviews": 145,
+    "errors": 4
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-18",
+    "visitors": 88,
+    "sessions": 93,
+    "pageviews": 125,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-19",
+    "visitors": 86,
+    "sessions": 97,
+    "pageviews": 147,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-20",
+    "visitors": 95,
+    "sessions": 97,
+    "pageviews": 125,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-21",
+    "visitors": 89,
+    "sessions": 96,
+    "pageviews": 139,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-22",
+    "visitors": 67,
+    "sessions": 82,
+    "pageviews": 103,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-23",
+    "visitors": 76,
+    "sessions": 85,
+    "pageviews": 111,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-24",
+    "visitors": 92,
+    "sessions": 101,
+    "pageviews": 146,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-25",
+    "visitors": 101,
+    "sessions": 100,
+    "pageviews": 137,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-26",
+    "visitors": 97,
+    "sessions": 96,
+    "pageviews": 136,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-27",
+    "visitors": 119,
+    "sessions": 134,
+    "pageviews": 179,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-28",
+    "visitors": 114,
+    "sessions": 119,
+    "pageviews": 170,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-29",
+    "visitors": 92,
+    "sessions": 98,
+    "pageviews": 146,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-30",
+    "visitors": 85,
+    "sessions": 95,
+    "pageviews": 138,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-08-31",
+    "visitors": 91,
+    "sessions": 111,
+    "pageviews": 163,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-01",
+    "visitors": 124,
+    "sessions": 136,
+    "pageviews": 192,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-02",
+    "visitors": 126,
+    "sessions": 135,
+    "pageviews": 184,
+    "errors": 4
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-03",
+    "visitors": 109,
+    "sessions": 122,
+    "pageviews": 183,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-04",
+    "visitors": 113,
+    "sessions": 121,
+    "pageviews": 174,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-05",
+    "visitors": 76,
+    "sessions": 92,
+    "pageviews": 143,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-06",
+    "visitors": 94,
+    "sessions": 97,
+    "pageviews": 146,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-07",
+    "visitors": 133,
+    "sessions": 142,
+    "pageviews": 212,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-08",
+    "visitors": 118,
+    "sessions": 128,
+    "pageviews": 188,
+    "errors": 5
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-09",
+    "visitors": 126,
+    "sessions": 138,
+    "pageviews": 199,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-10",
+    "visitors": 112,
+    "sessions": 124,
+    "pageviews": 180,
+    "errors": 4
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-11",
+    "visitors": 105,
+    "sessions": 120,
+    "pageviews": 171,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-12",
+    "visitors": 97,
+    "sessions": 103,
+    "pageviews": 159,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-13",
+    "visitors": 91,
+    "sessions": 103,
+    "pageviews": 144,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-14",
+    "visitors": 137,
+    "sessions": 139,
+    "pageviews": 190,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-15",
+    "visitors": 116,
+    "sessions": 123,
+    "pageviews": 177,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-16",
+    "visitors": 119,
+    "sessions": 123,
+    "pageviews": 176,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-17",
+    "visitors": 120,
+    "sessions": 123,
+    "pageviews": 182,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-18",
+    "visitors": 113,
+    "sessions": 128,
+    "pageviews": 195,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-19",
+    "visitors": 95,
+    "sessions": 100,
+    "pageviews": 148,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-20",
+    "visitors": 110,
+    "sessions": 117,
+    "pageviews": 153,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-21",
+    "visitors": 159,
+    "sessions": 176,
+    "pageviews": 249,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-22",
+    "visitors": 143,
+    "sessions": 155,
+    "pageviews": 223,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-23",
+    "visitors": 145,
+    "sessions": 149,
+    "pageviews": 222,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-24",
+    "visitors": 133,
+    "sessions": 139,
+    "pageviews": 198,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-25",
+    "visitors": 135,
+    "sessions": 143,
+    "pageviews": 212,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-26",
+    "visitors": 119,
+    "sessions": 127,
+    "pageviews": 183,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-27",
+    "visitors": 112,
+    "sessions": 113,
+    "pageviews": 171,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-28",
+    "visitors": 142,
+    "sessions": 147,
+    "pageviews": 207,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-29",
+    "visitors": 141,
+    "sessions": 148,
+    "pageviews": 225,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-09-30",
+    "visitors": 127,
+    "sessions": 133,
+    "pageviews": 174,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-01",
+    "visitors": 126,
+    "sessions": 140,
+    "pageviews": 196,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-02",
+    "visitors": 132,
+    "sessions": 140,
+    "pageviews": 210,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-03",
+    "visitors": 107,
+    "sessions": 121,
+    "pageviews": 199,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-04",
+    "visitors": 115,
+    "sessions": 128,
+    "pageviews": 182,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-05",
+    "visitors": 159,
+    "sessions": 151,
+    "pageviews": 231,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-06",
+    "visitors": 153,
+    "sessions": 157,
+    "pageviews": 219,
+    "errors": 2
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-07",
+    "visitors": 163,
+    "sessions": 181,
+    "pageviews": 269,
+    "errors": 0
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-08",
+    "visitors": 167,
+    "sessions": 186,
+    "pageviews": 255,
+    "errors": 4
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-09",
+    "visitors": 158,
+    "sessions": 172,
+    "pageviews": 249,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-10",
+    "visitors": 114,
+    "sessions": 121,
+    "pageviews": 183,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-11",
+    "visitors": 139,
+    "sessions": 147,
+    "pageviews": 212,
+    "errors": 1
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-12",
+    "visitors": 182,
+    "sessions": 197,
+    "pageviews": 286,
+    "errors": 3
+  },
+  {
+    "period": "cur",
+    "day": "2026-10-13",
+    "visitors": 165,
+    "sessions": 169,
+    "pageviews": 219,
+    "errors": 1
+  }
+]

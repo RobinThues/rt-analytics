@@ -1,0 +1,22 @@
+[
+  {
+    "period": "prev",
+    "step": 1,
+    "sessions": 1403
+  },
+  {
+    "period": "cur",
+    "step": 1,
+    "sessions": 1786
+  },
+  {
+    "period": "cur",
+    "step": 2,
+    "sessions": 626
+  },
+  {
+    "period": "prev",
+    "step": 2,
+    "sessions": 486
+  }
+]

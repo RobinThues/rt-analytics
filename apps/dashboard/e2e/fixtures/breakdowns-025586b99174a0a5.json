@@ -1,0 +1,233 @@
+[
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "iOS",
+    "pageviews": 4486,
+    "visitor_days": 2734
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "Windows",
+    "pageviews": 4108,
+    "visitor_days": 2432
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "macOS",
+    "pageviews": 1665,
+    "visitor_days": 992
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "Android",
+    "pageviews": 2609,
+    "visitor_days": 1630
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Safari",
+    "pageviews": 6151,
+    "visitor_days": 3726
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Chrome",
+    "pageviews": 6048,
+    "visitor_days": 3688
+  },
+  {
+    "dim": "device",
+    "period": "cur",
+    "value": "desktop",
+    "pageviews": 6518,
+    "visitor_days": 3856
+  },
+  {
+    "dim": "device",
+    "period": "cur",
+    "value": "mobile",
+    "pageviews": 6679,
+    "visitor_days": 4110
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "localhost",
+    "pageviews": 2110,
+    "visitor_days": 1176
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "direct",
+    "pageviews": 6068,
+    "visitor_days": 4292
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "duckduckgo.com",
+    "pageviews": 620,
+    "visitor_days": 429
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "www.google.com",
+    "pageviews": 3443,
+    "visitor_days": 2413
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "mastodon.social",
+    "pageviews": 785,
+    "visitor_days": 546
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/about",
+    "pageviews": 1335,
+    "visitor_days": 1267
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "CH",
+    "pageviews": 622,
+    "visitor_days": 365
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/",
+    "pageviews": 9500,
+    "visitor_days": 6481
+  },
+  {
+    "dim": "utm",
+    "period": "cur",
+    "value": "(none)",
+    "pageviews": 12738,
+    "visitor_days": 7676
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/privacy",
+    "pageviews": 1122,
+    "visitor_days": 747
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/about",
+    "pageviews": 1320,
+    "visitor_days": 914
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/",
+    "pageviews": 9464,
+    "visitor_days": 5969
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/faq",
+    "pageviews": 1675,
+    "visitor_days": 1531
+  },
+  {
+    "dim": "utm",
+    "period": "cur",
+    "value": "newsletter / email / autumn",
+    "pageviews": 877,
+    "visitor_days": 624
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/privacy",
+    "pageviews": 1103,
+    "visitor_days": 1026
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "DE",
+    "pageviews": 11652,
+    "visitor_days": 7040
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/faq",
+    "pageviews": 1709,
+    "visitor_days": 1149
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "AT",
+    "pageviews": 862,
+    "visitor_days": 511
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "Linux",
+    "pageviews": 745,
+    "visitor_days": 432
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Firefox",
+    "pageviews": 745,
+    "visitor_days": 432
+  },
+  {
+    "dim": "device",
+    "period": "cur",
+    "value": "tablet",
+    "pageviews": 416,
+    "visitor_days": 254
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Edge",
+    "pageviews": 669,
+    "visitor_days": 374
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "NL",
+    "pageviews": 224,
+    "visitor_days": 140
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "US",
+    "pageviews": 253,
+    "visitor_days": 164
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "www.reddit.com",
+    "pageviews": 589,
+    "visitor_days": 397
+  }
+]

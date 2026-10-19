@@ -1,0 +1,24 @@
+[
+  {
+    "period": "cur",
+    "visitor_days": 8823,
+    "persistent_people": 1059,
+    "returning_people": 572,
+    "sessions": 9504,
+    "persistent_sessions": 1360,
+    "bounced_sessions": 6775,
+    "pageviews": 13613,
+    "errors": 117
+  },
+  {
+    "period": "prev",
+    "visitor_days": 0,
+    "persistent_people": 0,
+    "returning_people": 0,
+    "sessions": 0,
+    "persistent_sessions": 0,
+    "bounced_sessions": 0,
+    "pageviews": 0,
+    "errors": 0
+  }
+]

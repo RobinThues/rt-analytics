@@ -1,0 +1,128 @@
+[
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-12",
+    "events": 125
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-12",
+    "events": 44
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-12",
+    "events": 546
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-11",
+    "events": 81
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-11",
+    "events": 28
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-11",
+    "events": 528
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-10",
+    "events": 68
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-10",
+    "events": 22
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-10",
+    "events": 565
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-07",
+    "events": 108
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-07",
+    "events": 515
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-07",
+    "events": 51
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-13",
+    "events": 80
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-13",
+    "events": 33
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-13",
+    "events": 533
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-08",
+    "events": 93
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-08",
+    "events": 38
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-08",
+    "events": 545
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-09",
+    "events": 95
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-09",
+    "events": 31
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-09",
+    "events": 533
+  }
+]

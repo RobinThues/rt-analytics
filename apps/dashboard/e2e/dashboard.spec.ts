@@ -21,6 +21,20 @@ test("app picker lists the demo app and the overview shows data", async ({ page 
   await expect(page.getByText("Could not load this panel.")).toHaveCount(0);
 });
 
+// A fixed range inside the demo data, so this keeps working however old the demo data gets.
+test("overview smoke: every panel shows data from real BigQuery", { tag: "@bq" }, async ({ page }) => {
+  await page.goto("/demo?from=2026-09-16&to=2026-10-13");
+  await expect(page.getByTestId("kpi-pageviews")).not.toHaveText("0");
+  for (const dim of ["page", "entry_page", "source", "utm", "country", "device", "browser", "os"]) {
+    await expect(page.getByTestId(`breakdown-${dim}`).getByRole("row"), dim).not.toHaveCount(1);
+  }
+  await expect(page.getByTestId("vital-lcp")).toBeVisible();
+  await expect(page.getByTestId("consent-split")).toBeVisible();
+  await expect(page.getByText("Could not load this panel.")).toHaveCount(0);
+  // Not getByRole("alert"): Next renders an empty route announcer with that role.
+  await expect(page.getByText("The dashboard cannot reach BigQuery")).toHaveCount(0);
+});
+
 test("date range and compare stay in the URL", async ({ page }) => {
   await page.goto("/demo/events?event=calendar_poll");
   await page.getByRole("button", { name: "Date range" }).click();
@@ -34,7 +48,7 @@ test("date range and compare stay in the URL", async ({ page }) => {
   expect(url.searchParams.get("event")).toBe("calendar_poll");
 });
 
-test("Live toggle and Refresh", async ({ page }) => {
+test("Live toggle and Refresh", { tag: "@bq" }, async ({ page }) => {
   await page.goto("/demo");
   await page.getByRole("button", { name: "Turn Live on" }).click();
   await expect(page.getByText("Live", { exact: true })).toBeVisible();
@@ -44,7 +58,7 @@ test("Live toggle and Refresh", async ({ page }) => {
   await expect(page.getByTestId("kpi-pageviews")).toBeVisible();
 });
 
-test("settings: save and read back the timezone", async ({ page }) => {
+test("settings: save and read back the timezone", { tag: "@bq" }, async ({ page }) => {
   await page.goto("/demo/settings");
   await page.getByLabel("Timezone").selectOption("Europe/Vienna");
   await page.getByRole("button", { name: "Save" }).click();
@@ -62,7 +76,7 @@ test("unauthenticated visitors go to sign-in", async ({ browser }) => {
   await expect(page).toHaveURL(/\/sign-in/);
 });
 
-test("explorer: distinct subscriptions per day with a filter", async ({ page }) => {
+test("explorer: distinct subscriptions per day with a filter", { tag: "@bq" }, async ({ page }) => {
   await page.goto("/demo/events");
   await page.getByTestId("event-list").getByRole("link", { name: "calendar_poll" }).click();
   await expect(page).toHaveURL(/event=calendar_poll/);
@@ -94,7 +108,8 @@ async function deleteE2eFunnels(page: Page) {
   }
 }
 
-test.describe("saved funnels", () => {
+// Real BigQuery only: saving and deleting are DML writes to the config table, which fixtures do not emulate.
+test.describe("saved funnels", { tag: "@bq" }, () => {
   test.afterEach(async ({ page }) => deleteE2eFunnels(page));
 
   test("funnels: build, save, reopen and delete", async ({ page }) => {
@@ -263,10 +278,10 @@ test("overview: revisit after a range change never shows old numbers undimmed", 
 test("sidebar: switching apps keeps the page and range", async ({ page }) => {
   await page.goto("/demo/events?from=2026-09-20&to=2026-10-10&event=calendar_poll");
   await page.getByRole("button", { name: "Switch app" }).click();
-  const other = page.getByRole("link", { name: "wetter-in-kalender" });
-  await expect(other, "the e2e environment reads production data, which has wetter-in-kalender").toBeVisible();
+  const other = page.getByRole("link", { name: "demo-b" });
+  await expect(other, "the e2e app list has the second synthetic app demo-b").toBeVisible();
   await other.click();
-  await expect(page).toHaveURL(/\/wetter-in-kalender\/events\?from=2026-09-20&to=2026-10-10$/);
+  await expect(page).toHaveURL(/\/demo-b\/events\?from=2026-09-20&to=2026-10-10$/);
 });
 
 test("sidebar: app switch shows skeletons, never the old app's numbers", async ({ page }) => {
@@ -277,10 +292,10 @@ test("sidebar: app switch shows skeletons, never the old app's numbers", async (
   await page.waitForLoadState("networkidle");
   await slowRsc(page, 2000);
   await page.getByRole("button", { name: "Switch app" }).click();
-  await page.getByRole("link", { name: "wetter-in-kalender" }).click();
+  await page.getByRole("link", { name: "demo-b" }).click();
   await expect(page.getByTestId("skeleton").first()).toBeVisible();
   await expect(page.locator("[data-testid=kpi-pageviews]:visible", { hasText: old ?? "" })).toHaveCount(0);
-  await expect(page).toHaveURL(/\/wetter-in-kalender/, { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/demo-b/, { timeout: 15_000 });
 });
 
 test("sidebar: pages", async ({ page }) => {
@@ -349,7 +364,7 @@ test("funnels: Show funnel keeps the old result dimmed", async ({ page }) => {
   await expect(page.getByTestId("progress-line")).toBeHidden();
 });
 
-test("funnels: chart shows one bar per step with a hover tooltip", async ({ page }) => {
+test("funnels: chart shows one bar per step with a hover tooltip", { tag: "@bq" }, async ({ page }) => {
   await page.goto("/demo/funnels?steps=place_selected&steps=subscribe_click");
   await expect(page.getByTestId("funnel-bar-h-1")).toBeVisible();
   await expect(page.getByTestId("funnel-bar-h-2")).toBeVisible();

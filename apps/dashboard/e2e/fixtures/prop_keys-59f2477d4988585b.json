@@ -1,0 +1,42 @@
+[
+  {
+    "event_name": "calendar_poll",
+    "prop_key": "client",
+    "n": 3765
+  },
+  {
+    "event_name": "calendar_poll",
+    "prop_key": "kind",
+    "n": 3765
+  },
+  {
+    "event_name": "calendar_poll",
+    "prop_key": "subscription",
+    "n": 3765
+  },
+  {
+    "event_name": "place_selected",
+    "prop_key": "place",
+    "n": 650
+  },
+  {
+    "event_name": "place_selected",
+    "prop_key": "source",
+    "n": 650
+  },
+  {
+    "event_name": "subscribe_click",
+    "prop_key": "fields",
+    "n": 247
+  },
+  {
+    "event_name": "subscribe_click",
+    "prop_key": "place",
+    "n": 247
+  },
+  {
+    "event_name": "subscribe_click",
+    "prop_key": "target",
+    "n": 247
+  }
+]

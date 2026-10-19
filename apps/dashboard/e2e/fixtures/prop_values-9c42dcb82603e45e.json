@@ -1,0 +1,110 @@
+[
+  {
+    "key": "client",
+    "value": "apple"
+  },
+  {
+    "key": "client",
+    "value": "google"
+  },
+  {
+    "key": "client",
+    "value": "outlook"
+  },
+  {
+    "key": "client",
+    "value": "browser"
+  },
+  {
+    "key": "client",
+    "value": "other"
+  },
+  {
+    "key": "kind",
+    "value": "token"
+  },
+  {
+    "key": "kind",
+    "value": "legacy"
+  },
+  {
+    "key": "subscription",
+    "value": "9d151fbff067cdd90139e262a84512a3"
+  },
+  {
+    "key": "subscription",
+    "value": "e4529a47fc79d06b26afe3d0b7fa906e"
+  },
+  {
+    "key": "subscription",
+    "value": "83436d62e1c26b710e9f6d5920014596"
+  },
+  {
+    "key": "subscription",
+    "value": "baa86caaffd53eb91933684658b47ac5"
+  },
+  {
+    "key": "subscription",
+    "value": "41d7d2cdc406c57b4dc5d237f6e15b62"
+  },
+  {
+    "key": "subscription",
+    "value": "4e136b6f7d70517e727c4219c98f7b84"
+  },
+  {
+    "key": "subscription",
+    "value": "1666a2aef1ba6af5877b4a52e7a6e800"
+  },
+  {
+    "key": "subscription",
+    "value": "2b8e596cb2e9d375355da08380bf06e6"
+  },
+  {
+    "key": "subscription",
+    "value": "54d722070863cf91dbeeb6265395982c"
+  },
+  {
+    "key": "subscription",
+    "value": "72b4cde80943e11ed297341de2deb9b2"
+  },
+  {
+    "key": "subscription",
+    "value": "b5e865139bb1e385ee63e342f7481502"
+  },
+  {
+    "key": "subscription",
+    "value": "e36bb7dfbda763ba723bd36223937b13"
+  },
+  {
+    "key": "subscription",
+    "value": "ecc59dadae18b9548e8290bd3b3e59c8"
+  },
+  {
+    "key": "subscription",
+    "value": "1e588d3ec60b471cd1c9b3f146285573"
+  },
+  {
+    "key": "subscription",
+    "value": "4b4d0093ca335188503271fc35dc9e93"
+  },
+  {
+    "key": "subscription",
+    "value": "9b57d3b48d8a98c92e41c5f8e78f1804"
+  },
+  {
+    "key": "subscription",
+    "value": "aa22990ecaa499908ffa1656b3e7b851"
+  },
+  {
+    "key": "subscription",
+    "value": "cff13473bfca7ab119d12e1dfa28b9b0"
+  },
+  {
+    "key": "subscription",
+    "value": "f8a4fe33d1e9f2438a2a0870430df6d5"
+  },
+  {
+    "key": "subscription",
+    "value": "1f8e341b01e4d1297e1daf80bd0b0d62"
+  }
+]

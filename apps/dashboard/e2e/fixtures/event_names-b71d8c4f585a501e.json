@@ -1,0 +1,20 @@
+[
+  {
+    "event_name": "calendar_poll",
+    "events": 14241,
+    "with_visitor": 0,
+    "with_session": 0
+  },
+  {
+    "event_name": "place_selected",
+    "events": 2405,
+    "with_visitor": 2405,
+    "with_session": 2405
+  },
+  {
+    "event_name": "subscribe_click",
+    "events": 874,
+    "with_visitor": 874,
+    "with_session": 874
+  }
+]

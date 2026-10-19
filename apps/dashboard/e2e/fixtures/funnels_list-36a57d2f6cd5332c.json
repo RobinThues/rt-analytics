@@ -1,0 +1,12 @@
+[
+  {
+    "id": "21bb1880-cdbe-433a-a335-9072b88c1778",
+    "name": "debug 1792269367295",
+    "value": "{\"steps\":[{\"event\":\"place_selected\",\"filter\":null},{\"event\":\"subscribe_click\",\"filter\":null}]}"
+  },
+  {
+    "id": "8cfaba19-572b-43af-90ba-21a836047dce",
+    "name": "test funnel",
+    "value": "{\"steps\":[{\"event\":\"$pageview\",\"filter\":{\"key\":\"path\",\"value\":\"/\"}},{\"event\":\"$pageview\",\"filter\":{\"key\":\"path\",\"value\":\"/privacy\"}}]}"
+  }
+]

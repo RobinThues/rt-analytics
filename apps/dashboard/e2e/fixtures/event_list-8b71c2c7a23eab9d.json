@@ -1,0 +1,1010 @@
+[
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-12",
+    "events": 125
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-13",
+    "events": 533
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-21",
+    "events": 61
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-22",
+    "events": 272
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-22",
+    "events": 86
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-23",
+    "events": 26
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-12",
+    "events": 27
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-02",
+    "events": 72
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-27",
+    "events": 491
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-07",
+    "events": 515
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-18",
+    "events": 67
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-08",
+    "events": 360
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-01",
+    "events": 79
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-23",
+    "events": 8
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-24",
+    "events": 450
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-14",
+    "events": 25
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-27",
+    "events": 293
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-05",
+    "events": 367
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-29",
+    "events": 95
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-19",
+    "events": 411
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-04",
+    "events": 28
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-09",
+    "events": 71
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-20",
+    "events": 67
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-25",
+    "events": 33
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-11",
+    "events": 28
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-16",
+    "events": 27
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-06",
+    "events": 351
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-30",
+    "events": 26
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-01",
+    "events": 22
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-05",
+    "events": 99
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-11",
+    "events": 24
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-24",
+    "events": 20
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-26",
+    "events": 471
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-06",
+    "events": 33
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-29",
+    "events": 47
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-20",
+    "events": 23
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-30",
+    "events": 58
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-13",
+    "events": 80
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-12",
+    "events": 546
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-22",
+    "events": 38
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-21",
+    "events": 272
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-02",
+    "events": 32
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-03",
+    "events": 27
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-22",
+    "events": 456
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-25",
+    "events": 21
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-26",
+    "events": 19
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-02",
+    "events": 332
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-27",
+    "events": 74
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-07",
+    "events": 108
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-08",
+    "events": 38
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-17",
+    "events": 29
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-18",
+    "events": 410
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-07",
+    "events": 36
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-08",
+    "events": 77
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-31",
+    "events": 18
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-01",
+    "events": 331
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-24",
+    "events": 78
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-09",
+    "events": 31
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-13",
+    "events": 28
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-03",
+    "events": 25
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-04",
+    "events": 25
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-27",
+    "events": 67
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-05",
+    "events": 59
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-28",
+    "events": 23
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-28",
+    "events": 32
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-29",
+    "events": 469
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-19",
+    "events": 63
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-05",
+    "events": 469
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-09",
+    "events": 379
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-20",
+    "events": 426
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-10",
+    "events": 30
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-10",
+    "events": 22
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-15",
+    "events": 18
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-06",
+    "events": 48
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-29",
+    "events": 304
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-21",
+    "events": 32
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-26",
+    "events": 72
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-30",
+    "events": 321
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-19",
+    "events": 19
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-12",
+    "events": 44
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-21",
+    "events": 27
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-02",
+    "events": 73
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-03",
+    "events": 74
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-22",
+    "events": 32
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-23",
+    "events": 436
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-13",
+    "events": 59
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-12",
+    "events": 413
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-25",
+    "events": 63
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-26",
+    "events": 54
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-02",
+    "events": 29
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-28",
+    "events": 79
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-08",
+    "events": 93
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-17",
+    "events": 79
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-18",
+    "events": 25
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-07",
+    "events": 85
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-04",
+    "events": 499
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-31",
+    "events": 62
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-01",
+    "events": 33
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-23",
+    "events": 268
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-09",
+    "events": 95
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-14",
+    "events": 398
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-03",
+    "events": 70
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-04",
+    "events": 64
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-28",
+    "events": 85
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-09",
+    "events": 20
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-10",
+    "events": 77
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-20",
+    "events": 21
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-11",
+    "events": 378
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-24",
+    "events": 279
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-10",
+    "events": 68
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-25",
+    "events": 472
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-11",
+    "events": 528
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-15",
+    "events": 68
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-16",
+    "events": 405
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-19",
+    "events": 54
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-29",
+    "events": 30
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-30",
+    "events": 478
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-01",
+    "events": 458
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-05",
+    "events": 31
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-06",
+    "events": 511
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-21",
+    "events": 83
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-29",
+    "events": 20
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-20",
+    "events": 247
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-30",
+    "events": 25
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-13",
+    "events": 33
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-22",
+    "events": 12
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-02",
+    "events": 495
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-03",
+    "events": 504
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-23",
+    "events": 81
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-12",
+    "events": 71
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-13",
+    "events": 379
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-25",
+    "events": 294
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-26",
+    "events": 274
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-03",
+    "events": 353
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-27",
+    "events": 25
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-28",
+    "events": 504
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-07",
+    "events": 51
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-08",
+    "events": 545
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-17",
+    "events": 403
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-07",
+    "events": 342
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-08",
+    "events": 27
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-04",
+    "events": 67
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-31",
+    "events": 346
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-23",
+    "events": 39
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-24",
+    "events": 23
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-09",
+    "events": 533
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-14",
+    "events": 73
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-04",
+    "events": 317
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-05",
+    "events": 26
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-08-27",
+    "events": 22
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-28",
+    "events": 272
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-10",
+    "events": 380
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-09-21",
+    "events": 447
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-09-11",
+    "events": 63
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-24",
+    "events": 57
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-10",
+    "events": 565
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-25",
+    "events": 81
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-11",
+    "events": 81
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-09-15",
+    "events": 413
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-16",
+    "events": 66
+  },
+  {
+    "period": "prev",
+    "event_name": "calendar_poll",
+    "day": "2026-08-19",
+    "events": 239
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-09-30",
+    "events": 74
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-01",
+    "events": 70
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-19",
+    "events": 21
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-09-26",
+    "events": 29
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-06",
+    "events": 86
+  },
+  {
+    "period": "prev",
+    "event_name": "subscribe_click",
+    "day": "2026-09-06",
+    "events": 21
+  },
+  {
+    "period": "prev",
+    "event_name": "place_selected",
+    "day": "2026-08-20",
+    "events": 62
+  }
+]

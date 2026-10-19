@@ -380,6 +380,7 @@ Cleanup: `DELETE FROM analytics.events WHERE app_id = 'demo'`. The ingest writes
 - **Dry-run integration (opt-in, like the existing `bigquery-writer.integration.test.ts`):** every query builder runs as a BigQuery dry run against `app_id = 'demo'` for a 90-day range with compare on (180 days read). Dry runs are free, validate the SQL, and return the bytes estimate; the test fails if the estimate is over the cap.
 - **Component (Vitest + happy-dom + Testing Library):** KPI tiles with and without compare, coverage notes, panel error and byte-cap states, filter picker, funnel step editor.
 - **End-to-end (Playwright, local only):** test login, pick the demo app, check that overview, explorer and funnels render data, save and reopen a funnel, toggle Live and Refresh. Runs against `next start` with real demo data. `next start` loads env files in production mode, so it would not read `.env.development.local` (GCP values, OIDC token). `playwright.config.ts` therefore calls `loadEnvConfig(appDir, true)` from `@next/env` and passes the result to `webServer.env`.
+  Since 2026-10-19 (`2026-10-19-e2e-bigquery-cost-design.md`): the default run replays recorded BigQuery results from `apps/dashboard/e2e/fixtures` (`DASHBOARD_FIXTURES=replay`, no GCP access, bills nothing); tests tagged `@bq` (config writes, Live and Refresh, one overview smoke, one explorer and one funnel test) run against real BigQuery with `npm run e2e:bq`; `npm run e2e:record` re-records the fixtures, only for the synthetic apps `demo` and `demo-b`. Every mode sets `DASHBOARD_FIXED_TODAY=2026-10-13`.
 - **Library:** the existing suites keep passing after the monorepo move and the TS 6 switch; the published file list and the built output are unchanged.
 
 ## 10. Deployment
@@ -409,6 +410,7 @@ Cleanup: `DELETE FROM analytics.events WHERE app_id = 'demo'`. The ingest writes
 | `DASHBOARD_CACHE_TTL_SECONDS` | production | default 3600 |
 | `DASHBOARD_MAX_BYTES_PER_QUERY` | production, development | default 1000000000 |
 | `DASHBOARD_TEST_LOGIN`, `DASHBOARD_TEST_LOGIN_SECRET` | never | local only |
+| `DASHBOARD_FIXTURES` | never (a deployment with it does not start) | `replay` or `record`, set by the Playwright config |
 | `DASHBOARD_FIXED_TODAY` | never (a deployment with it does not start) | `YYYY-MM-DD`; replaces the clock's today in local runs and e2e |
 | `DASHBOARD_JOB_SOURCE` | never (a deployment with it does not start) | `e2e` in the Playwright config; the `rtd_source` job label is `production` in production, else `development` |
 

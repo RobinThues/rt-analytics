@@ -1,0 +1,464 @@
+[
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "Android",
+    "pageviews": 286,
+    "visitor_days": 188
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "iOS",
+    "pageviews": 578,
+    "visitor_days": 346
+  },
+  {
+    "dim": "os",
+    "period": "prev",
+    "value": "iOS",
+    "pageviews": 438,
+    "visitor_days": 266
+  },
+  {
+    "dim": "os",
+    "period": "prev",
+    "value": "macOS",
+    "pageviews": 203,
+    "visitor_days": 118
+  },
+  {
+    "dim": "browser",
+    "period": "prev",
+    "value": "Chrome",
+    "pageviews": 649,
+    "visitor_days": 390
+  },
+  {
+    "dim": "browser",
+    "period": "prev",
+    "value": "Firefox",
+    "pageviews": 55,
+    "visitor_days": 38
+  },
+  {
+    "dim": "os",
+    "period": "prev",
+    "value": "Linux",
+    "pageviews": 55,
+    "visitor_days": 38
+  },
+  {
+    "dim": "os",
+    "period": "prev",
+    "value": "Windows",
+    "pageviews": 426,
+    "visitor_days": 254
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Edge",
+    "pageviews": 75,
+    "visitor_days": 39
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Safari",
+    "pageviews": 781,
+    "visitor_days": 470
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Chrome",
+    "pageviews": 718,
+    "visitor_days": 439
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "Linux",
+    "pageviews": 99,
+    "visitor_days": 59
+  },
+  {
+    "dim": "device",
+    "period": "prev",
+    "value": "desktop",
+    "pageviews": 684,
+    "visitor_days": 410
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "Windows",
+    "pageviews": 507,
+    "visitor_days": 290
+  },
+  {
+    "dim": "os",
+    "period": "prev",
+    "value": "Android",
+    "pageviews": 289,
+    "visitor_days": 175
+  },
+  {
+    "dim": "device",
+    "period": "prev",
+    "value": "mobile",
+    "pageviews": 689,
+    "visitor_days": 417
+  },
+  {
+    "dim": "device",
+    "period": "cur",
+    "value": "desktop",
+    "pageviews": 809,
+    "visitor_days": 473
+  },
+  {
+    "dim": "browser",
+    "period": "prev",
+    "value": "Safari",
+    "pageviews": 641,
+    "visitor_days": 384
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Firefox",
+    "pageviews": 99,
+    "visitor_days": 59
+  },
+  {
+    "dim": "country",
+    "period": "prev",
+    "value": "DE",
+    "pageviews": 1233,
+    "visitor_days": 740
+  },
+  {
+    "dim": "device",
+    "period": "cur",
+    "value": "tablet",
+    "pageviews": 44,
+    "visitor_days": 31
+  },
+  {
+    "dim": "device",
+    "period": "cur",
+    "value": "mobile",
+    "pageviews": 820,
+    "visitor_days": 503
+  },
+  {
+    "dim": "country",
+    "period": "prev",
+    "value": "CH",
+    "pageviews": 62,
+    "visitor_days": 38
+  },
+  {
+    "dim": "country",
+    "period": "prev",
+    "value": "US",
+    "pageviews": 27,
+    "visitor_days": 21
+  },
+  {
+    "dim": "device",
+    "period": "prev",
+    "value": "tablet",
+    "pageviews": 38,
+    "visitor_days": 24
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "DE",
+    "pageviews": 1429,
+    "visitor_days": 849
+  },
+  {
+    "dim": "page",
+    "period": "prev",
+    "value": "/",
+    "pageviews": 967,
+    "visitor_days": 658
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/about",
+    "pageviews": 165,
+    "visitor_days": 163
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/privacy",
+    "pageviews": 124,
+    "visitor_days": 113
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "AT",
+    "pageviews": 117,
+    "visitor_days": 76
+  },
+  {
+    "dim": "page",
+    "period": "prev",
+    "value": "/privacy",
+    "pageviews": 115,
+    "visitor_days": 103
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/privacy",
+    "pageviews": 124,
+    "visitor_days": 76
+  },
+  {
+    "dim": "entry_page",
+    "period": "prev",
+    "value": "/",
+    "pageviews": 954,
+    "visitor_days": 605
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/",
+    "pageviews": 1164,
+    "visitor_days": 738
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/about",
+    "pageviews": 166,
+    "visitor_days": 127
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/faq",
+    "pageviews": 221,
+    "visitor_days": 137
+  },
+  {
+    "dim": "entry_page",
+    "period": "prev",
+    "value": "/faq",
+    "pageviews": 160,
+    "visitor_days": 109
+  },
+  {
+    "dim": "utm",
+    "period": "prev",
+    "value": "(none)",
+    "pageviews": 1316,
+    "visitor_days": 800
+  },
+  {
+    "dim": "utm",
+    "period": "cur",
+    "value": "newsletter / email / autumn",
+    "pageviews": 94,
+    "visitor_days": 66
+  },
+  {
+    "dim": "utm",
+    "period": "cur",
+    "value": "(none)",
+    "pageviews": 1581,
+    "visitor_days": 951
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "www.google.com",
+    "pageviews": 407,
+    "visitor_days": 292
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "direct",
+    "pageviews": 754,
+    "visitor_days": 516
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "duckduckgo.com",
+    "pageviews": 51,
+    "visitor_days": 42
+  },
+  {
+    "dim": "source",
+    "period": "prev",
+    "value": "localhost",
+    "pageviews": 208,
+    "visitor_days": 118
+  },
+  {
+    "dim": "source",
+    "period": "prev",
+    "value": "www.google.com",
+    "pageviews": 326,
+    "visitor_days": 217
+  },
+  {
+    "dim": "source",
+    "period": "prev",
+    "value": "direct",
+    "pageviews": 652,
+    "visitor_days": 459
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "localhost",
+    "pageviews": 271,
+    "visitor_days": 155
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "www.reddit.com",
+    "pageviews": 88,
+    "visitor_days": 55
+  },
+  {
+    "dim": "source",
+    "period": "prev",
+    "value": "www.reddit.com",
+    "pageviews": 67,
+    "visitor_days": 45
+  },
+  {
+    "dim": "page",
+    "period": "prev",
+    "value": "/about",
+    "pageviews": 165,
+    "visitor_days": 156
+  },
+  {
+    "dim": "page",
+    "period": "prev",
+    "value": "/faq",
+    "pageviews": 164,
+    "visitor_days": 151
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/",
+    "pageviews": 1175,
+    "visitor_days": 798
+  },
+  {
+    "dim": "country",
+    "period": "prev",
+    "value": "AT",
+    "pageviews": 69,
+    "visitor_days": 38
+  },
+  {
+    "dim": "os",
+    "period": "cur",
+    "value": "macOS",
+    "pageviews": 203,
+    "visitor_days": 124
+  },
+  {
+    "dim": "browser",
+    "period": "prev",
+    "value": "Edge",
+    "pageviews": 66,
+    "visitor_days": 39
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "CH",
+    "pageviews": 82,
+    "visitor_days": 52
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "NL",
+    "pageviews": 16,
+    "visitor_days": 9
+  },
+  {
+    "dim": "entry_page",
+    "period": "prev",
+    "value": "/about",
+    "pageviews": 157,
+    "visitor_days": 110
+  },
+  {
+    "dim": "entry_page",
+    "period": "prev",
+    "value": "/privacy",
+    "pageviews": 138,
+    "visitor_days": 82
+  },
+  {
+    "dim": "utm",
+    "period": "prev",
+    "value": "newsletter / email / autumn",
+    "pageviews": 93,
+    "visitor_days": 63
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "mastodon.social",
+    "pageviews": 104,
+    "visitor_days": 72
+  },
+  {
+    "dim": "source",
+    "period": "prev",
+    "value": "mastodon.social",
+    "pageviews": 83,
+    "visitor_days": 64
+  },
+  {
+    "dim": "source",
+    "period": "prev",
+    "value": "duckduckgo.com",
+    "pageviews": 73,
+    "visitor_days": 50
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "US",
+    "pageviews": 29,
+    "visitor_days": 21
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/faq",
+    "pageviews": 209,
+    "visitor_days": 188
+  },
+  {
+    "dim": "country",
+    "period": "prev",
+    "value": "NL",
+    "pageviews": 20,
+    "visitor_days": 14
+  }
+]
