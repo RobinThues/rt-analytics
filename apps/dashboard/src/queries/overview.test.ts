@@ -3,15 +3,13 @@ import { describe, expect, it } from "vitest";
 import { buildContext } from "./context";
 import {
   breakdownsQuery,
-  consentQuery,
   DIMS,
   kpisQuery,
   retentionQuery,
   splitBreakdowns,
-  slowPagesQuery,
-  topErrorsQuery,
   trafficQuery,
-  webVitalsQuery,
+  qualityQuery,
+  splitQuality,
 } from "./overview";
 
 const ctx = buildContext({
@@ -22,16 +20,7 @@ const ctx = buildContext({
   compare: true,
   today: "2026-10-16",
 });
-const all = [
-  kpisQuery(ctx),
-  trafficQuery(ctx),
-  breakdownsQuery(ctx),
-  webVitalsQuery(ctx),
-  slowPagesQuery(ctx),
-  topErrorsQuery(ctx),
-  consentQuery(ctx),
-  retentionQuery(ctx),
-];
+const all = [kpisQuery(ctx), trafficQuery(ctx), breakdownsQuery(ctx), qualityQuery(ctx), retentionQuery(ctx)];
 
 describe("overview queries", () => {
   it("every overview query filters app and a timestamp range, never inlines the app id", () => {
@@ -70,11 +59,34 @@ describe("overview queries", () => {
     expect(split.page).toEqual([{ period: "prev", value: null, pageviews: 1, visitor_days: 1 }]);
     expect(split.country).toEqual([]);
   });
+  it("quality: one query reads the table once and keeps each panel's own limits", () => {
+    const q = qualityQuery(ctx);
+    expect(q.name).toBe("quality");
+    expect(q.sql.split(ctx.table).length - 1).toBe(1);
+    expect(q.sql.match(/LIMIT 10/g)).toHaveLength(2);
+    expect(q.sql).toContain("HAVING COUNT(*) >= 5");
+    for (const p of ["vitals", "slow_pages", "errors", "consent"]) expect(q.sql).toContain(`'${p}' AS panel`);
+  });
   it("web vitals: only LCP, INP, CLS, p75 from APPROX_QUANTILES", () => {
-    const sql = webVitalsQuery(ctx).sql;
+    const sql = qualityQuery(ctx).sql;
     expect(sql).toContain("APPROX_QUANTILES");
     expect(sql).toContain("[OFFSET(75)]");
     expect(sql).toContain("('LCP', 'INP', 'CLS')");
+  });
+  it("splitQuality gives each panel only its own fields", () => {
+    expect(splitQuality([])).toEqual({ vitals: [], slowPages: [], errors: [], consent: [] });
+    const nulls = { period: null, metric: null, p75: null, samples: null, page_path: null, message: null };
+    const more = { occurrences: null, last_seen: null, consent_state: null, pageviews: null };
+    const split = splitQuality([
+      { ...nulls, ...more, panel: "slow_pages", page_path: "/a", p75: 2500, samples: 7 },
+      { ...nulls, ...more, panel: "vitals", period: "cur", metric: "LCP", p75: 1800, samples: 40 },
+      { ...nulls, ...more, panel: "errors", message: "boom", occurrences: 3, last_seen: "2026-10-13 10:00" },
+      { ...nulls, ...more, panel: "consent", period: "prev", consent_state: "granted", pageviews: 9 },
+    ]);
+    expect(split.slowPages).toEqual([{ page_path: "/a", p75: 2500, samples: 7 }]);
+    expect(split.vitals).toEqual([{ period: "cur", metric: "LCP", p75: 1800, samples: 40 }]);
+    expect(split.errors).toEqual([{ message: "boom", occurrences: 3, last_seen: "2026-10-13 10:00" }]);
+    expect(split.consent).toEqual([{ period: "prev", consent_state: "granted", pageviews: 9 }]);
   });
   it("retention: 28-day lookback, Monday weeks, persistent ids only, no previous period", () => {
     const q = retentionQuery(ctx);

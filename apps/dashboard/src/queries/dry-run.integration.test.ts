@@ -13,16 +13,7 @@ import { appListQuery, eventNamesQuery, propKeysQuery } from "@/discovery/sql";
 import { todayEnd } from "@/time/today";
 import { buildContext, eventsCte, SESSION_COLUMNS, sessionsCte, toSpec } from "./context";
 import { funnelQuery } from "./funnel";
-import {
-  breakdownsQuery,
-  consentQuery,
-  kpisQuery,
-  retentionQuery,
-  slowPagesQuery,
-  topErrorsQuery,
-  trafficQuery,
-  webVitalsQuery,
-} from "./overview";
+import { breakdownsQuery, kpisQuery, retentionQuery, trafficQuery, qualityQuery } from "./overview";
 import {
   eventBreakdownQuery,
   eventListQuery,
@@ -69,10 +60,7 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
   ["overview kpis", kpisQuery(ctx)],
   ["overview traffic", trafficQuery(ctx)],
   ["overview breakdowns (all eight)", breakdownsQuery(ctx)],
-  ["overview web vitals", webVitalsQuery(ctx)],
-  ["overview slow pages", slowPagesQuery(ctx)],
-  ["overview top errors", topErrorsQuery(ctx)],
-  ["overview consent", consentQuery(ctx)],
+  ["overview quality (all four)", qualityQuery(ctx)],
   ["overview retention", retentionQuery(ctx)],
   ["explorer list", eventListQuery(ctx)],
   ...(["events", "sessions", "visitors"] as const).map((kind): [string, QuerySpec] => [

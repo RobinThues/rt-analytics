@@ -226,48 +226,106 @@ export function splitBreakdowns(rows: readonly BreakdownsRow[]): Record<Breakdow
   return out;
 }
 
-export function webVitalsQuery(ctx: QueryContext): QuerySpec {
-  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "props"])}
-SELECT period, LAX_STRING(props.metric) AS metric,
-  APPROX_QUANTILES(LAX_FLOAT64(props.value), 100)[OFFSET(75)] AS p75, COUNT(*) AS samples
-FROM evp
-WHERE event_name = ${VITAL} AND period IS NOT NULL AND LAX_STRING(props.metric) IN ('LCP', 'INP', 'CLS')
-GROUP BY period, metric`;
-  return toSpec("web_vitals", sql, ctx.params);
+const NULL_STR = "CAST(NULL AS STRING)";
+const NULL_INT = "CAST(NULL AS INT64)";
+const NULL_NUM = "CAST(NULL AS FLOAT64)";
+
+/**
+ * The four quality panels (web vitals, slowest pages, top errors, consent) in one query (one BigQuery job).
+ * Each panel keeps its own select, filter and limit; the selects share one column list (panel, period,
+ * metric, p75, samples, page_path, message, occurrences, last_seen, consent_state, pageviews) and fill the
+ * columns they do not use with typed NULLs.
+ */
+export function qualityQuery(ctx: QueryContext): QuerySpec {
+  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "page_path", "props", "consent_state"])}
+(
+  SELECT 'vitals' AS panel, period, LAX_STRING(props.metric) AS metric,
+    APPROX_QUANTILES(LAX_FLOAT64(props.value), 100)[OFFSET(75)] AS p75, COUNT(*) AS samples,
+    ${NULL_STR} AS page_path, ${NULL_STR} AS message, ${NULL_INT} AS occurrences, ${NULL_STR} AS last_seen,
+    ${NULL_STR} AS consent_state, ${NULL_INT} AS pageviews
+  FROM evp
+  WHERE event_name = ${VITAL} AND period IS NOT NULL AND LAX_STRING(props.metric) IN ('LCP', 'INP', 'CLS')
+  GROUP BY period, metric
+)
+UNION ALL
+(
+  SELECT 'slow_pages' AS panel, ${NULL_STR} AS period, ${NULL_STR} AS metric,
+    APPROX_QUANTILES(LAX_FLOAT64(props.value), 100)[OFFSET(75)] AS p75, COUNT(*) AS samples,
+    IFNULL(page_path, '(none)') AS page_path, ${NULL_STR} AS message, ${NULL_INT} AS occurrences,
+    ${NULL_STR} AS last_seen, ${NULL_STR} AS consent_state, ${NULL_INT} AS pageviews
+  FROM evp
+  WHERE event_name = ${VITAL} AND period = 'cur' AND LAX_STRING(props.metric) = 'LCP'
+  GROUP BY page_path
+  HAVING COUNT(*) >= 5
+  ORDER BY p75 DESC
+  LIMIT 10
+)
+UNION ALL
+(
+  SELECT 'errors' AS panel, ${NULL_STR} AS period, ${NULL_STR} AS metric, ${NULL_NUM} AS p75, ${NULL_INT} AS samples,
+    ${NULL_STR} AS page_path, IFNULL(LAX_STRING(props.message), '(no message)') AS message, COUNT(*) AS occurrences,
+    FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', MAX(timestamp), @tz) AS last_seen,
+    ${NULL_STR} AS consent_state, ${NULL_INT} AS pageviews
+  FROM evp
+  WHERE event_name = ${ERR} AND period = 'cur'
+  GROUP BY message
+  ORDER BY occurrences DESC, message
+  LIMIT 10
+)
+UNION ALL
+(
+  SELECT 'consent' AS panel, period, ${NULL_STR} AS metric, ${NULL_NUM} AS p75, ${NULL_INT} AS samples,
+    ${NULL_STR} AS page_path, ${NULL_STR} AS message, ${NULL_INT} AS occurrences, ${NULL_STR} AS last_seen,
+    IFNULL(consent_state, 'unknown') AS consent_state, COUNT(*) AS pageviews
+  FROM evp
+  WHERE event_name = ${PV} AND period IS NOT NULL
+  GROUP BY period, consent_state
+)`;
+  return toSpec("quality", sql, ctx.params);
 }
 
-export function slowPagesQuery(ctx: QueryContext): QuerySpec {
-  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "page_path", "props"])}
-SELECT IFNULL(page_path, '(none)') AS page_path,
-  APPROX_QUANTILES(LAX_FLOAT64(props.value), 100)[OFFSET(75)] AS p75, COUNT(*) AS samples
-FROM evp
-WHERE event_name = ${VITAL} AND period = 'cur' AND LAX_STRING(props.metric) = 'LCP'
-GROUP BY page_path
-HAVING COUNT(*) >= 5
-ORDER BY p75 DESC
-LIMIT 10`;
-  return toSpec("slow_pages", sql, ctx.params);
+export type QualityPanel = "vitals" | "slow_pages" | "errors" | "consent";
+
+/** One row of `qualityQuery`: the panel plus every panel's columns (NULL where unused). */
+export interface QualityRow {
+  panel: QualityPanel;
+  period: Period | null;
+  metric: VitalRow["metric"] | null;
+  p75: number | null;
+  samples: number | null;
+  page_path: string | null;
+  message: string | null;
+  occurrences: number | null;
+  last_seen: string | null;
+  consent_state: string | null;
+  pageviews: number | null;
 }
 
-export function topErrorsQuery(ctx: QueryContext): QuerySpec {
-  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "props"])}
-SELECT IFNULL(LAX_STRING(props.message), '(no message)') AS message, COUNT(*) AS occurrences,
-  FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', MAX(timestamp), @tz) AS last_seen
-FROM evp
-WHERE event_name = ${ERR} AND period = 'cur'
-GROUP BY message
-ORDER BY occurrences DESC, message
-LIMIT 10`;
-  return toSpec("top_errors", sql, ctx.params);
-}
-
-export function consentQuery(ctx: QueryContext): QuerySpec {
-  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "consent_state"])}
-SELECT period, IFNULL(consent_state, 'unknown') AS consent_state, COUNT(*) AS pageviews
-FROM evp
-WHERE event_name = ${PV} AND period IS NOT NULL
-GROUP BY period, consent_state`;
-  return toSpec("consent", sql, ctx.params);
+/** Rows of `qualityQuery` per panel, each with only its own fields, in query order. */
+export function splitQuality(rows: readonly QualityRow[]): {
+  vitals: VitalRow[];
+  slowPages: SlowPageRow[];
+  errors: ErrorRow[];
+  consent: ConsentRow[];
+} {
+  const out = {
+    vitals: [] as VitalRow[],
+    slowPages: [] as SlowPageRow[],
+    errors: [] as ErrorRow[],
+    consent: [] as ConsentRow[],
+  };
+  for (const r of rows) {
+    if (r.panel === "vitals") {
+      out.vitals.push({ period: r.period!, metric: r.metric!, p75: r.p75!, samples: r.samples! });
+    } else if (r.panel === "slow_pages") {
+      out.slowPages.push({ page_path: r.page_path!, p75: r.p75!, samples: r.samples! });
+    } else if (r.panel === "errors") {
+      out.errors.push({ message: r.message!, occurrences: r.occurrences!, last_seen: r.last_seen! });
+    } else if (r.panel === "consent") {
+      out.consent.push({ period: r.period!, consent_state: r.consent_state!, pageviews: r.pageviews! });
+    }
+  }
+  return out;
 }
 
 /**
