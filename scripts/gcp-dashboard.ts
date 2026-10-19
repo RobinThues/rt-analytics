@@ -58,6 +58,19 @@ function tryGcloud(...args: string[]): string | null {
   }
 }
 
+/** A new service account takes a while before IAM accepts it in bindings; retry for up to 2 minutes. */
+async function gcloudRetry(...args: string[]): Promise<string> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return gcloud(...args);
+    } catch (err) {
+      if (attempt >= 12) throw err;
+      console.log(`gcloud ${args.slice(0, 3).join(" ")} failed, retrying in 10 s (${attempt}/12)`);
+      await new Promise((resolve) => setTimeout(resolve, 10_000));
+    }
+  }
+}
+
 type AccessEntry = { role?: string; userByEmail?: string };
 
 async function grantDataset(bq: BigQuery, datasetId: string, role: "READER" | "WRITER", email: string) {
@@ -117,7 +130,7 @@ export async function setupDashboard(
     } else {
       console.log(`Service account ${sa.email} exists`);
     }
-    gcloud(
+    await gcloudRetry(
       "projects",
       "add-iam-policy-binding",
       projectId,
@@ -169,7 +182,7 @@ export async function setupDashboard(
     { email: devSaEmail, env: "development" as const },
   ];
   for (const { email, env } of subjects) {
-    gcloud(
+    await gcloudRetry(
       "iam",
       "service-accounts",
       "add-iam-policy-binding",
