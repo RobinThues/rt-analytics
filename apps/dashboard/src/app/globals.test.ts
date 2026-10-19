@@ -72,7 +72,14 @@ describe("globals.css", () => {
   });
 
   it("brand and data values", () => {
-    for (const v of ["oklch(0.52 0.2 300)", "oklch(0.74 0.15 300)", "#2a78d6", "#3987e5", "#8f8e88", "--text-sm: 13px"]) {
+    for (const v of [
+      "oklch(0.52 0.2 300)",
+      "oklch(0.74 0.15 300)",
+      "#2a78d6",
+      "#3987e5",
+      "#8f8e88",
+      "--text-sm: 13px",
+    ]) {
       expect(css).toContain(v);
     }
   });

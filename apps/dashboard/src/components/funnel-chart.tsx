@@ -118,15 +118,7 @@ function Horizontal({ steps, view, compare }: Props) {
           const cy = (top(g.bars[i]?.length ?? 0) + top(g.bars[i + 1]?.length ?? 0)) / 2 + 12;
           return (
             <g key={`chip-${c.afterStep}`}>
-              <rect
-                x={cx - 30}
-                y={cy - 12}
-                width="60"
-                height="22"
-                rx="11"
-                fill="var(--card)"
-                stroke="var(--border)"
-              />
+              <rect x={cx - 30} y={cy - 12} width="60" height="22" rx="11" fill="var(--card)" stroke="var(--border)" />
               <text x={cx} y={cy + 3} textAnchor="middle" fontSize="11" fill="var(--foreground)">
                 {c.label}
               </text>

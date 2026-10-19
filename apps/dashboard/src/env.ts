@@ -1,6 +1,7 @@
 // Reads and validates the dashboard's environment (spec section 10). Throws on invalid values so a
 // misconfigured deployment fails at startup instead of on the first query.
 import { JOB_SOURCES, type JobSource } from "@/bq/run-query";
+import { isDay } from "@/time/range";
 
 type Env = Record<string, string | undefined>;
 
@@ -22,6 +23,8 @@ export interface DashboardEnv {
   configTable: string;
   testLogin: { enabled: boolean; secret: string | null };
   jobSource: JobSource;
+  /** Local runs only: replaces the clock's "today" (e2e, so fixtures and the demo data stay valid). */
+  fixedToday: string | null;
 }
 
 const PROJECT_RE = /^[a-z][a-z0-9-]{4,61}[a-z0-9]$/;
@@ -65,7 +68,13 @@ export function assertSafeTestLogin(env: Env): void {
 }
 
 /** Switches for local runs and e2e only; a deployment that has any of them must not start. */
-const LOCAL_ONLY = ["DASHBOARD_JOB_SOURCE"] as const;
+const LOCAL_ONLY = ["DASHBOARD_JOB_SOURCE", "DASHBOARD_FIXED_TODAY"] as const;
+
+export function parseFixedToday(raw?: string): string | null {
+  if (raw === undefined) return null;
+  if (!isDay(raw)) throw new Error("DASHBOARD_FIXED_TODAY must be a day (YYYY-MM-DD)");
+  return raw;
+}
 
 export function assertLocalOnly(env: Env): void {
   if (!inDeployment(env)) return;
@@ -109,6 +118,7 @@ export function readEnv(env: Env = process.env): DashboardEnv {
     configTable: `\`${projectId}.${configDataset}.dashboard_config\``,
     testLogin: testLoginState(env),
     jobSource: parseJobSource(env),
+    fixedToday: parseFixedToday(env.DASHBOARD_FIXED_TODAY),
   };
 }
 

@@ -9,7 +9,8 @@ import { listApps } from "@/discovery/data";
 import { APP_ID_RE } from "@/discovery/sql";
 import { readEnv } from "@/env";
 import { buildContext, type QueryContext } from "@/queries/context";
-import { todayIn, type DateRange } from "@/time/range";
+import type { DateRange } from "@/time/range";
+import { appToday } from "@/time/today";
 import { parseViewState } from "@/view/state";
 
 export type SearchParams = Record<string, string | string[] | undefined>;
@@ -56,7 +57,7 @@ async function load(params: Promise<{ appId: string }>, searchParams: Promise<Se
   await requireUser();
   const env = readEnv();
   const [settings, apps, live, sp] = await Promise.all([getSettings(appId), listApps(), isLive(), searchParams]);
-  const today = todayIn(settings.timezone, new Date());
+  const today = appToday(settings.timezone, env);
   const state = parseViewState(sp, today);
   const ctx = buildContext({
     table: env.analyticsTable,

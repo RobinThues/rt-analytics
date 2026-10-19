@@ -9,6 +9,8 @@ import type { QuerySpec } from "@/bq/run-query";
 import { readEnv } from "@/env";
 import { addDays, todayIn } from "@/time/range";
 import { listFunnelsQuery } from "@/config/funnels";
+import { appListQuery, eventNamesQuery, propKeysQuery } from "@/discovery/sql";
+import { todayEnd } from "@/time/today";
 import { buildContext, eventsCte, SESSION_COLUMNS, sessionsCte, toSpec } from "./context";
 import { funnelQuery } from "./funnel";
 import {
@@ -104,6 +106,9 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
     ]),
   ],
   ["saved funnels list", listFunnelsQuery(env, "demo")],
+  ["app list", appListQuery(env, todayEnd("UTC", env))],
+  ["event names", eventNamesQuery(env, "demo", todayEnd("Europe/Berlin", env))],
+  ["prop keys", propKeysQuery(env, "demo", todayEnd("Europe/Berlin", env))],
 ];
 
 describe.skipIf(!enabled)("dry runs against demo (90 days, compare on)", () => {

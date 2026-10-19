@@ -119,3 +119,19 @@ describe("job source", () => {
     ).toThrow(/DASHBOARD_JOB_SOURCE/);
   });
 });
+
+describe("fixed today", () => {
+  const base = { GCP_PROJECT_ID: "robin-thues" };
+  it("is null when unset", () => expect(readEnv(base).fixedToday).toBeNull());
+  it("accepts a real day", () =>
+    expect(readEnv({ ...base, DASHBOARD_FIXED_TODAY: "2026-10-13" }).fixedToday).toBe("2026-10-13"));
+  it("rejects anything that is not a day", () => {
+    expect(() => readEnv({ ...base, DASHBOARD_FIXED_TODAY: "2026-13-01" })).toThrow(/DASHBOARD_FIXED_TODAY/);
+    expect(() => readEnv({ ...base, DASHBOARD_FIXED_TODAY: "today" })).toThrow(/DASHBOARD_FIXED_TODAY/);
+  });
+  it("refuses DASHBOARD_FIXED_TODAY in a deployment", () => {
+    expect(() => startupCheck({ ...base, VERCEL_ENV: "preview", DASHBOARD_FIXED_TODAY: "2026-10-13" })).toThrow(
+      /DASHBOARD_FIXED_TODAY/,
+    );
+  });
+});

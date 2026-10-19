@@ -28,7 +28,8 @@ export function loadExplorer(input: PageInput): Promise<ExplorerData> {
 
 async function load(input: PageInput): Promise<ExplorerData> {
   const page = await loadPage(input);
-  const [events, keys] = await Promise.all([listEvents(page.appId), listPropKeys(page.appId)]);
+  const tz = page.settings.timezone;
+  const [events, keys] = await Promise.all([listEvents(page.appId, tz), listPropKeys(page.appId, tz)]);
   const catalog = events.ok ? buildCatalog(events.rows, keys.ok ? keys.rows : []) : null;
   const sel = catalog ? parseExplorer(page.sp, catalog) : null;
   const pageParams = explorerParams(sel);

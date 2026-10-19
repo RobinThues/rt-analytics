@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/auth/session";
 import { TAGS } from "@/bq/cache-rules";
 import { execute } from "@/bq/query";
-import { getFunnels } from "@/config/data";
+import { getFunnels, getSettings } from "@/config/data";
 import { deleteFunnelQuery, FUNNEL_ID_RE, MAX_NAME, saveFunnelQuery } from "@/config/funnels";
 import { buildCatalog } from "@/discovery/catalog";
 import { listEvents, listPropKeys } from "@/discovery/data";
@@ -32,7 +32,8 @@ export async function saveFunnel(appId: string, steps: string[], qs: string, for
   checkApp(appId);
   const name = String(formData.get("name") ?? "").trim();
   if (name.length === 0 || name.length > MAX_NAME) redirect(funnelsUrl(appId, qs, (p) => p.set("error", "name")));
-  const [events, keys, saved] = await Promise.all([listEvents(appId), listPropKeys(appId), getFunnels(appId)]);
+  const { timezone: tz } = await getSettings(appId);
+  const [events, keys, saved] = await Promise.all([listEvents(appId, tz), listPropKeys(appId, tz), getFunnels(appId)]);
   const catalog = buildCatalog(events.ok ? events.rows : [], keys.ok ? keys.rows : []);
   const valid = Array.isArray(steps)
     ? validateSteps(

@@ -51,7 +51,8 @@ export function loadFunnelPage(input: PageInput): Promise<FunnelPageData> {
 async function load(input: PageInput): Promise<FunnelPageData> {
   const page = await loadPage(input);
   const { appId, sp, state } = page;
-  const [events, keys, saved] = await Promise.all([listEvents(appId), listPropKeys(appId), getFunnels(appId)]);
+  const tz = page.settings.timezone;
+  const [events, keys, saved] = await Promise.all([listEvents(appId, tz), listPropKeys(appId, tz), getFunnels(appId)]);
   const catalog = buildCatalog(events.ok ? events.rows : [], keys.ok ? keys.rows : []);
   const allowed = allowedFor(catalog, saved.funnels);
   const funnelId = typeof sp.funnel === "string" ? sp.funnel : null;

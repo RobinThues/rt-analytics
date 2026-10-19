@@ -253,6 +253,7 @@ BigQuery's own result cache does not help here: it is skipped for tables that re
 - **App list:** distinct `app_id` over the last 7 days (reads only `app_id` and `timestamp`), plus every app ID in `dashboard_config`. This is the one query without an `app_id` filter.
 - **Event names:** distinct non-`$` `event_name` over the last 30 days, with the event count and `COUNTIF(visitor_id IS NOT NULL)` and `COUNTIF(session_id IS NOT NULL)`, so the explorer knows which metrics make sense for each event (reads only `app_id`, `event_name`, `timestamp`, `visitor_id`, `session_id`).
 - **Prop keys:** for each event, top-level keys over the last 7 days whose values are strings, numbers or booleans: `UNNEST(JSON_KEYS(props, 1)) AS k` with `JSON_TYPE(props[k])`. Keys that BigQuery returns quoted (special characters) fail the key rule and are skipped. Nested objects and arrays are ignored. This is the query that reads `props`, so it gets the shortest window.
+- All three windows end at `@today_end`, the start of the day after the app's today (UTC for the app list), not at `CURRENT_TIMESTAMP()` (changed 2026-10-19). The value changes once a day, which fits the 24-hour TTL, and a fixed today in e2e (`DASHBOARD_FIXED_TODAY`) moves the windows too.
 
 ### Errors
 
@@ -408,6 +409,7 @@ Cleanup: `DELETE FROM analytics.events WHERE app_id = 'demo'`. The ingest writes
 | `DASHBOARD_CACHE_TTL_SECONDS` | production | default 3600 |
 | `DASHBOARD_MAX_BYTES_PER_QUERY` | production, development | default 1000000000 |
 | `DASHBOARD_TEST_LOGIN`, `DASHBOARD_TEST_LOGIN_SECRET` | never | local only |
+| `DASHBOARD_FIXED_TODAY` | never (a deployment with it does not start) | `YYYY-MM-DD`; replaces the clock's today in local runs and e2e |
 | `DASHBOARD_JOB_SOURCE` | never (a deployment with it does not start) | `e2e` in the Playwright config; the `rtd_source` job label is `production` in production, else `development` |
 
 Local development: Vercel cannot give sensitive variables to the development environment. So `vercel env pull .env.development.local` brings the non-secret values and the `VERCEL_OIDC_TOKEN`, and a hand-written `apps/dashboard/.env.local` (gitignored) holds the local secrets: `BETTER_AUTH_SECRET` (a separate local value), `BETTER_AUTH_URL=http://localhost:3000`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `DASHBOARD_ALLOWED_EMAILS`, and the test-login values. `apps/dashboard` is linked with `vercel link`, so `@vercel/oidc` can refresh an expired development token by itself (it uses `.vercel/project.json` and the CLI login).
