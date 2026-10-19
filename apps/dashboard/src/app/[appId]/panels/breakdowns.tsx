@@ -1,8 +1,8 @@
 import { BreakdownTable } from "@/components/breakdown-table";
 import { QueryError } from "@/components/query-error";
-import { dataQuery } from "@/bq/query";
 import { toBreakdown } from "@/overview/model";
-import { breakdownQuery, type BreakdownDim, type BreakdownRow } from "@/queries/overview";
+import { splitBreakdowns, type BreakdownDim } from "@/queries/overview";
+import { loadBreakdowns } from "./shared";
 import type { PanelProps } from "../page-data";
 
 export const BREAKDOWNS: ReadonlyArray<{ dim: BreakdownDim; title: string; valueLabel: string }> = [
@@ -23,11 +23,11 @@ export async function BreakdownPanel({
   dim,
   valueLabel,
 }: PanelProps & { dim: BreakdownDim; valueLabel: string }) {
-  const res = await dataQuery<BreakdownRow>(breakdownQuery(ctx, dim), ctx.appId, live);
+  const res = await loadBreakdowns(ctx, live);
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
   return (
     <BreakdownTable
-      rows={toBreakdown(res.rows, ctx.days, ctx.compare)}
+      rows={toBreakdown(splitBreakdowns(res.rows)[dim], ctx.days, ctx.compare)}
       valueLabel={valueLabel}
       compare={ctx.compare}
       testId={`breakdown-${dim}`}

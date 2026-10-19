@@ -55,6 +55,8 @@ export interface BreakdownRow {
   visitor_days: number;
 }
 
+export type BreakdownsRow = BreakdownRow & { dim: BreakdownDim };
+
 export interface VitalRow {
   period: Period;
   metric: "LCP" | "INP" | "CLS";
@@ -174,34 +176,54 @@ const DIM_SQL: Record<BreakdownDim, { level: "event"; column: EventColumn } | { 
   },
 };
 
-export function breakdownQuery(ctx: QueryContext, dim: BreakdownDim): QuerySpec {
+const EVENT_DIM_COLUMNS = DIMS.flatMap((dim) => {
   const d = DIM_SQL[dim];
-  const head =
-    d.level === "event"
-      ? `${eventsCte(ctx.table, ["event_name", "timestamp", "visitor_id", d.column])},
-items AS (
-  SELECT period, day, IFNULL(${d.column}, '(none)') AS value, visitor_id, 1 AS pv
-  FROM evp WHERE event_name = ${PV} AND period IS NOT NULL
-)`
-      : `${eventsCte(ctx.table, SESSION_COLUMNS)},
+  return d.level === "event" && !(SESSION_COLUMNS as readonly string[]).includes(d.column) ? [d.column] : [];
+});
+
+/**
+ * All eight breakdown panels in one query (one BigQuery job): one `items` row set with a `dim` column, the
+ * top 20 per dimension, and the same per-day visitor sums as before. Event-level dimensions count pageview
+ * events, session-level dimensions count sessions.
+ */
+export function breakdownsQuery(ctx: QueryContext): QuerySpec {
+  const items = DIMS.map((dim) => {
+    const d = DIM_SQL[dim];
+    return d.level === "event"
+      ? `  SELECT '${dim}' AS dim, period, day, IFNULL(${d.column}, '(none)') AS value, visitor_id, 1 AS pv
+  FROM evp WHERE event_name = ${PV} AND period IS NOT NULL`
+      : `  SELECT '${dim}' AS dim, period, day, IFNULL(${d.expr}, '(none)') AS value, visitor_id, pageviews AS pv
+  FROM sessions WHERE period IS NOT NULL`;
+  }).join("\n  UNION ALL\n");
+  // Other is a bucket computed in SQL, not total minus top 20: distinct counts do not add up.
+  const sql = `WITH ${eventsCte(ctx.table, [...SESSION_COLUMNS, ...EVENT_DIM_COLUMNS])},
 ${sessionsCte()},
 items AS (
-  SELECT period, day, IFNULL(${d.expr}, '(none)') AS value, visitor_id, pageviews AS pv
-  FROM sessions WHERE period IS NOT NULL
-)`;
-  // Other is a bucket computed in SQL, not total minus top 20: distinct counts do not add up.
-  const sql = `WITH ${head},
-top AS (SELECT value FROM items WHERE period = 'cur' GROUP BY value ORDER BY SUM(pv) DESC, value LIMIT 20),
-bucketed AS (SELECT r.period, r.day, t.value AS value, r.visitor_id, r.pv FROM items r LEFT JOIN top t USING (value)),
+${items}
+),
+top AS (
+  SELECT dim, value FROM (
+    SELECT dim, value, ROW_NUMBER() OVER (PARTITION BY dim ORDER BY SUM(pv) DESC, value) AS rank
+    FROM items WHERE period = 'cur' GROUP BY dim, value
+  ) WHERE rank <= 20
+),
+bucketed AS (
+  SELECT r.dim, r.period, r.day, t.value AS value, r.visitor_id, r.pv FROM items r LEFT JOIN top t USING (dim, value)
+),
 daily AS (
-  SELECT period, value, day, SUM(pv) AS pv, COUNT(DISTINCT visitor_id) AS v
-  FROM bucketed GROUP BY period, value, day
+  SELECT dim, period, value, day, SUM(pv) AS pv, COUNT(DISTINCT visitor_id) AS v
+  FROM bucketed GROUP BY dim, period, value, day
 )
-SELECT period, value, SUM(pv) AS pageviews, SUM(v) AS visitor_days
-FROM daily GROUP BY period, value`;
-  return dim === "source"
-    ? toSpec("breakdown", sql, { ...ctx.params, own_hosts: [...ctx.hosts] }, { own_hosts: ["STRING"] })
-    : toSpec("breakdown", sql, ctx.params);
+SELECT dim, period, value, SUM(pv) AS pageviews, SUM(v) AS visitor_days
+FROM daily GROUP BY dim, period, value`;
+  return toSpec("breakdowns", sql, { ...ctx.params, own_hosts: [...ctx.hosts] }, { own_hosts: ["STRING"] });
+}
+
+/** Rows of `breakdownsQuery` per dimension, without the `dim` column; every dimension is present. */
+export function splitBreakdowns(rows: readonly BreakdownsRow[]): Record<BreakdownDim, BreakdownRow[]> {
+  const out = Object.fromEntries(DIMS.map((d) => [d, [] as BreakdownRow[]])) as Record<BreakdownDim, BreakdownRow[]>;
+  for (const { dim, ...row } of rows) out[dim]?.push(row);
+  return out;
 }
 
 export function webVitalsQuery(ctx: QueryContext): QuerySpec {

@@ -92,7 +92,8 @@ session later.
 
 - Navigating between pages shows the sidebar, the top bar and the panel frames right away. Each panel
   shows a skeleton shaped like its content until its data arrives, and panels fill in one by one as
-  their queries finish.
+  their queries finish. Exception (2026-10-19): panels that share a merged query (the eight breakdowns,
+  the four quality panels) fill in together.
 - Frames shown at once, with their titles, are only the ones that do not depend on the URL or on data:
   - Overview: every panel (the panel list is fixed).
   - Events: the "Events" list panel. The right-hand column shows one generic skeleton block of the

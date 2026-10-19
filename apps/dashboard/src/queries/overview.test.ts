@@ -2,11 +2,12 @@
 import { describe, expect, it } from "vitest";
 import { buildContext } from "./context";
 import {
-  breakdownQuery,
+  breakdownsQuery,
   consentQuery,
   DIMS,
   kpisQuery,
   retentionQuery,
+  splitBreakdowns,
   slowPagesQuery,
   topErrorsQuery,
   trafficQuery,
@@ -24,7 +25,7 @@ const ctx = buildContext({
 const all = [
   kpisQuery(ctx),
   trafficQuery(ctx),
-  ...DIMS.map((d) => breakdownQuery(ctx, d)),
+  breakdownsQuery(ctx),
   webVitalsQuery(ctx),
   slowPagesQuery(ctx),
   topErrorsQuery(ctx),
@@ -41,17 +42,33 @@ describe("overview queries", () => {
       expect(q.params.app_id).toBe("x' OR 1=1 --");
     }
   });
-  it("only overview breakdowns by source use the own hosts, as a typed array param", () => {
-    const q = breakdownQuery(ctx, "source");
+  it("breakdowns: one query reads the table once and passes the own hosts as a typed array param", () => {
+    const q = breakdownsQuery(ctx);
+    expect(q.name).toBe("breakdowns");
+    expect(q.sql.split(ctx.table).length - 1).toBe(1);
     expect(q.params.own_hosts).toEqual(["example.com"]);
     expect(q.types).toEqual({ own_hosts: ["STRING"] });
     expect(q.sql).toContain("IN UNNEST(@own_hosts)");
-    expect(breakdownQuery(ctx, "page").params.own_hosts).toBeUndefined();
+    for (const d of DIMS) expect(q.sql).toContain(`'${d}' AS dim`);
   });
-  it("breakdowns rank the top 20 by current pageviews and put the rest in NULL (Other)", () => {
-    const sql = breakdownQuery(ctx, "country").sql;
-    expect(sql).toContain("LIMIT 20");
+  it("breakdowns rank the top 20 per dimension by current pageviews and put the rest in NULL (Other)", () => {
+    const sql = breakdownsQuery(ctx).sql;
+    expect(sql).toContain("PARTITION BY dim");
+    expect(sql).toContain("<= 20");
     expect(sql).toContain("WHERE period = 'cur'");
+    expect(sql).toContain("USING (dim, value)");
+  });
+  it("splitBreakdowns gives every dimension its own rows without the dim column", () => {
+    const empty = splitBreakdowns([]);
+    expect(Object.keys(empty).sort()).toEqual([...DIMS].sort());
+    for (const d of DIMS) expect(empty[d]).toEqual([]);
+    const split = splitBreakdowns([
+      { dim: "os", period: "cur", value: "Linux", pageviews: 3, visitor_days: 2 },
+      { dim: "page", period: "prev", value: null, pageviews: 1, visitor_days: 1 },
+    ]);
+    expect(split.os).toEqual([{ period: "cur", value: "Linux", pageviews: 3, visitor_days: 2 }]);
+    expect(split.page).toEqual([{ period: "prev", value: null, pageviews: 1, visitor_days: 1 }]);
+    expect(split.country).toEqual([]);
   });
   it("web vitals: only LCP, INP, CLS, p75 from APPROX_QUANTILES", () => {
     const sql = webVitalsQuery(ctx).sql;

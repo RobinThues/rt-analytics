@@ -14,9 +14,8 @@ import { todayEnd } from "@/time/today";
 import { buildContext, eventsCte, SESSION_COLUMNS, sessionsCte, toSpec } from "./context";
 import { funnelQuery } from "./funnel";
 import {
-  breakdownQuery,
+  breakdownsQuery,
   consentQuery,
-  DIMS,
   kpisQuery,
   retentionQuery,
   slowPagesQuery,
@@ -69,7 +68,7 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
   ],
   ["overview kpis", kpisQuery(ctx)],
   ["overview traffic", trafficQuery(ctx)],
-  ...DIMS.map((d): [string, QuerySpec] => [`overview breakdown ${d}`, breakdownQuery(ctx, d)]),
+  ["overview breakdowns (all eight)", breakdownsQuery(ctx)],
   ["overview web vitals", webVitalsQuery(ctx)],
   ["overview slow pages", slowPagesQuery(ctx)],
   ["overview top errors", topErrorsQuery(ctx)],

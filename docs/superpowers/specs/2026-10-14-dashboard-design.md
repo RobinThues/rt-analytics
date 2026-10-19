@@ -257,7 +257,7 @@ BigQuery's own result cache does not help here: it is skipped for tables that re
 
 ### Errors
 
-Each panel renders in its own Suspense boundary and error boundary. A failing query breaks only its panel and shows a short message plus a retry link. Auth or credential errors (OIDC exchange failed) show one banner at page level and are logged server-side with the reason, never with token contents.
+Each panel renders in its own Suspense boundary and error boundary. A failing query breaks only the panels it feeds and shows a short message plus a retry link. Since 2026-10-19 the eight breakdown panels share one query and the four quality panels (web vitals, slowest pages, top errors, consent) share another, so a failure there (including a byte-cap refusal) shows in all panels of that group. Auth or credential errors (OIDC exchange failed) show one banner at page level and are logged server-side with the reason, never with token contents.
 
 ## 6. Metric definitions
 

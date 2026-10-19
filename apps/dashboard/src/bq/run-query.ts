@@ -5,7 +5,7 @@ export type QueryParam = string | number | boolean | string[] | null;
 export const QUERY_NAMES = [
   "kpis",
   "traffic",
-  "breakdown",
+  "breakdowns",
   "web_vitals",
   "slow_pages",
   "top_errors",
