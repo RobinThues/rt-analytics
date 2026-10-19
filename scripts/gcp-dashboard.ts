@@ -58,6 +58,11 @@ function tryGcloud(...args: string[]): string | null {
   }
 }
 
+/** gcloud's message when `remove-iam-policy-binding` finds no such binding. */
+export function isMissingBindingError(stderr: string): boolean {
+  return /binding .* not found/i.test(stderr);
+}
+
 /** A new service account takes a while before IAM accepts it in bindings; retry for up to 2 minutes. */
 async function gcloudRetry(...args: string[]): Promise<string> {
   for (let attempt = 1; ; attempt++) {
@@ -197,17 +202,28 @@ export async function setupDashboard(
   if (opts.keepPoolBinding) {
     console.log("Kept the pool-wide binding on the production account (--keep-pool-binding)");
   } else {
-    const removed = tryGcloud(
-      "iam",
-      "service-accounts",
-      "remove-iam-policy-binding",
-      saEmail,
-      inProject,
-      "--role=roles/iam.workloadIdentityUser",
-      `--member=${wif.principalSet}`,
-      "--quiet",
-    );
-    console.log(removed === null ? "Pool-wide binding already removed" : "Removed the pool-wide binding");
+    try {
+      execFileSync(
+        "gcloud",
+        [
+          "iam",
+          "service-accounts",
+          "remove-iam-policy-binding",
+          saEmail,
+          inProject,
+          "--role=roles/iam.workloadIdentityUser",
+          `--member=${wif.principalSet}`,
+          "--quiet",
+        ],
+        { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] },
+      );
+      console.log("Removed the pool-wide binding");
+    } catch (err) {
+      // Only a missing binding means "done"; anything else (e.g. no permission) would leave development
+      // tokens able to act as the production account, so it must stop the setup.
+      if (!isMissingBindingError(String((err as { stderr?: unknown }).stderr ?? ""))) throw err;
+      console.log("Pool-wide binding already removed");
+    }
   }
 
   // 7. Per-user daily query cap. BigQuery applies it to every user and service account separately.

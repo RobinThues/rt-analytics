@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CONFIG_SCHEMA, DASHBOARD_DEV_SA, wifConfig } from "./gcp-dashboard.js";
+import { CONFIG_SCHEMA, DASHBOARD_DEV_SA, isMissingBindingError, wifConfig } from "./gcp-dashboard.js";
 
 describe("wifConfig", () => {
   const c = wifConfig("robinthues-projects", "rt-analytics-dashboard", "123456789");
@@ -53,5 +53,21 @@ describe("CONFIG_SCHEMA", () => {
       "updated_at:TIMESTAMP:REQUIRED",
       "updated_by:STRING:REQUIRED",
     ]);
+  });
+});
+
+describe("isMissingBindingError", () => {
+  it("treats only a missing binding as already removed", () => {
+    expect(
+      isMissingBindingError("ERROR: Policy binding with the specified principal, role, and condition not found!"),
+    ).toBe(true);
+  });
+  it("does not hide permission or other failures", () => {
+    expect(
+      isMissingBindingError(
+        "ERROR: (gcloud.iam.service-accounts.remove-iam-policy-binding) PERMISSION_DENIED: Permission 'iam.serviceAccounts.setIamPolicy' denied",
+      ),
+    ).toBe(false);
+    expect(isMissingBindingError("")).toBe(false);
   });
 });
