@@ -57,7 +57,7 @@ Branch `feat/e2e-bigquery-cost`.
 **Interfaces:**
 - Produces: `DASHBOARD_DEV_SA = "rt-analytics-dashboard-dev"`;
   `wifConfig(...)` gains `subjectPrincipal(env: "production" | "development"): string`;
-  `setupDashboard(projectId, { team, project, perUserQuotaGib })`.
+  `setupDashboard(projectId, { team, project, perUserQuotaGib, keepPoolBinding })`.
 
 - [ ] **Step 1: Write the failing tests** in `scripts/gcp-dashboard.test.ts`:
 
@@ -76,19 +76,21 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
   (`subjectPrincipal` / `DASHBOARD_DEV_SA` missing).
 
 - [ ] **Step 3: Implement in `scripts/gcp-dashboard.ts`.** Keep `principalSet` (needed for removal).
+  Delete the old step 6 that adds the pool-wide `principalSet` binding (`gcp-dashboard.ts:153-163`).
   `setupDashboard` now, in this order:
   1. creates both service accounts (loop over `[DASHBOARD_SA, DASHBOARD_DEV_SA]`), same three grants each;
   2. adds `roles/iam.workloadIdentityUser` on the prod SA for `subjectPrincipal("production")` and on the
      dev SA for `subjectPrincipal("development")`;
-  3. then removes the `principalSet` binding from the prod SA with
+  3. then, unless `keepPoolBinding` is set, removes the `principalSet` binding from the prod SA with
      `tryGcloud("iam","service-accounts","remove-iam-policy-binding", saEmail, inProject, "--role=roles/iam.workloadIdentityUser", "--member=" + wif.principalSet, "--quiet")`
-     (null = binding not present, log "already removed");
+     (null = binding not present, log "already removed"). `--keep-pool-binding` in `setup-gcp.ts` sets
+     `keepPoolBinding` (two-phase apply in Task 2);
   4. sets the quota preference `rt-analytics-query-usage-per-user-per-day` with
      `--quota-id=QueryUsagePerUserPerDay --preferred-value=<gib*1024>` and the same flags as the project
      quota in `setup-gcp.ts`;
   5. prints the env vars with `GCP_SERVICE_ACCOUNT_EMAIL` once per environment (Production → prod SA,
      Development → dev SA).
-  Update the file's header comment. In `setup-gcp.ts` parse `--per-user-query-quota-gib` (default 10,
+  Update the file's header comment (lines 1-3: one account per environment). In `setup-gcp.ts` parse `--per-user-query-quota-gib` (default 10,
   positive number, same validation as `--query-quota-gib`) and pass it on.
 
 - [ ] **Step 4: Run** `npx vitest run scripts/gcp-dashboard.test.ts` and `npm run typecheck`. Expected: PASS.
@@ -108,30 +110,39 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
 - Consumes: Task 1's `setupDashboard`; `createBigQuery(env)` from `apps/dashboard/src/bq/client.ts`.
 
 - [ ] **Step 1: Write `claude-tmp-helpers/check-sa-split.ts`** (usage comment at top):
-  `tsx claude-tmp-helpers/check-sa-split.ts <env-file> <service-account-email>` loads the env file,
-  overrides `GCP_SERVICE_ACCOUNT_EMAIL`, calls `createBigQuery(readEnv(env)).authClient.getAccessToken()`
-  and prints `OK` or `DENIED: <error name>`. No query, costs nothing.
+  `tsx claude-tmp-helpers/check-sa-split.ts <env-file> <service-account-email>` loads the env file into
+  `process.env` (`getVercelOidcToken()` reads `VERCEL_OIDC_TOKEN` there), prints the token's `sub` and
+  `exp` and refuses an expired token (otherwise `@vercel/oidc` silently fetches a development token),
+  overrides `GCP_SERVICE_ACCOUNT_EMAIL`, calls `createBigQuery(readEnv()).authClient.getAccessToken()` and
+  prints `OK` or `DENIED: <error name>`. No query, costs nothing.
 
-- [ ] **Step 2: Ask Robin** for OK to run `npm run setup:gcp -- --dashboard --vercel-team robinthues-projects`
-  and to change `GCP_SERVICE_ACCOUNT_EMAIL` in Vercel. Wait for the answer.
+- [ ] **Step 2: Robin's OK** was given on 2026-10-19 (setup run and Vercel env change).
 
-- [ ] **Step 3: Run the setup.** Expected log: dev SA created, both subject bindings granted, pool-wide
-  binding removed, per-user quota 10 GiB requested.
+- [ ] **Step 3: Phase 1, add only.** `npm run setup:gcp -- --dashboard --vercel-team robinthues-projects --keep-pool-binding`.
+  Expected log: dev SA created, both subject bindings granted, pool binding kept, per-user quota 10 GiB
+  requested.
 
-- [ ] **Step 4: Vercel env.** From the repo root: `vercel env ls` to see the current entries, then
-  `vercel env rm GCP_SERVICE_ACCOUNT_EMAIL development --yes` and
-  `vercel env add GCP_SERVICE_ACCOUNT_EMAIL development` with `rt-analytics-dashboard-dev@robin-thues.iam.gserviceaccount.com`.
-  Production keeps the prod SA (if it is one shared entry, re-add production with the prod SA). Then
-  `vercel env pull apps/dashboard/.env.development.local --yes`.
+- [ ] **Step 4: Vercel env, add before remove.** From the repo root: `vercel env ls` to see the entries.
+  If `GCP_SERVICE_ACCOUNT_EMAIL` is one entry for both environments, first add a Production-only entry
+  with the prod SA, then remove the shared one, then add the Development entry
+  `rt-analytics-dashboard-dev@robin-thues.iam.gserviceaccount.com`. Never leave Production without the
+  variable. Then `vercel env pull apps/dashboard/.env.development.local --yes`.
 
-- [ ] **Step 5: Verify.**
-  - `check-sa-split.ts apps/dashboard/.env.development.local rt-analytics-dashboard-dev@…` → `OK`
-  - same with `rt-analytics-dashboard@…` → `DENIED`
-  - `claude-tmp-helpers/set-query-quota.sh show` still shows 30 GiB; `gcloud quotas preferences describe rt-analytics-query-usage-per-user-per-day --project=robin-thues` shows 10240 MiB granted.
-  - Production: try `vercel env pull --environment production <scratchpad file>`; if it contains
-    `VERCEL_OIDC_TOKEN`, run `check-sa-split.ts` with it and the prod SA → `OK`, then delete the file.
-    Otherwise ask Robin to open the live dashboard once and confirm data shows. Rollback if prod fails:
-    re-add the `principalSet` binding on the prod SA.
+- [ ] **Step 5: Check phase 1.** `check-sa-split.ts apps/dashboard/.env.development.local <dev SA>` → `OK`.
+  The dev SA has only the subject binding, so this proves the principal format. Retry for up to 5 minutes
+  (IAM propagation).
+
+- [ ] **Step 6: Phase 2, remove the pool binding.** Run the setup again without `--keep-pool-binding`.
+  Expected: "removed" for the pool binding. Wait 2 minutes, then:
+  - `check-sa-split.ts … <prod SA>` with the development token → `DENIED` (retry up to 5 minutes).
+  - Production: try `vercel env pull --environment production <scratchpad file>`; if it holds a fresh
+    `VERCEL_OIDC_TOKEN` with `environment:production` in `sub`, run `check-sa-split.ts` with it and the prod
+    SA → `OK`, then delete the file. Otherwise check production after the final deploy (Task 9) with the
+    labels report and `vercel logs`. Rollback if prod fails: re-run with `--keep-pool-binding` and add the
+    `principalSet` binding back by hand.
+  - `claude-tmp-helpers/set-query-quota.sh show` still 30 GiB; `gcloud quotas preferences describe rt-analytics-query-usage-per-user-per-day --project=robin-thues` shows 10240 MiB granted.
+  - After the first local query run (Task 4 baseline), `bq-usage-report.sh 1` shows the jobs under
+    `rt-analytics-dashboard-dev`.
 
 ### Task 3: Job labels and query names
 
@@ -144,7 +155,7 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
 
 **Interfaces:**
 - Produces:
-  - `type QueryName = "kpis" | "traffic" | "breakdown" | "web_vitals" | "slow_pages" | "top_errors" | "consent" | "retention" | "event_list" | "event_series" | "event_breakdown" | "prop_values" | "funnel" | "app_list" | "event_names" | "prop_keys" | "settings_read" | "settings_save" | "funnels_list" | "funnel_save" | "funnel_delete"` in `run-query.ts` (Tasks 5 and 6 replace `breakdown` with `breakdowns` and the four quality names with `quality`).
+  - `QUERY_NAMES = ["kpis", "traffic", "breakdown", "web_vitals", "slow_pages", "top_errors", "consent", "retention", "event_list", "event_series", "event_breakdown", "prop_values", "funnel", "app_list", "event_names", "prop_keys", "settings_read", "settings_save", "funnels_list", "funnel_save", "funnel_delete", "check"] as const` and `type QueryName = (typeof QUERY_NAMES)[number]` in `run-query.ts` (`check` is for test-only and dry-run-only specs; Tasks 5 and 6 replace `breakdown` with `breakdowns` and the four quality names with `quality`).
   - `QuerySpec.name: QueryName` (required).
   - `toSpec(name: QueryName, sql, params, types?)`.
   - `type JobSource = "production" | "development" | "e2e"`; `DashboardEnv.jobSource: JobSource`.
@@ -152,7 +163,8 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
     `labels: { rtd_source: source, rtd_query: spec.name }`.
 
 - [ ] **Step 1: Failing tests.** `run-query.test.ts`: the options seen by the client include
-  `labels: { rtd_source: "e2e", rtd_query: "kpis" }` for a spec named `kpis` run with source `e2e`.
+  `labels: { rtd_source: "e2e", rtd_query: "kpis" }` for a spec named `kpis` run with source `e2e`; every
+  `QUERY_NAMES` entry and every `JobSource` matches BigQuery's label value rule `/^[a-z0-9_-]{1,63}$/`.
   `env.test.ts`: `readEnv({..., VERCEL_ENV: "production"}).jobSource === "production"`;
   `DASHBOARD_JOB_SOURCE: "e2e"` → `"e2e"`; nothing → `"development"`; `DASHBOARD_JOB_SOURCE: "x"` → throws.
   `startupCheck` with `VERCEL_ENV: "production", DASHBOARD_JOB_SOURCE: "e2e"` → throws.
@@ -162,18 +174,21 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
 - [ ] **Step 3: Implement.** Add the deployment guard as `assertLocalOnly(env)` in `env.ts`, called
   from `startupCheck` next to `assertSafeTestLogin`; Tasks 4 and 7 add their variables to the same list
   (`LOCAL_ONLY = ["DASHBOARD_JOB_SOURCE", ...]`). Name every builder; `execute` passes `env.jobSource`.
+  Also update the old-signature callers in tests: `src/queries/context.test.ts:69`,
+  `src/queries/dry-run.integration.test.ts:61` (name `check`) and the spec literal in
+  `src/bq/run-query.test.ts:5`. Update the gitignored helpers that call `runQuery` / `toSpec`
+  (`claude-tmp-helpers/run-funnel.ts`, `dump-overview-json.ts`, `run-overview-queries.ts`) so they still
+  run (`npx tsx --tsconfig apps/dashboard/tsconfig.json <file> --help` or a typecheck of them).
+  Document `DASHBOARD_JOB_SOURCE` in the v1 spec section 10 env table (never in Vercel).
 
 - [ ] **Step 4: Run** `npx vitest run && npm run typecheck && npm run lint`. Expected: PASS.
 
 - [ ] **Step 5: Labels report.** Add to `bq-usage-report.sh` a section grouped by
   `(SELECT value FROM UNNEST(labels) WHERE key = 'rtd_source')` and `rtd_query` with jobs and GiB billed.
 
-- [ ] **Step 6: Commit** `feat(dashboard): name every query and label BigQuery jobs by source and query`.
+- [ ] **Step 6: Set `DASHBOARD_JOB_SOURCE=e2e`** in the Playwright `webServer.env`.
 
-- [ ] **Step 7: Baseline (after Task 2 is applied).** Set `DASHBOARD_JOB_SOURCE=e2e` in the Playwright
-  `webServer.env`, build (`npm run build`), run `npx playwright test` once, then
-  `claude-tmp-helpers/bq-usage-report.sh 1`. Record jobs and GiB per `rtd_query` for `e2e` in the
-  ledger. Commit the config line with step 6's follow-up commit `test(dashboard): e2e jobs carry rtd_source=e2e`.
+- [ ] **Step 7: Commit** `feat(dashboard): name every query and label BigQuery jobs by source and query`.
 
 ### Task 4: Fixed today and discovery windows anchored to the app's today
 
@@ -188,8 +203,8 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
 - Produces:
   - `DashboardEnv.fixedToday: string | null` from `DASHBOARD_FIXED_TODAY` (must pass `isDay`, else throw;
     local only via `assertLocalOnly`).
-  - `appToday(tz: string, env?: DashboardEnv): string` = `env.fixedToday ?? todayIn(tz, new Date())`.
-  - `todayEnd(tz: string, env?: DashboardEnv): string` = `dayStart(addDays(appToday(tz, env), 1), tz)`.
+  - `appToday(tz: string, env: DashboardEnv = readEnv()): string` = `env.fixedToday ?? todayIn(tz, new Date())`.
+  - `todayEnd(tz: string, env: DashboardEnv = readEnv()): string` = `dayStart(addDays(appToday(tz, env), 1), tz)`.
   - `eventNamesQuery(env, appId, todayEnd)`, `propKeysQuery(env, appId, todayEnd)`,
     `appListQuery(env, todayEnd)`: param `today_end`, window
     `timestamp >= TIMESTAMP_SUB(TIMESTAMP(@today_end), INTERVAL n DAY) AND timestamp < TIMESTAMP(@today_end)`.
@@ -200,22 +215,30 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
     `todayEnd("Europe/Berlin", env) === "2026-10-13T22:00:00.000Z"`; `todayEnd("UTC", env) === "2026-10-14T00:00:00.000Z"`.
   - `env.test.ts`: `DASHBOARD_FIXED_TODAY: "2026-13-01"` throws, `"today"` throws, unset → `null`;
     `startupCheck` with `VERCEL_ENV: "preview"` and `DASHBOARD_FIXED_TODAY` set throws.
-  - `discovery/sql.test.ts`: each discovery SQL contains `@today_end` and no `CURRENT_TIMESTAMP()`; params
-    include `today_end`.
+  - `discovery/sql.test.ts`: each discovery SQL contains `@today_end` and no `CURRENT_TIMESTAMP()`; the
+    existing params assertions (`toEqual({})`, `{ app_id }` at lines 14, 22, 33) become `{ today_end }` and
+    `{ app_id, today_end }`.
 
 - [ ] **Step 2: Run** `npx vitest run src/time src/env.test.ts src/discovery`. Expected: FAIL.
 
 - [ ] **Step 3: Implement.** `page-data.ts` uses `appToday(settings.timezone, env)`. Callers pass
   `page.settings.timezone`; `saveFunnel` reads `(await getSettings(appId)).timezone`. The dry-run test
-  passes `todayEnd("Europe/Berlin", env)` and `todayEnd("UTC", env)`.
+  gets three new cases (app list with `todayEnd("UTC", env)`, event names and prop keys for `demo` with
+  `todayEnd("Europe/Berlin", env)`).
 
 - [ ] **Step 4: Run** `npx vitest run && npm run typecheck && npm run lint` and the free dry run
   `RTD_DRY_RUN=1 GCP_PROJECT_ID=robin-thues npx vitest run src/queries/dry-run.integration.test.ts`. Expected: PASS.
 
 - [ ] **Step 5: Update** v1 spec section 5 "Discovery" and the section 10 env table
-  (`DASHBOARD_FIXED_TODAY`, `DASHBOARD_JOB_SOURCE`: never in Vercel).
+  (`DASHBOARD_FIXED_TODAY`: never in Vercel).
 
 - [ ] **Step 6: Commit** `feat(dashboard): discovery windows end at the app's today; DASHBOARD_FIXED_TODAY for local runs`.
+
+- [ ] **Step 7: Baseline (Task 2 applied, before part C).** Add `DASHBOARD_FIXED_TODAY=2026-10-13` to the
+  Playwright `webServer.env` (the real clock would empty the demo prop keys from 2026-10-20 on), build
+  (`npm run build`), run `npx playwright test` once, then `claude-tmp-helpers/bq-usage-report.sh 1`.
+  Record jobs and GiB per `rtd_query` for `e2e` in the ledger, and that the jobs ran under the dev SA.
+  Commit `test(dashboard): e2e runs with a fixed today`.
 
 ### Task 5: One query for the eight breakdowns
 
@@ -310,9 +333,9 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
 **Interfaces:**
 - Consumes: `QueryClient`, `toPlain` from `run-query.ts`; labels from Task 3 (`options.labels.rtd_query`).
 - Produces:
-  - `DashboardEnv.fixtures: { mode: "replay" | "record"; dir: string } | null` from `DASHBOARD_FIXTURES`
-    (`replay` | `record`, other values throw; local only) and `DASHBOARD_FIXTURES_DIR` (default
-    `<cwd>/e2e/fixtures`).
+  - `DashboardEnv.fixtures: "replay" | "record" | null` from `DASHBOARD_FIXTURES` (other values throw;
+    local only). The directory is fixed: `path.join(process.cwd(), "e2e", "fixtures")` in `getQueryClient`
+    (`next start` runs in `apps/dashboard`); unit tests pass a temp dir to the client factories.
   - `FIXTURE_APPS = ["demo", "demo-b"] as const`.
   - `fixtureFile(options: Record<string, unknown>): string` → `<rtd_query>-<first 16 hex of sha256(stableJson({query, params, types}))>.json`,
     `stableJson` sorts object keys recursively.
@@ -340,7 +363,7 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
 - [ ] **Step 2: Run** `npx vitest run src/bq src/env.test.ts`. Expected: FAIL.
 
 - [ ] **Step 3: Implement** as in Interfaces. `CredentialsBanner` returns `null` without a token check
-  when `env.fixtures?.mode === "replay"`.
+  when `env.fixtures === "replay"`. Add `DASHBOARD_FIXTURES` to `LOCAL_ONLY`.
 
 - [ ] **Step 4: Run** unit tests, typecheck, lint. Expected: PASS.
 
@@ -363,14 +386,16 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
   - replay: `DASHBOARD_FIXTURES=replay`, `GCP_PROJECT_ID=robin-thues`, `grepInvert: /@bq/`.
   - record: `DASHBOARD_FIXTURES=record`, `grepInvert: /@bq/`, `workers: 1`, `globalSetup: "./e2e/clear-fixtures.ts"`
     (deletes and recreates `e2e/fixtures`).
-  - bq: `grep: /@bq/`.
+  - bq: `grep: /@bq/`, `workers: 1` (the settings test changes the demo timezone, which would split the
+    cache for parallel workers and push the set over 0.5 GiB).
   Scripts: `"e2e": "playwright test"`, `"e2e:bq": "RTD_E2E_MODE=bq playwright test"`,
   `"e2e:record": "RTD_E2E_MODE=record playwright test"`,
   `"e2e:all": "npm run e2e && npm run e2e:bq && RTD_DRY_RUN=1 GCP_PROJECT_ID=robin-thues vitest run src/queries/dry-run.integration.test.ts"`.
 
 - [ ] **Step 2: Tests.**
-  - Tag `{ tag: "@bq" }`: "settings: save and read back the timezone", the "funnels: build, save, reopen
-    and delete" describe, "Live toggle and Refresh", "explorer: distinct subscriptions per day with a filter",
+  - Tag `{ tag: "@bq" }`: "settings: save and read back the timezone", the "saved funnels" describe with
+    "funnels: build, save, reopen and delete" (its `deleteE2eFunnels` cleanup then runs only in @bq; note
+    that in the spec's "Recording" section), "Live toggle and Refresh", "explorer: distinct subscriptions per day with a filter",
     "funnels: chart shows one bar per step with a hover tooltip".
   - New `@bq` test "overview smoke: every panel shows data" on `/demo?from=2026-09-16&to=2026-10-13`:
     `kpi-pageviews` not `0`, every `breakdown-<dim>` table has a row, `vital-lcp` visible, no `role=alert`.
@@ -395,8 +420,10 @@ it("names the dev service account", () => expect(DASHBOARD_DEV_SA).toBe("rt-anal
 
 ### Task 9: Final check
 
-- [ ] **Step 1:** `npm test`, `npm run typecheck`, `npm run lint` at the root; `npm run e2e:all` in
-  `apps/dashboard`. Expected: all green.
+- [ ] **Step 1:** `npm test`, `npm run typecheck`, `npm run lint` at the root; `npm run build` then
+  `npm run e2e:all` in `apps/dashboard`. Expected: all green. Quota note: baseline 3.5 + record 1.5 +
+  @bq 0.5 + e2e:all 0.5 + equality checks ≈ 6 GiB of the dev account's 10 GiB a day; spread over two days
+  if a recording has to be repeated twice.
 - [ ] **Step 2:** One fresh final review of the whole branch (most capable model), fixes committed.
 - [ ] **Step 3:** Report numbers to Robin (baseline vs replay vs @bq vs record) and ask how to integrate.
   Pushing main deploys the discovery and merged-query changes, so it needs his "push and deploy"; after the

@@ -217,8 +217,11 @@ does not move them. From about 2026-10-20 the demo app has no prop keys in the l
 - `npm run e2e:record` starts the server with `DASHBOARD_FIXTURES=record` and the same fixed today, runs
   the replay test set serially (one worker), without the `@bq` tests. So funnels or a timezone saved
   during a run never end up in fixtures, and config state is the same for every recording.
-- Funnel cleanup (`deleteE2eFunnels`) still runs in replay. The fixtures must contain no "e2e" funnels;
-  the serial, @bq-free recording makes sure of that.
+- Funnel cleanup (`deleteE2eFunnels`) belongs to the "saved funnels" tests, which move to @bq, so it runs
+  only there. The fixtures must contain no "e2e" funnels; the serial, @bq-free recording makes sure of that.
+- Known limit: with the fixed today on the last demo day and the real clock later, the previous-period end
+  of the partial-today cut reaches past `to_ts`. Nothing changes while the demo data ends on that day; it
+  would matter only after regenerating the demo data without moving the fixed day.
 - Recording uses the dev service account and bills real bytes (about one full run, roughly 1 to 1.5 GiB
   after part C). Old fixture files that no test used during the recording are deleted by the recorder.
 
