@@ -44,6 +44,20 @@ test("switch persists across reload", async ({ page }) => {
   await expect(page.locator("html")).not.toHaveClass(/(^|\s)(dark|light)(\s|$)/);
 });
 
+test("dark select options are readable", async ({ page }) => {
+  await testLogin(page, "dark");
+  await page.goto("/demo/settings");
+  const colors = await page
+    .locator("#timezone option")
+    .first()
+    .evaluate((o) => {
+      const s = getComputedStyle(o);
+      return { background: s.backgroundColor, color: s.color };
+    });
+  expect(colors.background).not.toBe("rgba(0, 0, 0, 0)");
+  expect(colors.background).not.toBe(colors.color);
+});
+
 test("dark overview has no console errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("console", (m) => {

@@ -71,6 +71,10 @@ describe("globals.css", () => {
     expect(css).toMatch(/:root\.dark\s*\{\s*color-scheme: dark;?\s*\}/);
   });
 
+  it("native select lists use the popover colors", () => {
+    expect(css).toMatch(/option,\s*optgroup\s*\{\s*@apply bg-popover text-popover-foreground;\s*\}/);
+  });
+
   it("brand and data values", () => {
     for (const v of [
       "oklch(0.52 0.2 300)",
