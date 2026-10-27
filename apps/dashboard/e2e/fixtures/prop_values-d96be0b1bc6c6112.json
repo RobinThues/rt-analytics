@@ -1,0 +1,46 @@
+[
+  {
+    "key": "place",
+    "value": "Düsseldorf"
+  },
+  {
+    "key": "place",
+    "value": "Köln"
+  },
+  {
+    "key": "place",
+    "value": "Leipzig"
+  },
+  {
+    "key": "place",
+    "value": "München"
+  },
+  {
+    "key": "place",
+    "value": "Hamburg"
+  },
+  {
+    "key": "place",
+    "value": "Wien"
+  },
+  {
+    "key": "place",
+    "value": "Zürich"
+  },
+  {
+    "key": "place",
+    "value": "Berlin"
+  },
+  {
+    "key": "source",
+    "value": "search"
+  },
+  {
+    "key": "source",
+    "value": "suggestion"
+  },
+  {
+    "key": "source",
+    "value": "ip"
+  }
+]

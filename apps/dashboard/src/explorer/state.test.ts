@@ -89,5 +89,8 @@ describe("explorerFormQuery", () => {
       `?${new URLSearchParams(explorerParams(parseExplorer({ ...form }, catalog))).toString()}`,
     );
     expect(explorerFormQuery("?from=a&to=b&compare=0", catalog, form)).toMatch(/^\?from=a&to=b&compare=0&event=/);
+    expect(explorerFormQuery("?from=a&to=b&interval=hour&event=old", catalog, form)).toMatch(
+      /^\?from=a&to=b&interval=hour&event=place_selected/,
+    );
   });
 });

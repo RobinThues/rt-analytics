@@ -64,7 +64,7 @@ export function explorerFormQuery(
 ): string {
   const current = new URLSearchParams(base.startsWith("?") ? base.slice(1) : base);
   const out = new URLSearchParams();
-  for (const k of ["from", "to", "compare"]) {
+  for (const k of ["from", "to", "compare", "interval"]) {
     const v = current.get(k);
     if (v !== null) out.set(k, v);
   }

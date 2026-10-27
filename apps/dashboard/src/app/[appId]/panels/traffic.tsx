@@ -6,7 +6,7 @@ import { QueryError } from "@/components/query-error";
 import { TrendChart } from "@/components/trend-chart";
 import { formatDecimal, formatInt, formatShare } from "@/lib/format";
 import { toKpis } from "@/overview/model";
-import { alignSeries } from "@/queries/series";
+import { chartSeries } from "@/queries/series";
 import type { TrafficRow } from "@/queries/overview";
 import type { PanelProps } from "../page-data";
 import { loadKpis, loadTraffic } from "./shared";
@@ -54,7 +54,7 @@ export async function KpiPanel({ ctx, live, maxBytes }: PanelProps) {
 }
 
 const series = (rows: readonly TrafficRow[], pick: (r: TrafficRow) => number) =>
-  rows.map((r) => ({ period: r.period, day: r.day, n: pick(r) }));
+  rows.map((r) => ({ ...r, n: pick(r) }));
 
 export async function TrafficCharts({ ctx, live, maxBytes }: PanelProps) {
   const res = await loadTraffic(ctx, live);
@@ -73,9 +73,9 @@ export async function TrafficCharts({ ctx, live, maxBytes }: PanelProps) {
             <p className="mb-2 text-sm font-medium">{title}</p>
             <TrendChart
               title={title}
-              data={alignSeries(series(res.rows, pick), ctx)}
+              data={chartSeries(series(res.rows, pick), ctx)}
               compare={ctx.compare}
-              prevFrom={ctx.prev.from}
+              interval={ctx.interval}
             />
           </div>
         ))}
@@ -92,12 +92,12 @@ export async function ErrorChart({ ctx, live, maxBytes }: PanelProps) {
       <ChartLegendLine compare={ctx.compare} />
       <TrendChart
         title="Errors"
-        data={alignSeries(
+        data={chartSeries(
           series(res.rows, (r) => r.errors),
           ctx,
         )}
         compare={ctx.compare}
-        prevFrom={ctx.prev.from}
+        interval={ctx.interval}
       />
     </div>
   );

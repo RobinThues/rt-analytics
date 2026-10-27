@@ -2,7 +2,7 @@
 // breakdown by one prop. Event names, prop keys and values are always parameters.
 import { BUILTIN_PREFIX, EVENTS } from "rt-analytics/schema";
 import type { QuerySpec } from "@/bq/run-query";
-import { eventsCte, toSpec, type Period, type QueryContext } from "./context";
+import { eventsCte, hourStart, toSpec, type Period, type QueryContext } from "./context";
 
 export type Metric =
   { kind: "events" } | { kind: "sessions" } | { kind: "visitors" } | { kind: "distinct"; key: string };
@@ -21,10 +21,15 @@ export interface EventListRow {
   events: number;
 }
 
-/** `day` NULL is the range total of that period. */
+/**
+ * `day` NULL is the range total of that period. Hourly series rows have `hour_start` (and `day` NULL);
+ * rows of daily queries have no `hour_start` at all. Hourly queries add `as_of`, the time the query ran.
+ */
 export interface MetricRow {
   period: Period;
   day: string | null;
+  hour_start?: string | null;
+  as_of?: string;
   n: number;
 }
 
@@ -53,12 +58,12 @@ const METRIC_SQL: Record<Metric["kind"], string> = {
  * The selected event's rows with period and day (by the event's own day). For the sessions metric, only
  * sessions that have a pageview count (spec section 6, "Sessions").
  */
-function selectionCtes(ctx: QueryContext, sel: ExplorerSelection): string {
+function selectionCtes(ctx: QueryContext, sel: ExplorerSelection, hourly = false): string {
   const sessions = sel.metric.kind === "sessions";
   return `${eventsCte(ctx.table, ["event_name", "timestamp", "visitor_id", "session_id", "props"])},
 ${sessions ? `pv_sessions AS (SELECT DISTINCT session_id FROM evp WHERE event_name = ${PV} AND session_id IS NOT NULL),` : ""}
 sel AS (
-  SELECT e.period, e.day, e.visitor_id, e.props${sessions ? ", ps.session_id AS pv_session" : ""}
+  SELECT e.period, e.day, e.visitor_id, e.props${sessions ? ", ps.session_id AS pv_session" : ""}${hourly ? `, ${hourStart("e.timestamp")} AS hour_start` : ""}
   FROM evp e${sessions ? " LEFT JOIN pv_sessions ps USING (session_id)" : ""}
   WHERE e.event_name = @event AND e.period IS NOT NULL${sel.filter ? " AND LAX_STRING(e.props[@filter_key]) = @filter_value" : ""}
 )`;
@@ -74,6 +79,14 @@ function selectionParams(ctx: QueryContext, sel: ExplorerSelection) {
 }
 
 export function eventSeriesQuery(ctx: QueryContext, sel: ExplorerSelection): QuerySpec {
+  if (ctx.interval === "hour") {
+    // Daily rows still feed the per-day averages of the total tile; hourly rows feed the chart.
+    const hourly = `WITH ${selectionCtes(ctx, sel, true)}
+SELECT period, CAST(day AS STRING) AS day, hour_start, CURRENT_TIMESTAMP() AS as_of, ${METRIC_SQL[sel.metric.kind]} AS n
+FROM sel
+GROUP BY GROUPING SETS ((period, day), (period, hour_start), (period))`;
+    return toSpec("event_series", hourly, selectionParams(ctx, sel));
+  }
   const sql = `WITH ${selectionCtes(ctx, sel)}
 SELECT period, CAST(day AS STRING) AS day, ${METRIC_SQL[sel.metric.kind]} AS n
 FROM sel

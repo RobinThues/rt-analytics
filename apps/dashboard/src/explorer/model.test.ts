@@ -21,6 +21,18 @@ describe("explorer model", () => {
     expect(metricTotals(rows, { kind: "events" }, 3)).toEqual({ cur: 5, prev: 10 });
     expect(metricTotals(rows.slice(0, 3), { kind: "events" }, 3)).toEqual({ cur: 5, prev: null });
   });
+  it("metricTotals: hourly rows (day NULL) change neither the total nor the per-day average", () => {
+    const rows: MetricRow[] = [
+      { period: "cur", day: null, hour_start: "2026-10-01T09:00", n: 3 },
+      { period: "cur", day: "2026-10-01", hour_start: null, n: 4 },
+      { period: "cur", day: "2026-10-02", hour_start: null, n: 2 },
+      { period: "cur", day: null, hour_start: null, n: 5 },
+      { period: "prev", day: null, hour_start: "2026-09-28T09:00", n: 1 },
+      { period: "prev", day: null, hour_start: null, n: 10 },
+    ];
+    expect(metricTotals(rows, { kind: "visitors" }, 3)).toEqual({ cur: 2, prev: 0 });
+    expect(metricTotals(rows, { kind: "events" }, 3)).toEqual({ cur: 5, prev: 10 });
+  });
   const spark = (ns: number[]) => ns.map((n, i) => ({ day: `2026-10-0${i + 1}`, n }));
   it("toEventList: every catalog event, zeros when missing, sorted by total, spark per day with its date", () => {
     const rows: EventListRow[] = [

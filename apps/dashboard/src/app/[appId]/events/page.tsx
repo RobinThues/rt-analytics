@@ -29,22 +29,23 @@ import {
   type MetricRow,
   type PropValueRow,
 } from "@/queries/explorer";
-import { alignSeries, change } from "@/queries/series";
+import { change, chartSeries } from "@/queries/series";
 import type { PageInput, PanelProps } from "../page-data";
 import { loadExplorer, type ExplorerData } from "./explorer-data";
 
 const perDay = (m: Metric) => m.kind === "visitors" || m.kind === "distinct";
 
-function metricLabel(m: Metric): string {
+/** `per` follows the chart: per day on daily charts, per hour on hourly ones. */
+function metricLabel(m: Metric, per: "day" | "hour" = "day"): string {
   switch (m.kind) {
     case "events":
       return "Events";
     case "sessions":
       return "Sessions with the event";
     case "visitors":
-      return "Visitors with the event, per day";
+      return `Visitors with the event, per ${per}`;
     case "distinct":
-      return `Distinct values of ${m.key}, per day`;
+      return `Distinct values of ${m.key}, per ${per}`;
   }
 }
 
@@ -73,7 +74,6 @@ async function SeriesPanel({ ctx, live, maxBytes, sel }: PanelProps & { sel: Exp
   if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
   const t = metricTotals(res.rows, sel.metric, ctx.days);
   const fmt = perDay(sel.metric) ? formatDecimal : formatInt;
-  const days = res.rows.flatMap((r) => (r.day === null ? [] : [{ period: r.period, day: r.day, n: r.n }]));
   return (
     <div className="flex flex-col gap-4">
       <div className="max-w-64">
@@ -92,10 +92,10 @@ async function SeriesPanel({ ctx, live, maxBytes, sel }: PanelProps & { sel: Exp
       <div className="flex flex-col gap-2">
         <ChartLegendLine compare={ctx.compare} />
         <TrendChart
-          title={metricLabel(sel.metric)}
-          data={alignSeries(days, ctx)}
+          title={metricLabel(sel.metric, ctx.interval)}
+          data={chartSeries(res.rows, ctx)}
           compare={ctx.compare}
-          prevFrom={ctx.prev.from}
+          interval={ctx.interval}
         />
       </div>
     </div>
@@ -196,7 +196,7 @@ function SelectionColumn({ x, p }: { x: ExplorerData; p: PanelProps }) {
   const event = catalog.events.find((e) => e.name === sel.event);
   return (
     <>
-      <Panel title={sel.event} description={metricLabel(sel.metric)}>
+      <Panel title={sel.event} description={metricLabel(sel.metric, x.page.ctx.interval)}>
         <div className="flex flex-col gap-4">
           {event && !event.withVisitor && !event.withSession && (
             <p className="text-sm text-muted-foreground">Server event: no visitor or session metrics.</p>

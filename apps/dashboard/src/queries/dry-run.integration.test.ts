@@ -34,6 +34,17 @@ const ctx = buildContext({
   today,
 });
 
+// Hourly charts (spec 2026-10-27-hourly-charts): up to 7 days, so their own context.
+const hourCtx = buildContext({
+  table: env.analyticsTable,
+  appId: "demo",
+  settings: { timezone: "Europe/Berlin", hosts: ["demo.localhost"] },
+  range: { from: addDays(today, -7), to: addDays(today, -1) },
+  compare: true,
+  today,
+  interval: "hour",
+});
+
 const poll: ExplorerSelection = {
   event: "calendar_poll",
   metric: { kind: "distinct", key: "subscription" },
@@ -59,6 +70,7 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
   ],
   ["overview kpis", kpisQuery(ctx)],
   ["overview traffic", trafficQuery(ctx)],
+  ["overview traffic hourly", trafficQuery(hourCtx)],
   ["overview breakdowns (all eight)", breakdownsQuery(ctx)],
   ["overview quality (all four)", qualityQuery(ctx)],
   ["overview retention", retentionQuery(ctx)],
@@ -68,6 +80,11 @@ SELECT period, COUNT(*) AS n FROM sessions GROUP BY period`,
     eventSeriesQuery(ctx, { ...poll, metric: { kind }, filter: null }),
   ]),
   ["explorer series distinct + filter", eventSeriesQuery(ctx, poll)],
+  ...(["events", "sessions", "visitors"] as const).map((kind): [string, QuerySpec] => [
+    `explorer series hourly ${kind}`,
+    eventSeriesQuery(hourCtx, { ...poll, metric: { kind }, filter: null }),
+  ]),
+  ["explorer series hourly distinct + filter", eventSeriesQuery(hourCtx, poll)],
   ["explorer series sessions + filter", eventSeriesQuery(ctx, { ...place, metric: { kind: "sessions" } })],
   ["explorer breakdown distinct + filter", eventBreakdownQuery(ctx, { ...poll, by: "client" })],
   [

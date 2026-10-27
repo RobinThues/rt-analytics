@@ -8,8 +8,9 @@ import { eachDay } from "@/time/range";
 
 const isPerDay = (m: Metric) => m.kind === "visitors" || m.kind === "distinct";
 
+// Hourly series rows (spec 2026-10-27-hourly-charts) feed only the chart, never the totals.
 function total(rows: readonly MetricRow[], period: Period, metric: Metric, days: number): number | null {
-  const mine = rows.filter((r) => r.period === period);
+  const mine = rows.filter((r) => r.period === period && (r.hour_start ?? null) === null);
   if (mine.length === 0) return null;
   if (isPerDay(metric)) {
     return perDay(

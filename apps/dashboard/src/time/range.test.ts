@@ -6,11 +6,26 @@ import {
   daysBetween,
   defaultRange,
   eachDay,
+  localDateTime,
   previousRange,
   rangeBounds,
   rangeDays,
   todayIn,
 } from "./range";
+
+describe("localDateTime", () => {
+  it("wall-clock minute in the timezone, 24-hour clock", () => {
+    expect(localDateTime(Date.parse("2026-10-26T23:00:00Z"), "Europe/Berlin")).toBe("2026-10-27T00:00");
+    expect(localDateTime(Date.parse("2026-10-27T08:30:00Z"), "Europe/Berlin")).toBe("2026-10-27T09:30");
+    expect(localDateTime(Date.parse("2026-10-26T18:30:00Z"), "Asia/Kolkata")).toBe("2026-10-27T00:00");
+    expect(localDateTime(Date.parse("2026-10-27T12:00:00Z"), "UTC")).toBe("2026-10-27T12:00");
+  });
+  it("the repeated autumn hour shows twice, the skipped spring hour never", () => {
+    expect(localDateTime(Date.parse("2026-10-25T00:00:00Z"), "Europe/Berlin")).toBe("2026-10-25T02:00");
+    expect(localDateTime(Date.parse("2026-10-25T01:00:00Z"), "Europe/Berlin")).toBe("2026-10-25T02:00");
+    expect(localDateTime(Date.parse("2026-03-29T01:00:00Z"), "Europe/Berlin")).toBe("2026-03-29T03:00");
+  });
+});
 
 describe("time", () => {
   it("today in a timezone", () => {

@@ -6,6 +6,7 @@ import { DAILY_VISITOR_PREFIX, EVENTS, type EventRow } from "rt-analytics/schema
 import type { QueryName, QueryParam, QuerySpec } from "@/bq/run-query";
 import type { AppSettings } from "@/config/settings";
 import { addDays, dayStart, previousRange, rangeDays, type DateRange } from "@/time/range";
+import { chartInterval, type Interval } from "@/view/interval";
 
 export type Period = "cur" | "prev";
 export type EventColumn = keyof EventRow & string;
@@ -36,6 +37,8 @@ export interface QueryContext {
   compare: boolean;
   today: string;
   days: number;
+  /** The chart interval in effect (never a query param; only chart queries change their SQL with it). */
+  interval: Interval;
   params: PeriodParams;
 }
 
@@ -46,6 +49,8 @@ export function buildContext(input: {
   range: DateRange;
   compare: boolean;
   today: string;
+  /** The URL choice; missing or null is automatic (see chartInterval). */
+  interval?: Interval | null;
 }): QueryContext {
   const { table, appId, settings, range, compare, today } = input;
   const tz = settings.timezone;
@@ -61,6 +66,7 @@ export function buildContext(input: {
     compare,
     today,
     days: rangeDays(range),
+    interval: chartInterval(range, input.interval ?? null),
     params: {
       app_id: appId,
       tz,
@@ -99,6 +105,9 @@ export function eventsCte(table: string, columns: readonly EventColumn[]): strin
   WHERE app_id = @app_id AND timestamp >= TIMESTAMP(@read_from_ts) AND timestamp < TIMESTAMP(@read_to_ts)
 )`;
 }
+
+/** SQL: the wall-clock hour of the timestamp expression `ts` in the app's timezone, "2026-10-27T09:00". */
+export const hourStart = (ts: string) => `FORMAT_DATETIME('%Y-%m-%dT%H:00', DATETIME(${ts}, @tz))`;
 
 /** Columns sessionsCte() needs in evp. */
 export const SESSION_COLUMNS = [

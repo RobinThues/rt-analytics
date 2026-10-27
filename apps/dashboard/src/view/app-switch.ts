@@ -1,8 +1,9 @@
-// Links in the sidebar (layout spec, option A): another app or another page keeps only the range.
+// Links in the sidebar (layout spec, option A): another app or another page keeps only the view (range,
+// Compare, chart interval).
 // Page parameters (event, steps, funnel, …) belong to one app and one page, so they are dropped.
 import { PAGE_PATHS, type AppPage } from "@/lib/pages";
 
-const KEPT = ["from", "to", "compare"] as const;
+const KEPT = ["from", "to", "compare", "interval"] as const;
 const SEGMENTS = new Set<string>([...Object.values(PAGE_PATHS), "/settings"]);
 
 function rangeOnly(search: string): string {

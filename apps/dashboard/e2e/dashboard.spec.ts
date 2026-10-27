@@ -394,3 +394,56 @@ test("sidebar: returning to a recent page gives feedback at once", async ({ page
   const feedback = page.getByTestId("progress-line").or(page.locator("[data-testid=skeleton]:visible").first());
   await expect(feedback).toBeVisible({ timeout: 500 });
 });
+
+// Hourly charts (spec 2026-10-27-hourly-charts). Ranges end on the fixed e2e today (2026-10-13).
+const chart = (page: Page, title: string) => page.locator(`[data-slot="chart"][aria-label="${title}"]`).first();
+
+test("overview: Hourly shows one point per hour and stays in the URL", async ({ page }) => {
+  await page.goto("/demo?from=2026-10-07&to=2026-10-13");
+  const interval = page.getByRole("group", { name: "Chart interval" });
+  await expect(interval.getByRole("button", { name: "Daily" })).toHaveAttribute("aria-pressed", "true");
+  await interval.getByRole("button", { name: "Hourly" }).click();
+  await expect(page).toHaveURL(/from=2026-10-07&to=2026-10-13&interval=hour/);
+  await expect(page.getByTestId("progress-line")).toBeHidden({ timeout: 15_000 });
+  await expect(interval.getByRole("button", { name: "Hourly" })).toHaveAttribute("aria-pressed", "true");
+  const visitors = chart(page, "Visitors");
+  // One tick per day, labelled with the day.
+  await expect(visitors.getByText("13 Oct", { exact: true })).toBeVisible();
+  await expect(visitors.getByText(/^\d{2}:00$/)).toHaveCount(0);
+  await visitors.hover({ position: { x: 200, y: 80 } });
+  await expect(visitors.locator(".recharts-tooltip-wrapper")).toContainText(/\d{1,2} \w+, \d{2}:00: [\d,]+/);
+  await expect(chart(page, "Errors")).toBeVisible();
+  await expect(page.getByText("Could not load this panel.")).toHaveCount(0);
+  // The sidebar keeps the interval with the range.
+  await page.getByRole("link", { name: "Events" }).click();
+  await expect(page).toHaveURL(/\/demo\/events\?from=2026-10-07&to=2026-10-13&interval=hour/);
+});
+
+test("overview: Hourly is unavailable for 28 days, the charts stay daily", async ({ page }) => {
+  await page.goto("/demo?from=2026-09-16&to=2026-10-13&interval=hour");
+  const interval = page.getByRole("group", { name: "Chart interval" });
+  await expect(interval.getByRole("button", { name: "Daily" })).toHaveAttribute("aria-pressed", "true");
+  const hourly = interval.getByRole("button", { name: "Hourly" });
+  await expect(hourly).toHaveAttribute("aria-disabled", "true");
+  await hourly.click({ force: true }); // aria-disabled: Playwright would wait for it to become enabled
+  await expect(page).toHaveURL(/from=2026-09-16&to=2026-10-13&interval=hour$/);
+  const visitors = chart(page, "Visitors");
+  await visitors.hover({ position: { x: 200, y: 80 } });
+  await expect(visitors.locator(".recharts-tooltip-wrapper")).toContainText(/\d{1,2} \w+: [\d,]+/);
+  await expect(visitors.locator(".recharts-tooltip-wrapper")).not.toContainText(":00");
+});
+
+test("explorer: a one-day range charts hours", async ({ page }) => {
+  await page.goto("/demo/events?from=2026-10-13&to=2026-10-13&event=place_selected&metric=visitors");
+  const interval = page.getByRole("group", { name: "Chart interval" });
+  await expect(interval.getByRole("button", { name: "Hourly" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("explorer-total")).toBeVisible();
+  const series = chart(page, "Visitors with the event, per hour");
+  await expect(series.getByText("00:00", { exact: true })).toBeVisible();
+  await expect(series.getByText("12:00", { exact: true })).toBeVisible();
+  await series.hover({ position: { x: 200, y: 80 } });
+  await expect(series.locator(".recharts-tooltip-wrapper")).toContainText(/13 Oct, \d{2}:00: [\d,]+/);
+  await interval.getByRole("button", { name: "Daily" }).click();
+  await expect(page).toHaveURL(/interval=day/);
+  await expect(chart(page, "Visitors with the event, per day")).toBeVisible();
+});

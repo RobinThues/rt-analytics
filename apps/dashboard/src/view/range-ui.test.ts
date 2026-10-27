@@ -41,6 +41,15 @@ describe("withView", () => {
     expect(withView("?from=a&to=b&compare=0&event=x", { compare: true })).toBe("?from=a&to=b&event=x");
     expect(withView("?from=a&to=b", { compare: false })).toBe("?from=a&to=b&compare=0");
   });
+  it("keeps the interval after compare and sets a new one", () => {
+    expect(withView("?event=x&interval=hour&from=a&to=b", { compare: false })).toBe(
+      "?from=a&to=b&compare=0&interval=hour&event=x",
+    );
+    expect(withView("?from=a&to=b&interval=hour&event=x", { interval: "day" })).toBe(
+      "?from=a&to=b&interval=day&event=x",
+    );
+    expect(withView("?from=a&to=b", { interval: "hour" })).toBe("?from=a&to=b&interval=hour");
+  });
 });
 
 describe("local date helpers", () => {

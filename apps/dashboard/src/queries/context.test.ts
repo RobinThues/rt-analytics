@@ -40,6 +40,17 @@ describe("buildContext", () => {
     expect(ctx.params.partial_today).toBe(false);
     expect(ctx.params.compare).toBe(false);
   });
+  it("chart interval: the choice when allowed, automatic otherwise; never a query param", () => {
+    const at = (range: { from: string; to: string }, interval?: "hour" | "day" | null) =>
+      buildContext({ ...base, range, compare: true, today: "2026-10-16", interval });
+    expect(at({ from: "2026-10-16", to: "2026-10-16" }).interval).toBe("hour");
+    expect(at({ from: "2026-10-16", to: "2026-10-16" }, "day").interval).toBe("day");
+    expect(at({ from: "2026-10-10", to: "2026-10-16" }, "hour").interval).toBe("hour");
+    expect(at({ from: "2026-10-01", to: "2026-10-16" }, "hour").interval).toBe("day");
+    expect(at({ from: "2026-10-10", to: "2026-10-16" }, "hour").params).toEqual(
+      at({ from: "2026-10-10", to: "2026-10-16" }, "day").params,
+    );
+  });
   it("params are the same all day long (no time of day in them)", () => {
     const input = { ...base, range: { from: "2026-10-01", to: "2026-10-16" }, compare: true, today: "2026-10-16" };
     expect(buildContext(input).params).toEqual(buildContext(input).params);

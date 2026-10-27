@@ -48,6 +48,28 @@ function offsetMinutes(tz: string, at: number): number {
   return Math.round((asUtc - at) / 60_000);
 }
 
+const wallClockFormats = new Map<string, Intl.DateTimeFormat>();
+
+/** "YYYY-MM-DDTHH:mm": the wall-clock minute of the instant `ms` in `tz` (24-hour clock). */
+export function localDateTime(ms: number, tz: string): string {
+  let format = wallClockFormats.get(tz);
+  if (!format) {
+    format = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    wallClockFormats.set(tz, format);
+  }
+  const parts = format.formatToParts(new Date(ms));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "";
+  return `${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}`;
+}
+
 /**
  * UTC instant of the first moment of `day` in `tz`. Usually 00:00 local; on days that start in a DST gap
  * (America/Santiago, America/Havana) 00:00 does not exist and the day starts at 01:00.

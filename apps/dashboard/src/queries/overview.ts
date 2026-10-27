@@ -5,6 +5,7 @@ import type { QuerySpec } from "@/bq/run-query";
 import { dayStart, addDays } from "@/time/range";
 import {
   eventsCte,
+  hourStart,
   persistentCond,
   SESSION_COLUMNS,
   sessionsCte,
@@ -26,9 +27,11 @@ export interface KpiRow {
   errors: number;
 }
 
-export interface TrafficRow {
+/** Daily rows have `day`; hourly rows have `hour_start` and `as_of` (when the query ran). */
+export type TrafficRow = TrafficCounts & ({ day: string } | { hour_start: string; as_of: string });
+
+interface TrafficCounts {
   period: Period;
-  day: string;
   visitors: number;
   sessions: number;
   pageviews: number;
@@ -139,6 +142,7 @@ LEFT JOIN counts USING (period)`;
 }
 
 export function trafficQuery(ctx: QueryContext): QuerySpec {
+  if (ctx.interval === "hour") return hourlyTrafficQuery(ctx);
   const sql = `WITH ${eventsCte(ctx.table, SESSION_COLUMNS)},
 ${sessionsCte()},
 ev AS (
@@ -152,6 +156,27 @@ SELECT period, CAST(day AS STRING) AS day,
   IFNULL(pageviews, 0) AS pageviews, IFNULL(errors, 0) AS errors
 FROM ev FULL JOIN ss USING (period, day)
 ORDER BY period, day`;
+  return toSpec("traffic", sql, ctx.params);
+}
+
+/** The traffic charts per wall-clock hour (spec 2026-10-27-hourly-charts); the daily SQL stays as it is. */
+function hourlyTrafficQuery(ctx: QueryContext): QuerySpec {
+  const sql = `WITH ${eventsCte(ctx.table, SESSION_COLUMNS)},
+${sessionsCte()},
+ev AS (
+  SELECT period, ${hourStart("timestamp")} AS hour_start, COUNT(DISTINCT visitor_id) AS visitors,
+    COUNTIF(event_name = ${PV}) AS pageviews, COUNTIF(event_name = ${ERR}) AS errors
+  FROM evp WHERE period IS NOT NULL GROUP BY period, hour_start
+),
+ss AS (
+  SELECT period, ${hourStart("start_ts")} AS hour_start, COUNT(*) AS sessions
+  FROM sessions WHERE period IS NOT NULL GROUP BY period, hour_start
+)
+SELECT period, hour_start, CURRENT_TIMESTAMP() AS as_of,
+  IFNULL(visitors, 0) AS visitors, IFNULL(sessions, 0) AS sessions,
+  IFNULL(pageviews, 0) AS pageviews, IFNULL(errors, 0) AS errors
+FROM ev FULL JOIN ss USING (period, hour_start)
+ORDER BY period, hour_start`;
   return toSpec("traffic", sql, ctx.params);
 }
 

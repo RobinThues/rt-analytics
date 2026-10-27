@@ -11,6 +11,13 @@ describe("appSwitchHref", () => {
     expect(appSwitchHref("/demo/settings", "wik", "")).toBe("/wik/settings");
   });
 
+  it("keeps the chart interval with the range", () => {
+    expect(appSwitchHref("/demo/events", "wik", "?from=a&to=b&interval=hour&event=x")).toBe(
+      "/wik/events?from=a&to=b&interval=hour",
+    );
+    expect(pageHref("demo", "overview", "?interval=hour&steps=s1")).toBe("/demo?interval=hour");
+  });
+
   it("an unknown path segment falls back to the overview", () => {
     expect(appSwitchHref("/demo/whatever", "wik", "?from=a&to=b")).toBe("/wik?from=a&to=b");
   });

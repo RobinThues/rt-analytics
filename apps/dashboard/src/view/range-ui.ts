@@ -2,6 +2,7 @@
 // range or Compare value goes to. Pure, so the client picker and the tests share it.
 import { formatShortDay } from "@/lib/format";
 import { addDays, daysBetween, isDay, type DateRange } from "@/time/range";
+import type { Interval } from "./interval";
 
 export const RANGE_PRESETS = [7, 28, 90] as const;
 export type RangePreset = (typeof RANGE_PRESETS)[number];
@@ -45,11 +46,13 @@ export function formatRangeLabel(range: DateRange): string {
   return `${from} – ${formatShortDay(range.to)} ${year(range.to)}`;
 }
 
+const VIEW_KEYS = new Set(["from", "to", "compare", "interval"]);
+
 /**
- * The query string for the same page with a new range and/or Compare value: from, to and compare first
- * (as viewQuery writes them), then every other parameter in its order.
+ * The query string for the same page with a new range, Compare value and/or chart interval: from, to,
+ * compare and interval first (as viewQuery writes them), then every other parameter in its order.
  */
-export function withView(search: string, view: { range?: DateRange; compare?: boolean }): string {
+export function withView(search: string, view: { range?: DateRange; compare?: boolean; interval?: Interval }): string {
   const current = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   const out = new URLSearchParams();
   const from = view.range?.from ?? current.get("from");
@@ -58,7 +61,9 @@ export function withView(search: string, view: { range?: DateRange; compare?: bo
   if (to !== null) out.set("to", to);
   const compareOff = view.compare === undefined ? current.get("compare") === "0" : !view.compare;
   if (compareOff) out.set("compare", "0");
-  for (const [k, v] of current) if (k !== "from" && k !== "to" && k !== "compare") out.append(k, v);
+  const interval = view.interval ?? current.get("interval");
+  if (interval !== null) out.set("interval", interval);
+  for (const [k, v] of current) if (!VIEW_KEYS.has(k)) out.append(k, v);
   return `?${out.toString()}`;
 }
 

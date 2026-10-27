@@ -9,9 +9,8 @@ import { listApps } from "@/discovery/data";
 import { APP_ID_RE } from "@/discovery/sql";
 import { readEnv } from "@/env";
 import { buildContext, type QueryContext } from "@/queries/context";
-import type { DateRange } from "@/time/range";
 import { appToday } from "@/time/today";
-import { parseViewState } from "@/view/state";
+import { parseViewState, type ViewState } from "@/view/state";
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -20,7 +19,7 @@ export interface PageData {
   settings: AppSettings;
   apps: string[];
   live: boolean;
-  state: { range: DateRange; compare: boolean };
+  state: ViewState;
   today: string;
   ctx: QueryContext;
   sp: SearchParams;
@@ -66,6 +65,7 @@ async function load(params: Promise<{ appId: string }>, searchParams: Promise<Se
     range: state.range,
     compare: state.compare,
     today,
+    interval: state.interval,
   });
   const appIds = apps.ok ? apps.rows.map((a) => a.app_id) : [];
   return {

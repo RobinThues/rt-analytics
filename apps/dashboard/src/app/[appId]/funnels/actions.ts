@@ -12,7 +12,7 @@ import { APP_ID_RE } from "@/discovery/sql";
 import { readEnv } from "@/env";
 import { allowedFor, parseStep, validateSteps } from "@/funnels/steps";
 
-const KEPT = new Set(["from", "to", "compare", "steps"]);
+const KEPT = new Set(["from", "to", "compare", "interval", "steps"]);
 
 /** Bound arguments come from the browser: keep only our own view parameters. */
 function funnelsUrl(appId: string, qs: string, change: (p: URLSearchParams) => void): string {
