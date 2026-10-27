@@ -21,17 +21,26 @@ export class SessionManager {
   touch(consent: ConsentState): SessionTouch {
     const t = this.now();
     const persisted = consent === "accepted" ? this.storage : null;
-    let id = persisted ? persisted.getItem(ID_KEY) : this.memId;
-    const last = persisted ? Number(persisted.getItem(ACTIVITY_KEY) ?? 0) : this.memLast;
+    // Memory always holds the current session, so the session from before an accept carries into storage.
+    // After a reload memory is empty and the stored session wins.
+    let id = this.memId;
+    let last = this.memLast;
+    if (persisted) {
+      const storedId = persisted.getItem(ID_KEY);
+      const storedLast = Number(persisted.getItem(ACTIVITY_KEY) ?? 0);
+      if (storedId && storedLast >= last) {
+        id = storedId;
+        last = storedLast;
+      }
+    }
     const isNew = !id || t - last > TIMEOUT_MS;
     if (isNew) id = crypto.randomUUID();
     if (persisted) {
       persisted.setItem(ID_KEY, id as string);
       persisted.setItem(ACTIVITY_KEY, String(t));
-    } else {
-      this.memId = id as string;
-      this.memLast = t;
     }
+    this.memId = id as string;
+    this.memLast = t;
     return { id: id as string, isNew };
   }
 

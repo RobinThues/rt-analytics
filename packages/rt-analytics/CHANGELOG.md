@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.5.1] - 2026-10-27
+
+### Fixed
+
+- Accepting consent no longer starts a second session. The session that ran in memory before the choice now
+  carries into sessionStorage, so one visit has one `$session_start` and one session id. Sites in consent mode
+  will see fewer sessions per visit than before.
+- Declining consent now also ends the current session and removes it from sessionStorage, so events after a
+  decline cannot be linked to the session from the consented time.
+
 ## [0.5.0] - 2026-10-19
 
 ### Changed
@@ -79,6 +89,7 @@ All notable changes to this project are documented here. The format follows
   provider and consent banner; Next.js pageview tracker and ingest handler writing to BigQuery via
   the Storage Write API; `setup:gcp` script, SQL views and query templates.
 
+[0.5.1]: https://github.com/RobinThues/rt-analytics/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/RobinThues/rt-analytics/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/RobinThues/rt-analytics/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/RobinThues/rt-analytics/compare/v0.2.0...v0.3.0

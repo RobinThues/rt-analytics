@@ -39,6 +39,30 @@ describe("createAnalytics", () => {
     expect(last.events.at(-1)!.visitorId).toBeTruthy();
   });
 
+  it("keeps one session when consent is accepted after the first pageview", () => {
+    const a = make();
+    a.page();
+    a.acceptConsent();
+    a.page();
+    a.flush();
+    const events = batches.flatMap((b) => b.events);
+    expect(events.filter((e) => e.name === "$session_start")).toHaveLength(1);
+    expect(new Set(events.map((e) => e.sessionId)).size).toBe(1);
+  });
+
+  it("starts a new session on decline and forgets the stored one", () => {
+    const a = make();
+    a.acceptConsent();
+    a.page();
+    a.declineConsent();
+    a.page();
+    a.flush();
+    const events = batches.flatMap((b) => b.events);
+    const accepted = events.find((e) => e.name === "$pageview")!.sessionId;
+    expect(events.at(-1)!.sessionId).not.toBe(accepted);
+    expect(deps.sessionStorage!.getItem("rta_sid")).toBeNull();
+  });
+
   it("emits $consent on accept and decline, and decline clears the visitor id", () => {
     const a = make();
     a.acceptConsent();

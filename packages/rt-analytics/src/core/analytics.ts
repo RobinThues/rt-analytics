@@ -113,7 +113,10 @@ export function createAnalyticsUnstarted<E extends EventMap = EventMap>(
   }
 
   consent.onChange((state) => {
-    if (state === "declined") visitor.clear();
+    if (state === "declined") {
+      visitor.clear();
+      session.reset();
+    }
     emit(EVENTS.consent, { state });
   });
 

@@ -35,6 +35,26 @@ describe("SessionManager", () => {
     expect(b.touch("accepted")).toEqual({ id: first.id, isNew: false });
   });
 
+  it("keeps the memory session when consent is accepted mid-session", () => {
+    let t = 0;
+    const storage = fakeStorage();
+    const s = new SessionManager(storage, () => t);
+    const before = s.touch("pending");
+    t += 5 * MIN;
+    expect(s.touch("accepted")).toEqual({ id: before.id, isNew: false });
+    expect(storage.getItem("rta_sid")).toBe(before.id);
+  });
+
+  it("does not revive an expired memory session on accept", () => {
+    let t = 0;
+    const s = new SessionManager(fakeStorage(), () => t);
+    const before = s.touch("pending");
+    t += 31 * MIN;
+    const after = s.touch("accepted");
+    expect(after.isNew).toBe(true);
+    expect(after.id).not.toBe(before.id);
+  });
+
   it("does not write storage without accepted consent", () => {
     const storage = fakeStorage();
     new SessionManager(storage, () => 0).touch("declined");

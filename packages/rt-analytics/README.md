@@ -404,7 +404,7 @@ version in `package.json`, `src/core/version.ts` and the repo root's `package-lo
 `CHANGELOG.md` entry, commit, then push a matching tag:
 
 ```bash
-git tag v0.5.0 && git push origin main v0.5.0
+git tag v0.5.1 && git push origin main v0.5.1
 ```
 
 `.github/workflows/release.yml` checks that the tag matches the version, runs tests and typecheck,
