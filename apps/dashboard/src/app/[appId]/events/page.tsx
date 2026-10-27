@@ -35,7 +35,7 @@ import { loadExplorer, type ExplorerData } from "./explorer-data";
 
 const perDay = (m: Metric) => m.kind === "visitors" || m.kind === "distinct";
 
-/** `per` follows the chart: per day on daily charts, per hour on hourly ones. */
+/** `per`: the panel description and the total tile say per day; the chart title follows the chart. */
 function metricLabel(m: Metric, per: "day" | "hour" = "day"): string {
   switch (m.kind) {
     case "events":
@@ -196,7 +196,7 @@ function SelectionColumn({ x, p }: { x: ExplorerData; p: PanelProps }) {
   const event = catalog.events.find((e) => e.name === sel.event);
   return (
     <>
-      <Panel title={sel.event} description={metricLabel(sel.metric, x.page.ctx.interval)}>
+      <Panel title={sel.event} description={metricLabel(sel.metric)}>
         <div className="flex flex-col gap-4">
           {event && !event.withVisitor && !event.withSession && (
             <p className="text-sm text-muted-foreground">Server event: no visitor or session metrics.</p>

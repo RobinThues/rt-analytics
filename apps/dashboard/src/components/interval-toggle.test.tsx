@@ -39,6 +39,7 @@ describe("IntervalToggle", () => {
     const hourly = screen.getByRole("button", { name: "Hourly" });
     expect(hourly).toHaveAttribute("aria-disabled", "true");
     expect(hourly).toHaveAttribute("title", "Hourly charts work for ranges up to 7 days.");
+    expect(hourly).toHaveAccessibleDescription("Hourly charts work for ranges up to 7 days.");
     await userEvent.setup().click(hourly);
     expect(push).not.toHaveBeenCalled();
   });

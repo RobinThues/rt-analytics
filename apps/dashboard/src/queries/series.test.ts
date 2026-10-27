@@ -106,6 +106,16 @@ describe("alignHours", () => {
     });
     expect(points.at(-1)).toMatchObject({ at: "2026-10-27T23:00", prevAt: "2026-10-20T23:00" });
   });
+  it("a DST change in the previous period only: same wall-clock hours, the merged hour once", () => {
+    const rows = [
+      { period: "prev" as const, hour_start: "2026-10-25T02:00", n: 7 },
+      { period: "prev" as const, hour_start: "2026-10-25T03:00", n: 2 },
+    ];
+    const points = alignHours(rows, hourCtx("Europe/Berlin", "2026-10-26", "2026-11-01"), null);
+    expect(points).toHaveLength(168);
+    expect(points.find((p) => p.at === "2026-11-01T02:00")).toMatchObject({ prevAt: "2026-10-25T02:00", prev: 7 });
+    expect(points.find((p) => p.at === "2026-11-01T03:00")).toMatchObject({ prevAt: "2026-10-25T03:00", prev: 2 });
+  });
   it("half-hour offset timezone: points are local hours", () => {
     const points = alignHours([], hourCtx("Asia/Kolkata", "2026-10-27"), null);
     expect(points).toHaveLength(24);

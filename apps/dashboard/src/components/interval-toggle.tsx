@@ -1,5 +1,5 @@
 "use client";
-import { useOptimistic } from "react";
+import { useId, useOptimistic } from "react";
 import { Button } from "@/components/ui/button";
 import { usePendingNavigation } from "@/lib/navigation";
 import { MAX_HOURLY_DAYS, type Interval } from "@/view/interval";
@@ -19,6 +19,8 @@ const selectedClass =
  */
 export function IntervalToggle({ interval, hourlyAllowed }: { interval: Interval; hourlyAllowed: boolean }) {
   const [current, setCurrent] = useOptimistic(interval);
+  const reasonId = useId();
+  const reason = `Hourly charts work for ranges up to ${MAX_HOURLY_DAYS} days.`;
   const { pending, navigate } = usePendingNavigation();
   function pick(next: Interval) {
     if (next === current || (next === "hour" && !hourlyAllowed)) return;
@@ -35,7 +37,8 @@ export function IntervalToggle({ interval, hourlyAllowed }: { interval: Interval
             variant="outline"
             aria-pressed={current === value}
             aria-disabled={unavailable || undefined}
-            title={unavailable ? `Hourly charts work for ranges up to ${MAX_HOURLY_DAYS} days.` : undefined}
+            title={unavailable ? reason : undefined}
+            aria-describedby={unavailable ? reasonId : undefined}
             className={[
               i === 0 ? "rounded-r-none" : "-ml-px rounded-l-none",
               current === value ? selectedClass : "",
@@ -47,6 +50,11 @@ export function IntervalToggle({ interval, hourlyAllowed }: { interval: Interval
           </Button>
         );
       })}
+      {!hourlyAllowed && (
+        <span id={reasonId} className="sr-only">
+          {reason}
+        </span>
+      )}
     </div>
   );
 }

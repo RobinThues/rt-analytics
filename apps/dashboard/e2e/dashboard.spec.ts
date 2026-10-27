@@ -426,6 +426,9 @@ test("overview: Hourly is unavailable for 28 days, the charts stay daily", async
   const hourly = interval.getByRole("button", { name: "Hourly" });
   await expect(hourly).toHaveAttribute("aria-disabled", "true");
   await hourly.click({ force: true }); // aria-disabled: Playwright would wait for it to become enabled
+  // A navigation would mark Hourly pressed at once (optimistic) and show the progress line.
+  await expect(interval.getByRole("button", { name: "Daily" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId("progress-line")).toBeHidden();
   await expect(page).toHaveURL(/from=2026-09-16&to=2026-10-13&interval=hour$/);
   const visitors = chart(page, "Visitors");
   await visitors.hover({ position: { x: 200, y: 80 } });

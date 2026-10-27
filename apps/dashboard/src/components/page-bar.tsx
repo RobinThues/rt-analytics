@@ -52,7 +52,7 @@ const controlsSkeleton = (page: AppPage) => (
   <div data-testid="skeleton" className="flex flex-wrap items-center gap-2">
     <Skeleton className="h-7.5 w-52" />
     <Skeleton className="h-7.5 w-24" />
-    {hasCharts(page) && <Skeleton className="h-7.5 w-32" />}
+    {hasCharts(page) && <Skeleton className="h-7.5 w-28" />}
     <Skeleton className="h-7.5 w-28" />
     <Skeleton className="h-7.5 w-20" />
   </div>
