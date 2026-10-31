@@ -1,5 +1,5 @@
 import { KpiRow } from "@/components/kpi-row";
-import { SlowPagesTable, TopErrorsTable } from "@/components/quality-tables";
+import { RouteFailuresTable, SlowPagesTable, TopErrorsTable } from "@/components/quality-tables";
 import { QueryError } from "@/components/query-error";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatInt, formatShare } from "@/lib/format";
@@ -48,6 +48,14 @@ export async function TopErrorsPanel({ ctx, live, maxBytes }: PanelProps) {
   const rows = splitQuality(res.rows).errors;
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">No errors in this range.</p>;
   return <TopErrorsTable rows={rows} />;
+}
+
+export async function RouteFailuresPanel({ ctx, live, maxBytes }: PanelProps) {
+  const res = await loadQuality(ctx, live);
+  if (!res.ok) return <QueryError result={res} maxBytes={maxBytes} />;
+  const rows = splitQuality(res.rows).failures;
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No failed routes in this range.</p>;
+  return <RouteFailuresTable rows={rows} />;
 }
 
 export async function ConsentPanel({ ctx, live, maxBytes }: PanelProps) {

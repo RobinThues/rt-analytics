@@ -5,8 +5,9 @@ import { SUMMARY_COLS } from "@/components/kpi-grid";
 import { ChartSkeleton, KpiSkeleton, TableSkeleton } from "@/components/skeletons";
 import type { PageInput } from "./page-data";
 import { BREAKDOWNS, BreakdownPanel } from "./panels/breakdowns";
+import { GoalPanel } from "./panels/goal";
 import { PeoplePanel } from "./panels/people";
-import { ConsentPanel, SlowPagesPanel, TopErrorsPanel, WebVitalsPanel } from "./panels/quality";
+import { ConsentPanel, RouteFailuresPanel, SlowPagesPanel, TopErrorsPanel, WebVitalsPanel } from "./panels/quality";
 import { ErrorChart, KpiPanel, TrafficCharts } from "./panels/traffic";
 import { DataPart } from "./with-page";
 
@@ -17,6 +18,7 @@ export default function OverviewPage({ params, searchParams }: PageProps<"/[appI
   const table = <TableSkeleton rows={5} />;
   const summary = <KpiSkeleton cols={SUMMARY_COLS} count={6} coverage />;
   const vitals = <KpiSkeleton cols={{ base: 2, sm: 3 }} count={3} coverage={false} />;
+  const goalSkeleton = <KpiSkeleton cols={{ base: 2, sm: 3 }} count={3} coverage={false} />;
   return (
     <main className="mx-auto w-full max-w-7xl p-4 sm:p-5">
       <PageBar title="Overview" page="overview" input={input} />
@@ -30,6 +32,11 @@ export default function OverviewPage({ params, searchParams }: PageProps<"/[appI
           <Panel title="Over time" fallback={<ChartSkeleton count={3} titles legend />}>
             <DataPart input={input} fallback={<ChartSkeleton count={3} titles legend />}>
               {(p) => <TrafficCharts {...p} />}
+            </DataPart>
+          </Panel>
+          <Panel title="Goal" description="Sessions with the app's goal event." fallback={goalSkeleton}>
+            <DataPart input={input} fallback={goalSkeleton}>
+              {(p) => <GoalPanel {...p} />}
             </DataPart>
           </Panel>
           <div className="grid gap-3 lg:grid-cols-2">
@@ -60,6 +67,15 @@ export default function OverviewPage({ params, searchParams }: PageProps<"/[appI
             <Panel title="Top errors" fallback={table}>
               <DataPart input={input} fallback={table}>
                 {(p) => <TopErrorsPanel {...p} />}
+              </DataPart>
+            </Panel>
+            <Panel
+              title="Failed routes"
+              description="API calls that answered with status 500 or higher."
+              fallback={table}
+            >
+              <DataPart input={input} fallback={table}>
+                {(p) => <RouteFailuresPanel {...p} />}
               </DataPart>
             </Panel>
             <Panel title="Consent" fallback={table}>

@@ -8,6 +8,8 @@ import { BlockSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { getSettings } from "@/config/data";
+import { goalEventOptions } from "@/config/settings";
+import { listEvents } from "@/discovery/data";
 import { APP_ID_RE } from "@/discovery/sql";
 import { pickMessage } from "@/lib/messages";
 import { saveSettings } from "../actions";
@@ -15,6 +17,7 @@ import { saveSettings } from "../actions";
 const ERRORS: Record<string, string> = {
   timezone: "Unknown timezone.",
   hosts: "Some hostnames are not valid. Use plain hostnames like example.com, one per line.",
+  goal: "That goal event is not valid.",
   save: "Could not save the settings. Try again.",
 };
 
@@ -23,6 +26,8 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
   if (!APP_ID_RE.test(appId)) notFound();
   await requireUser();
   const [settings, sp] = await Promise.all([getSettings(appId), searchParams]);
+  const events = await listEvents(appId, settings.timezone);
+  const goalEvents = goalEventOptions(events.ok ? events.rows : [], settings.goal?.event);
   const zones = Intl.supportedValuesOf("timeZone");
   if (!zones.includes("UTC")) zones.push("UTC");
   if (!zones.includes(settings.timezone)) zones.unshift(settings.timezone);
@@ -63,6 +68,38 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
           />
           <p className="text-sm text-muted-foreground">
             One per line. Referrers from these hosts count as direct traffic.
+          </p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="goal_event">Goal event</Label>
+          <select
+            id="goal_event"
+            name="goal_event"
+            defaultValue={settings.goal?.event ?? ""}
+            className="h-7.5 rounded-md border border-input bg-transparent px-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <option value="">No goal</option>
+            {goalEvents.map((e) => (
+              <option key={e} value={e}>
+                {e}
+              </option>
+            ))}
+          </select>
+          <p className="text-sm text-muted-foreground">
+            A session converts when it has this event. Only events with a session are listed, so server events are not.
+          </p>
+        </div>
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="goal_label">Goal name</Label>
+          <input
+            id="goal_label"
+            name="goal_label"
+            defaultValue={settings.goal?.label ?? ""}
+            maxLength={60}
+            className="h-7.5 rounded-md border border-input bg-transparent px-2 text-base md:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          <p className="text-sm text-muted-foreground">
+            Say what it really counts, for example &quot;Clicks on subscribe&quot;. Empty: the event name.
           </p>
         </div>
         <Button type="submit" className="self-start">

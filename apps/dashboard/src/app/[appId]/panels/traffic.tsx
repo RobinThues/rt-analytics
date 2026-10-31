@@ -76,6 +76,7 @@ export async function TrafficCharts({ ctx, live, maxBytes }: PanelProps) {
               data={chartSeries(series(res.rows, pick), ctx)}
               compare={ctx.compare}
               interval={ctx.interval}
+              scale={ctx.scale}
             />
           </div>
         ))}
@@ -98,6 +99,7 @@ export async function ErrorChart({ ctx, live, maxBytes }: PanelProps) {
         )}
         compare={ctx.compare}
         interval={ctx.interval}
+        scale={ctx.scale}
       />
     </div>
   );

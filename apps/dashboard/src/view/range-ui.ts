@@ -2,6 +2,7 @@
 // range or Compare value goes to. Pure, so the client picker and the tests share it.
 import { formatShortDay } from "@/lib/format";
 import { addDays, daysBetween, isDay, type DateRange } from "@/time/range";
+import { parseScale, type ChartScale } from "./chart-scale";
 import type { Interval } from "./interval";
 
 export const RANGE_PRESETS = [7, 28, 90] as const;
@@ -46,13 +47,16 @@ export function formatRangeLabel(range: DateRange): string {
   return `${from} – ${formatShortDay(range.to)} ${year(range.to)}`;
 }
 
-const VIEW_KEYS = new Set(["from", "to", "compare", "interval"]);
+const VIEW_KEYS = new Set(["from", "to", "compare", "interval", "scale"]);
 
 /**
- * The query string for the same page with a new range, Compare value and/or chart interval: from, to,
- * compare and interval first (as viewQuery writes them), then every other parameter in its order.
+ * The query string for the same page with a new range, Compare value, chart interval and/or chart scale: from,
+ * to, compare, interval and scale first (as viewQuery writes them), then every other parameter in its order.
  */
-export function withView(search: string, view: { range?: DateRange; compare?: boolean; interval?: Interval }): string {
+export function withView(
+  search: string,
+  view: { range?: DateRange; compare?: boolean; interval?: Interval; scale?: ChartScale },
+): string {
   const current = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
   const out = new URLSearchParams();
   const from = view.range?.from ?? current.get("from");
@@ -63,6 +67,7 @@ export function withView(search: string, view: { range?: DateRange; compare?: bo
   if (compareOff) out.set("compare", "0");
   const interval = view.interval ?? current.get("interval");
   if (interval !== null) out.set("interval", interval);
+  if ((view.scale ?? parseScale(current.get("scale") ?? undefined)) === "log") out.set("scale", "log");
   for (const [k, v] of current) if (!VIEW_KEYS.has(k)) out.append(k, v);
   return `?${out.toString()}`;
 }

@@ -8,7 +8,7 @@ import type { PanelProps } from "../page-data";
 export const BREAKDOWNS: ReadonlyArray<{ dim: BreakdownDim; title: string; valueLabel: string }> = [
   { dim: "page", title: "Top pages", valueLabel: "Page" },
   { dim: "entry_page", title: "Entry pages", valueLabel: "Page" },
-  { dim: "source", title: "Sources", valueLabel: "Referrer" },
+  { dim: "source", title: "Sources", valueLabel: "Source" },
   { dim: "utm", title: "Campaigns", valueLabel: "Campaign" },
   { dim: "country", title: "Countries", valueLabel: "Country" },
   { dim: "device", title: "Devices", valueLabel: "Device" },

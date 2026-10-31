@@ -96,6 +96,7 @@ async function SeriesPanel({ ctx, live, maxBytes, sel }: PanelProps & { sel: Exp
           data={chartSeries(res.rows, ctx)}
           compare={ctx.compare}
           interval={ctx.interval}
+          scale={ctx.scale}
         />
       </div>
     </div>

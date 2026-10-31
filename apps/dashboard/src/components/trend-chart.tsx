@@ -1,9 +1,11 @@
 "use client";
+import { scaleSymlog } from "d3-scale";
 import { Area, CartesianGrid, ComposedChart, Line, XAxis, YAxis } from "recharts";
 import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/chart";
 import { formatInt } from "@/lib/format";
 import type { ChartPoint } from "@/queries/series";
 import { chartTicks, oneDay, pointLabel, tickLabel } from "@/view/chart-axis";
+import { logTicks, type ChartScale } from "@/view/chart-scale";
 import type { Interval } from "@/view/interval";
 
 const config = {
@@ -14,21 +16,29 @@ const config = {
 /**
  * Current period as a solid line, the previous period as a dashed gray line aligned by day offset, or by
  * wall-clock hour on hourly charts (spec section 6; spec 2026-10-27-hourly-charts). One axis; the tooltip
- * names both points.
+ * names both points. In log mode the axis is symlog, so zeros stay on the chart, and only the lines are drawn,
+ * because a filled area means little on a log axis (spec 2026-10-31-launch-package, part 4).
  */
 export function TrendChart({
   title,
   data,
   compare,
   interval,
+  scale = "linear",
 }: {
   title: string;
   data: readonly ChartPoint[];
   compare: boolean;
   interval: Interval;
+  scale?: ChartScale;
 }) {
   const ticks = chartTicks(data, interval);
   const isOneDay = oneDay(data);
+  const yTicks = logTicks(data.flatMap((p) => (compare ? [p.cur, p.prev] : [p.cur])));
+  const logAxis =
+    scale === "log"
+      ? { scale: scaleSymlog(), domain: [0, yTicks[yTicks.length - 1]!], ticks: yTicks, interval: 0 }
+      : {};
   return (
     <ChartContainer config={config} className="aspect-auto h-40 w-full tabular-nums" aria-label={title}>
       <ComposedChart data={[...data]} margin={{ left: 4, right: 12, top: 8 }} accessibilityLayer>
@@ -48,6 +58,7 @@ export function TrendChart({
           width={44}
           tick={{ fontSize: 11 }}
           tickFormatter={(v: number) => formatInt(v)}
+          {...logAxis}
         />
         <ChartTooltip
           content={({ active, payload }) => {
@@ -68,15 +79,17 @@ export function TrendChart({
             );
           }}
         />
-        <Area
-          dataKey="cur"
-          type="monotone"
-          fill="var(--chart-area)"
-          fillOpacity={1}
-          stroke="none"
-          activeDot={false}
-          isAnimationActive={false}
-        />
+        {scale === "linear" && (
+          <Area
+            dataKey="cur"
+            type="monotone"
+            fill="var(--chart-area)"
+            fillOpacity={1}
+            stroke="none"
+            activeDot={false}
+            isAnimationActive={false}
+          />
+        )}
         {compare && (
           <Line
             dataKey="prev"

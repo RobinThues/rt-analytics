@@ -9,6 +9,7 @@ describe("parseViewState", () => {
       range: { from: "2026-09-17", to: today },
       compare: true,
       interval: null,
+      scale: "linear",
     });
   });
   it("reads a valid range and compare=0", () => {
@@ -16,6 +17,7 @@ describe("parseViewState", () => {
       range: { from: "2026-10-01", to: "2026-10-07" },
       compare: false,
       interval: null,
+      scale: "linear",
     });
   });
   it("reads the interval choice; broken values are no choice", () => {

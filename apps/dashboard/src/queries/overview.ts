@@ -14,6 +14,7 @@ import {
   type Period,
   type QueryContext,
 } from "./context";
+import { sourceExpr } from "./source";
 
 export interface KpiRow {
   period: Period;
@@ -79,6 +80,13 @@ export interface ErrorRow {
   last_seen: string;
 }
 
+export interface RouteFailureRow {
+  route: string;
+  status: number;
+  failures: number;
+  last_seen: string;
+}
+
 export interface ConsentRow {
   period: Period;
   consent_state: string;
@@ -94,6 +102,7 @@ export interface RetentionRow {
 const PV = `'${EVENTS.pageview}'`;
 const ERR = `'${EVENTS.error}'`;
 const VITAL = `'${EVENTS.webVital}'`;
+const ROUTE_FAILURE = `'${EVENTS.routeFailure}'`;
 
 export function kpisQuery(ctx: QueryContext): QuerySpec {
   const sql = `WITH ${eventsCte(ctx.table, SESSION_COLUMNS)},
@@ -180,8 +189,6 @@ ORDER BY period, hour_start`;
   return toSpec("traffic", sql, ctx.params);
 }
 
-const HOST = "LOWER(NET.HOST(first_pv.referrer))";
-
 /** Fixed SQL per dimension (no input). Event level counts pageview events; session level counts sessions. */
 const DIM_SQL: Record<BreakdownDim, { level: "event"; column: EventColumn } | { level: "session"; expr: string }> = {
   page: { level: "event", column: "page_path" },
@@ -190,10 +197,7 @@ const DIM_SQL: Record<BreakdownDim, { level: "event"; column: EventColumn } | { 
   browser: { level: "event", column: "browser" },
   os: { level: "event", column: "os" },
   entry_page: { level: "session", expr: "first_pv.page_path" },
-  source: {
-    level: "session",
-    expr: `IF(IFNULL(${HOST}, '') = '' OR ${HOST} IN UNNEST(@own_hosts), 'direct', ${HOST})`,
-  },
+  source: { level: "session", expr: sourceExpr("first_pv") },
   utm: {
     level: "session",
     expr: `IF(COALESCE(first_pv.utm_source, first_pv.utm_medium, first_pv.utm_campaign) IS NULL, '(none)',
@@ -221,8 +225,8 @@ export function breakdownsQuery(ctx: QueryContext): QuerySpec {
   FROM sessions WHERE period IS NOT NULL`;
   }).join("\n  UNION ALL\n");
   // Other is a bucket computed in SQL, not total minus top 20: distinct counts do not add up.
-  const sql = `WITH ${eventsCte(ctx.table, [...SESSION_COLUMNS, ...EVENT_DIM_COLUMNS])},
-${sessionsCte()},
+  const sql = `WITH ${eventsCte(ctx.table, [...SESSION_COLUMNS, ...EVENT_DIM_COLUMNS, "in_app"])},
+${sessionsCte({ firstPvColumns: ["in_app"] })},
 items AS (
 ${items}
 ),
@@ -256,7 +260,7 @@ const NULL_INT = "CAST(NULL AS INT64)";
 const NULL_NUM = "CAST(NULL AS FLOAT64)";
 
 /**
- * The four quality panels (web vitals, slowest pages, top errors, consent) in one query (one BigQuery job).
+ * The five quality panels (web vitals, slowest pages, top errors, failed routes, consent) in one query (one BigQuery job).
  * Each panel keeps its own select, filter and limit; the selects share one column list (panel, period,
  * metric, p75, samples, page_path, message, occurrences, last_seen, consent_state, pageviews) and fill the
  * columns they do not use with typed NULLs.
@@ -299,6 +303,18 @@ UNION ALL
 )
 UNION ALL
 (
+  SELECT 'failures' AS panel, ${NULL_STR} AS period, ${NULL_STR} AS metric, ${NULL_NUM} AS p75, LAX_INT64(props.status) AS samples,
+    ${NULL_STR} AS page_path, IFNULL(LAX_STRING(props.route), '(no route)') AS message, SUM(IFNULL(LAX_INT64(props.count), 1)) AS occurrences,
+    FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', MAX(timestamp), @tz) AS last_seen,
+    ${NULL_STR} AS consent_state, ${NULL_INT} AS pageviews
+  FROM evp
+  WHERE event_name = ${ROUTE_FAILURE} AND period = 'cur'
+  GROUP BY message, samples
+  ORDER BY occurrences DESC, message
+  LIMIT 10
+)
+UNION ALL
+(
   SELECT 'consent' AS panel, period, ${NULL_STR} AS metric, ${NULL_NUM} AS p75, ${NULL_INT} AS samples,
     ${NULL_STR} AS page_path, ${NULL_STR} AS message, ${NULL_INT} AS occurrences, ${NULL_STR} AS last_seen,
     IFNULL(consent_state, 'unknown') AS consent_state, COUNT(*) AS pageviews
@@ -309,7 +325,7 @@ UNION ALL
   return toSpec("quality", sql, ctx.params);
 }
 
-export type QualityPanel = "vitals" | "slow_pages" | "errors" | "consent";
+export type QualityPanel = "vitals" | "slow_pages" | "errors" | "failures" | "consent";
 
 /** One row of `qualityQuery`: the panel plus every panel's columns (NULL where unused). */
 export interface QualityRow {
@@ -331,12 +347,14 @@ export function splitQuality(rows: readonly QualityRow[]): {
   vitals: VitalRow[];
   slowPages: SlowPageRow[];
   errors: ErrorRow[];
+  failures: RouteFailureRow[];
   consent: ConsentRow[];
 } {
   const out = {
     vitals: [] as VitalRow[],
     slowPages: [] as SlowPageRow[],
     errors: [] as ErrorRow[],
+    failures: [] as RouteFailureRow[],
     consent: [] as ConsentRow[],
   };
   for (const r of rows) {
@@ -346,6 +364,8 @@ export function splitQuality(rows: readonly QualityRow[]): {
       out.slowPages.push({ page_path: r.page_path!, p75: r.p75!, samples: r.samples! });
     } else if (r.panel === "errors") {
       out.errors.push({ message: r.message!, occurrences: r.occurrences!, last_seen: r.last_seen! });
+    } else if (r.panel === "failures") {
+      out.failures.push({ route: r.message!, status: r.samples!, failures: r.occurrences!, last_seen: r.last_seen! });
     } else if (r.panel === "consent") {
       out.consent.push({ period: r.period!, consent_state: r.consent_state!, pageviews: r.pageviews! });
     }

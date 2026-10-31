@@ -2,8 +2,22 @@
 import type { QuerySpec } from "@/bq/run-query";
 import type { DashboardEnv } from "@/env";
 
-export type AppSettings = { timezone: string; hosts: string[] };
+export type Goal = { event: string; label: string };
+export type AppSettings = { timezone: string; hosts: string[]; goal?: Goal };
 export const DEFAULT_SETTINGS: AppSettings = { timezone: "Europe/Berlin", hosts: [] };
+
+/** An app event: the ingest's name rule without the `$` of built-in events. */
+const GOAL_EVENT_RE = /^[a-z0-9_]{1,64}$/i;
+const MAX_GOAL_LABEL = 60;
+
+/** A goal from the settings form or storage, or undefined. The label falls back to the event name. */
+export function parseGoal(raw: unknown): Goal | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const { event, label } = raw as { event?: unknown; label?: unknown };
+  if (typeof event !== "string" || !GOAL_EVENT_RE.test(event)) return undefined;
+  const text = typeof label === "string" ? label.trim().slice(0, MAX_GOAL_LABEL) : "";
+  return { event, label: text || event };
+}
 
 const HOST_RE = /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$/;
 
@@ -31,10 +45,20 @@ export function parseHostList(input: string): { hosts: string[]; invalid: string
   return { hosts: hosts.slice(0, MAX_HOSTS), invalid };
 }
 
+/** The events a goal can use: those with a session id, sorted; the current goal stays selectable when it is quiet. */
+export function goalEventOptions(
+  events: ReadonlyArray<{ event_name: string; with_session: number }>,
+  current: string | undefined,
+): string[] {
+  const names = new Set(events.filter((e) => e.with_session > 0).map((e) => e.event_name));
+  if (current) names.add(current);
+  return [...names].sort();
+}
+
 /** Never throws: bad stored values fall back to defaults so an app's queries keep working. */
 export function parseSettings(raw: unknown): AppSettings {
   if (!raw || typeof raw !== "object") return DEFAULT_SETTINGS;
-  const r = raw as { timezone?: unknown; hosts?: unknown };
+  const r = raw as { timezone?: unknown; hosts?: unknown; goal?: unknown };
   if (!isTimezone(r.timezone)) return DEFAULT_SETTINGS;
   const hosts = Array.isArray(r.hosts)
     ? r.hosts
@@ -43,7 +67,8 @@ export function parseSettings(raw: unknown): AppSettings {
         .filter((h) => HOST_RE.test(h))
         .slice(0, MAX_HOSTS)
     : [];
-  return { timezone: r.timezone, hosts };
+  const goal = parseGoal(r.goal);
+  return { timezone: r.timezone, hosts, ...(goal ? { goal } : {}) };
 }
 
 export function readSettingsQuery(env: DashboardEnv, appId: string): QuerySpec {

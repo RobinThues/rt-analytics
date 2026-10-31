@@ -7,6 +7,7 @@ export const QUERY_NAMES = [
   "traffic",
   "breakdowns",
   "quality",
+  "goals",
   "retention",
   "event_list",
   "event_series",

@@ -5,6 +5,8 @@ import {
   DEFAULT_SETTINGS,
   isTimezone,
   parseHostList,
+  goalEventOptions,
+  parseGoal,
   parseSettings,
   readSettingsQuery,
   saveSettingsQuery,
@@ -22,6 +24,43 @@ describe("parseSettings", () => {
     expect(
       parseSettings({ timezone: "Europe/Vienna", hosts: ["Wetter-in-Kalender.de", "bad host", "x".repeat(300)] }),
     ).toEqual({ timezone: "Europe/Vienna", hosts: ["wetter-in-kalender.de"] });
+  });
+});
+
+describe("goal", () => {
+  const base = { timezone: "Europe/Berlin", hosts: [] };
+
+  it("keeps a valid goal and leaves the field out without one", () => {
+    expect(parseSettings({ ...base, goal: { event: "signup", label: " Sign-ups " } })).toEqual({
+      ...base,
+      goal: { event: "signup", label: "Sign-ups" },
+    });
+    expect(parseSettings(base)).toEqual(base);
+    expect("goal" in parseSettings({ ...base, goal: { event: "", label: "x" } })).toBe(false);
+  });
+
+  it("uses the event name when the label is empty, and limits its length", () => {
+    expect(parseGoal({ event: "signup", label: "  " })).toEqual({ event: "signup", label: "signup" });
+    expect(parseGoal({ event: "signup" })).toEqual({ event: "signup", label: "signup" });
+    expect(parseGoal({ event: "signup", label: "x".repeat(100) })?.label).toHaveLength(60);
+  });
+
+  it("refuses built-in events and anything that isn't an event name", () => {
+    for (const event of ["$pageview", "a b", "x'; DROP", "x".repeat(65), 1, null]) {
+      expect(parseGoal({ event, label: "x" })).toBeUndefined();
+    }
+    expect(parseGoal("signup")).toBeUndefined();
+  });
+
+  it("offers only events with a session, sorted, and keeps the current goal", () => {
+    const events = [
+      { event_name: "zeta", with_session: 3 },
+      { event_name: "calendar_poll", with_session: 0 },
+      { event_name: "alpha", with_session: 1 },
+    ];
+    expect(goalEventOptions(events, undefined)).toEqual(["alpha", "zeta"]);
+    expect(goalEventOptions(events, "old_goal")).toEqual(["alpha", "old_goal", "zeta"]);
+    expect(goalEventOptions([], "alpha")).toEqual(["alpha"]);
   });
 });
 

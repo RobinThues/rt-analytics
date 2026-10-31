@@ -58,8 +58,14 @@ export async function saveSettings(appId: string, formData: FormData) {
   const timezone = String(formData.get("timezone") ?? "");
   const { hosts, invalid } = parseHostList(String(formData.get("hosts") ?? ""));
   if (invalid.length > 0) redirect(`${path}?error=hosts`);
-  const settings = parseSettings({ timezone, hosts });
+  const goalEvent = String(formData.get("goal_event") ?? "");
+  const settings = parseSettings({
+    timezone,
+    hosts,
+    goal: { event: goalEvent, label: String(formData.get("goal_label") ?? "") },
+  });
   if (settings.timezone !== timezone) redirect(`${path}?error=timezone`);
+  if (goalEvent !== "" && !settings.goal) redirect(`${path}?error=goal`);
   const res = await execute(saveSettingsQuery(readEnv(), appId, settings, user.email));
   if (!res.ok) redirect(`${path}?error=save`);
   updateTag(TAGS.config);

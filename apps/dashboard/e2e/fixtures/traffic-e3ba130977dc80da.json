@@ -110,5 +110,13 @@
     "sessions": 157,
     "pageviews": 219,
     "errors": 2
+  },
+  {
+    "period": "prev",
+    "day": "2026-10-14",
+    "visitors": 10,
+    "sessions": 7,
+    "pageviews": 10,
+    "errors": 0
   }
 ]

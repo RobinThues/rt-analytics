@@ -63,9 +63,21 @@ describe("overview queries", () => {
     const q = qualityQuery(ctx);
     expect(q.name).toBe("quality");
     expect(q.sql.split(ctx.table).length - 1).toBe(1);
-    expect(q.sql.match(/LIMIT 10/g)).toHaveLength(2);
+    expect(q.sql.match(/LIMIT 10/g)).toHaveLength(3);
     expect(q.sql).toContain("HAVING COUNT(*) >= 5");
-    for (const p of ["vitals", "slow_pages", "errors", "consent"]) expect(q.sql).toContain(`'${p}' AS panel`);
+    for (const p of ["vitals", "slow_pages", "errors", "failures", "consent"]) {
+      expect(q.sql).toContain(`'${p}' AS panel`);
+    }
+  });
+  it("failed routes: sums count, because writes are limited, and old rows without count are 1", () => {
+    const sql = qualityQuery(ctx).sql;
+    expect(sql).toContain("event_name = '$route_failure'");
+    expect(sql).toContain("SUM(IFNULL(LAX_INT64(props.count), 1))");
+  });
+  it("breakdowns: the source reads the in-app column, other queries don't", () => {
+    expect(breakdownsQuery(ctx).sql).toContain("first_pv.in_app IS NOT NULL");
+    expect(kpisQuery(ctx).sql).not.toContain("in_app");
+    expect(trafficQuery(ctx).sql).not.toContain("in_app");
   });
   it("web vitals: only LCP, INP, CLS, p75 from APPROX_QUANTILES", () => {
     const sql = qualityQuery(ctx).sql;
@@ -74,7 +86,7 @@ describe("overview queries", () => {
     expect(sql).toContain("('LCP', 'INP', 'CLS')");
   });
   it("splitQuality gives each panel only its own fields", () => {
-    expect(splitQuality([])).toEqual({ vitals: [], slowPages: [], errors: [], consent: [] });
+    expect(splitQuality([])).toEqual({ vitals: [], slowPages: [], errors: [], failures: [], consent: [] });
     const nulls = { period: null, metric: null, p75: null, samples: null, page_path: null, message: null };
     const more = { occurrences: null, last_seen: null, consent_state: null, pageviews: null };
     const split = splitQuality([
@@ -82,6 +94,18 @@ describe("overview queries", () => {
       { ...nulls, ...more, panel: "vitals", period: "cur", metric: "LCP", p75: 1800, samples: 40 },
       { ...nulls, ...more, panel: "errors", message: "boom", occurrences: 3, last_seen: "2026-10-13 10:00" },
       { ...nulls, ...more, panel: "consent", period: "prev", consent_state: "granted", pageviews: 9 },
+      {
+        ...nulls,
+        ...more,
+        panel: "failures",
+        message: "/api/search",
+        samples: 503,
+        occurrences: 12,
+        last_seen: "2026-10-13 11:00",
+      },
+    ]);
+    expect(split.failures).toEqual([
+      { route: "/api/search", status: 503, failures: 12, last_seen: "2026-10-13 11:00" },
     ]);
     expect(split.slowPages).toEqual([{ page_path: "/a", p75: 2500, samples: 7 }]);
     expect(split.vitals).toEqual([{ period: "cur", metric: "LCP", p75: 1800, samples: 40 }]);

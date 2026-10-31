@@ -50,6 +50,14 @@ describe("withView", () => {
     );
     expect(withView("?from=a&to=b", { interval: "hour" })).toBe("?from=a&to=b&interval=hour");
   });
+  it("writes log after the interval, keeps it on other changes, and drops it for linear", () => {
+    expect(withView("?from=a&to=b&interval=hour&event=x", { scale: "log" })).toBe(
+      "?from=a&to=b&interval=hour&scale=log&event=x",
+    );
+    expect(withView("?from=a&to=b&scale=log", { compare: false })).toBe("?from=a&to=b&compare=0&scale=log");
+    expect(withView("?from=a&to=b&scale=log&event=x", { scale: "linear" })).toBe("?from=a&to=b&event=x");
+    expect(withView("?from=a&to=b&scale=junk", {})).toBe("?from=a&to=b");
+  });
 });
 
 describe("local date helpers", () => {

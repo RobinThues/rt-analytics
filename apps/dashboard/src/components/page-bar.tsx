@@ -7,6 +7,7 @@ import { IntervalToggle } from "@/components/interval-toggle";
 import { MobileNavTrigger } from "@/components/mobile-nav";
 import { RangeLine } from "@/components/range-line";
 import { RangePicker } from "@/components/range-picker";
+import { ScaleToggle } from "@/components/scale-toggle";
 import { Mark } from "@/components/mark";
 import { LineSkeleton } from "@/components/skeletons";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ async function BarControls({ input, page }: { input: PageInput; page: AppPage })
       <RangePicker range={d.state.range} today={d.today} label={formatRangeLabel(d.state.range)} />
       <CompareToggle compare={d.state.compare} />
       {hasCharts(page) && <IntervalToggle interval={d.ctx.interval} hourlyAllowed={hourlyAllowed(d.state.range)} />}
+      {hasCharts(page) && <ScaleToggle scale={d.ctx.scale} />}
       {d.live && <Badge className="bg-sidebar-accent text-sidebar-accent-foreground">Live</Badge>}
       <form action={toggleLive.bind(null, d.appId, page, qs)}>
         <Button type="submit" variant="outline">
@@ -53,6 +55,7 @@ const controlsSkeleton = (page: AppPage) => (
     <Skeleton className="h-7.5 w-52" />
     <Skeleton className="h-7.5 w-24" />
     {hasCharts(page) && <Skeleton className="h-7.5 w-28" />}
+    {hasCharts(page) && <Skeleton className="h-7.5 w-24" />}
     <Skeleton className="h-7.5 w-28" />
     <Skeleton className="h-7.5 w-20" />
   </div>
@@ -60,7 +63,7 @@ const controlsSkeleton = (page: AppPage) => (
 
 /**
  * The page top bar (layout spec, option A): the title at once; with `input`, the range picker, Compare,
- * Daily | Hourly (pages with charts), Live and Refresh, the range line and the credentials banner as data parts. Settings passes no input.
+ * Daily | Hourly and Linear | Log (pages with charts), Live and Refresh, the range line and the credentials banner as data parts. Settings passes no input.
  */
 export function PageBar({ title, page, input }: { title: string; page?: AppPage; input?: PageInput }) {
   return (

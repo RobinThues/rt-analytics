@@ -6,6 +6,7 @@ import { DAILY_VISITOR_PREFIX, EVENTS, type EventRow } from "rt-analytics/schema
 import type { QueryName, QueryParam, QuerySpec } from "@/bq/run-query";
 import type { AppSettings } from "@/config/settings";
 import { addDays, dayStart, previousRange, rangeDays, type DateRange } from "@/time/range";
+import type { ChartScale } from "@/view/chart-scale";
 import { chartInterval, type Interval } from "@/view/interval";
 
 export type Period = "cur" | "prev";
@@ -39,6 +40,10 @@ export interface QueryContext {
   days: number;
   /** The chart interval in effect (never a query param; only chart queries change their SQL with it). */
   interval: Interval;
+  /** The y-axis of the charts; display only, never in SQL. */
+  scale: ChartScale;
+  /** The app's goal, if it has one (only the goal query reads it). */
+  goal: AppSettings["goal"];
   params: PeriodParams;
 }
 
@@ -51,6 +56,7 @@ export function buildContext(input: {
   today: string;
   /** The URL choice; missing or null is automatic (see chartInterval). */
   interval?: Interval | null;
+  scale?: ChartScale;
 }): QueryContext {
   const { table, appId, settings, range, compare, today } = input;
   const tz = settings.timezone;
@@ -67,6 +73,8 @@ export function buildContext(input: {
     today,
     days: rangeDays(range),
     interval: chartInterval(range, input.interval ?? null),
+    scale: input.scale ?? "linear",
+    goal: settings.goal,
     params: {
       app_id: appId,
       tz,
@@ -127,8 +135,13 @@ export const SESSION_COLUMNS = [
 export const persistentCond = (p = "") =>
   `(${p}user_id IS NOT NULL OR (${p}visitor_id IS NOT NULL AND NOT STARTS_WITH(${p}visitor_id, '${DAILY_VISITOR_PREFIX}')))`;
 
-/** sessions: a session_id with at least one pageview; it belongs to the period and day of its first event. */
-export function sessionsCte(): string {
+/**
+ * sessions: a session_id with at least one pageview; it belongs to the period and day of its first event.
+ * `firstPvColumns` adds columns to first_pv, and `select` adds aggregates per session, both for queries that read
+ * them; without them the SQL stays the same for all other queries.
+ */
+export function sessionsCte(opts: { firstPvColumns?: readonly EventColumn[]; select?: string } = {}): string {
+  const firstPv = ["page_path", "referrer", "utm_source", "utm_medium", "utm_campaign", ...(opts.firstPvColumns ?? [])];
   return `sessions AS (
   SELECT *, ${periodOf("start_ts")} AS period, DATE(start_ts, @tz) AS day
   FROM (
@@ -137,8 +150,8 @@ export function sessionsCte(): string {
       MIN(timestamp) AS start_ts,
       COUNTIF(event_name = '${EVENTS.pageview}') AS pageviews,
       MAX(visitor_id) AS visitor_id,
-      LOGICAL_OR(${persistentCond()}) AS persistent,
-      ARRAY_AGG(STRUCT(page_path, referrer, utm_source, utm_medium, utm_campaign)
+      LOGICAL_OR(${persistentCond()}) AS persistent,${opts.select ? `\n      ${opts.select},` : ""}
+      ARRAY_AGG(STRUCT(${firstPv.join(", ")})
         ORDER BY IF(event_name = '${EVENTS.pageview}', 0, 1), timestamp LIMIT 1)[OFFSET(0)] AS first_pv
     FROM evp
     WHERE session_id IS NOT NULL

@@ -1,5 +1,6 @@
 // Every view is a URL (spec section 3, "Routes and URL state"). Broken values fall back to defaults.
 import { daysBetween, defaultRange, isDay, type DateRange } from "@/time/range";
+import { parseScale, type ChartScale } from "./chart-scale";
 import { parseInterval, type Interval } from "./interval";
 
 const MAX_DAYS = 400;
@@ -12,6 +13,7 @@ export interface ViewState {
   range: DateRange;
   compare: boolean;
   interval: Interval | null;
+  scale: ChartScale;
 }
 
 export function parseViewState(params: Params, today: string): ViewState {
@@ -29,5 +31,6 @@ export function parseViewState(params: Params, today: string): ViewState {
     range: ok ? { from, to } : defaultRange(today),
     compare: one(params.compare) !== "0",
     interval: parseInterval(params.interval),
+    scale: parseScale(params.scale),
   };
 }

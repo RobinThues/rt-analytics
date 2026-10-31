@@ -66,6 +66,7 @@ async function load(params: Promise<{ appId: string }>, searchParams: Promise<Se
     compare: state.compare,
     today,
     interval: state.interval,
+    scale: state.scale,
   });
   const appIds = apps.ok ? apps.rows.map((a) => a.app_id) : [];
   return {

@@ -1,6 +1,24 @@
 [
   {
     "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-13",
+    "events": 533
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-09",
+    "events": 95
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-09",
+    "events": 31
+  },
+  {
+    "period": "cur",
     "event_name": "place_selected",
     "day": "2026-10-12",
     "events": 125
@@ -14,26 +32,14 @@
   {
     "period": "cur",
     "event_name": "calendar_poll",
-    "day": "2026-10-12",
-    "events": 546
-  },
-  {
-    "period": "cur",
-    "event_name": "place_selected",
-    "day": "2026-10-11",
-    "events": 81
-  },
-  {
-    "period": "cur",
-    "event_name": "subscribe_click",
-    "day": "2026-10-11",
-    "events": 28
+    "day": "2026-10-07",
+    "events": 515
   },
   {
     "period": "cur",
     "event_name": "calendar_poll",
-    "day": "2026-10-11",
-    "events": 528
+    "day": "2026-10-08",
+    "events": 545
   },
   {
     "period": "cur",
@@ -50,32 +56,8 @@
   {
     "period": "cur",
     "event_name": "calendar_poll",
-    "day": "2026-10-10",
-    "events": 565
-  },
-  {
-    "period": "cur",
-    "event_name": "place_selected",
-    "day": "2026-10-07",
-    "events": 108
-  },
-  {
-    "period": "cur",
-    "event_name": "calendar_poll",
-    "day": "2026-10-07",
-    "events": 515
-  },
-  {
-    "period": "cur",
-    "event_name": "subscribe_click",
-    "day": "2026-10-07",
-    "events": 51
-  },
-  {
-    "period": "cur",
-    "event_name": "place_selected",
-    "day": "2026-10-13",
-    "events": 80
+    "day": "2026-10-11",
+    "events": 528
   },
   {
     "period": "cur",
@@ -85,9 +67,33 @@
   },
   {
     "period": "cur",
-    "event_name": "calendar_poll",
+    "event_name": "place_selected",
     "day": "2026-10-13",
+    "events": 80
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-09",
     "events": 533
+  },
+  {
+    "period": "cur",
+    "event_name": "calendar_poll",
+    "day": "2026-10-12",
+    "events": 546
+  },
+  {
+    "period": "cur",
+    "event_name": "place_selected",
+    "day": "2026-10-07",
+    "events": 108
+  },
+  {
+    "period": "cur",
+    "event_name": "subscribe_click",
+    "day": "2026-10-07",
+    "events": 51
   },
   {
     "period": "cur",
@@ -104,25 +110,19 @@
   {
     "period": "cur",
     "event_name": "calendar_poll",
-    "day": "2026-10-08",
-    "events": 545
+    "day": "2026-10-10",
+    "events": 565
   },
   {
     "period": "cur",
     "event_name": "place_selected",
-    "day": "2026-10-09",
-    "events": 95
+    "day": "2026-10-11",
+    "events": 81
   },
   {
     "period": "cur",
     "event_name": "subscribe_click",
-    "day": "2026-10-09",
-    "events": 31
-  },
-  {
-    "period": "cur",
-    "event_name": "calendar_poll",
-    "day": "2026-10-09",
-    "events": 533
+    "day": "2026-10-11",
+    "events": 28
   }
 ]

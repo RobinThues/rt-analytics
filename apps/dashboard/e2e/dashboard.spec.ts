@@ -450,3 +450,50 @@ test("explorer: a one-day range charts hours", async ({ page }) => {
   await expect(page).toHaveURL(/interval=day/);
   await expect(chart(page, "Visitors with the event, per day")).toBeVisible();
 });
+
+// Linear/Log switch and the new panels (spec 2026-10-31-launch-package).
+test("overview: Log changes the axis for all charts, stays in the URL and in links", async ({ page }) => {
+  await page.goto("/demo?from=2026-09-16&to=2026-10-13");
+  const visitors = chart(page, "Visitors");
+  await expect(visitors.locator(".recharts-area")).toHaveCount(1);
+  const scale = page.getByRole("group", { name: "Chart scale" });
+  await expect(scale.getByRole("button", { name: "Linear" })).toHaveAttribute("aria-pressed", "true");
+  await scale.getByRole("button", { name: "Log" }).click();
+  await expect(page).toHaveURL(/from=2026-09-16&to=2026-10-13&scale=log/);
+  await expect(page.getByTestId("progress-line")).toBeHidden({ timeout: 15_000 });
+  await expect(scale.getByRole("button", { name: "Log" })).toHaveAttribute("aria-pressed", "true");
+  for (const title of ["Visitors", "Sessions", "Pageviews", "Errors"]) {
+    await expect(chart(page, title).locator(".recharts-area"), title).toHaveCount(0);
+    await expect(chart(page, title).locator(".recharts-line-curve").first(), title).toBeVisible();
+  }
+  const yTicks = visitors.locator(".recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value");
+  expect((await yTicks.allTextContents()).slice(0, 3)).toEqual(["0", "1", "10"]);
+  // Equal steps on the axis mean a log scale: on a linear one, 1 would sit right next to 0.
+  const y = await yTicks.evaluateAll((ticks) => ticks.map((t) => Number(t.getAttribute("y"))));
+  expect(y[0]! - y[1]!).toBeGreaterThan(10);
+  // The tooltip keeps the real numbers.
+  await visitors.hover({ position: { x: 200, y: 80 } });
+  await expect(visitors.locator(".recharts-tooltip-wrapper")).toContainText(/\d{1,2} \w+: [\d,]+/);
+  await page.getByRole("link", { name: "Events" }).click();
+  await expect(page).toHaveURL(/\/demo\/events\?from=2026-09-16&to=2026-10-13&scale=log/);
+  await expect(page.getByRole("group", { name: "Chart scale" }).getByRole("button", { name: "Log" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+});
+
+test("overview: Goal and Failed routes panels say when they have nothing to show", async ({ page }) => {
+  await page.goto("/demo?from=2026-09-16&to=2026-10-13");
+  await expect(page.getByText("No goal set.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Pick one in Settings" })).toHaveAttribute("href", "/demo/settings");
+  await expect(page.getByText("No failed routes in this range.")).toBeVisible();
+  await expect(page.getByText("Could not load this panel.")).toHaveCount(0);
+});
+
+test("settings: the goal list has events with a session and no server events", async ({ page }) => {
+  await page.goto("/demo/settings");
+  const goal = page.getByLabel("Goal event");
+  await expect(goal.getByRole("option", { name: "subscribe_click" })).toHaveCount(1);
+  await expect(goal.getByRole("option", { name: "calendar_poll" })).toHaveCount(0);
+  await expect(goal.getByRole("option", { name: "No goal" })).toHaveCount(1);
+});
