@@ -1,13 +1,18 @@
 [
   {
     "period": "cur",
-    "day": null,
+    "day": "2026-10-13",
     "n": 66
   },
   {
     "period": "cur",
-    "day": "2026-10-13",
+    "day": null,
     "n": 66
+  },
+  {
+    "period": "prev",
+    "day": null,
+    "n": 97
   },
   {
     "period": "prev",
@@ -18,10 +23,5 @@
     "period": "prev",
     "day": "2026-10-14",
     "n": 4
-  },
-  {
-    "period": "prev",
-    "day": null,
-    "n": 97
   }
 ]

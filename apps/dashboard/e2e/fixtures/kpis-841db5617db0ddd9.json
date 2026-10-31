@@ -1,16 +1,5 @@
 [
   {
-    "period": "cur",
-    "visitor_days": 1088,
-    "persistent_people": 250,
-    "returning_people": 20,
-    "sessions": 1173,
-    "persistent_sessions": 190,
-    "bounced_sessions": 854,
-    "pageviews": 1673,
-    "errors": 11
-  },
-  {
     "period": "prev",
     "visitor_days": 929,
     "persistent_people": 197,
@@ -20,5 +9,16 @@
     "bounced_sessions": 678,
     "pageviews": 1421,
     "errors": 12
+  },
+  {
+    "period": "cur",
+    "visitor_days": 1088,
+    "persistent_people": 250,
+    "returning_people": 20,
+    "sessions": 1173,
+    "persistent_sessions": 190,
+    "bounced_sessions": 854,
+    "pageviews": 1673,
+    "errors": 11
   }
 ]

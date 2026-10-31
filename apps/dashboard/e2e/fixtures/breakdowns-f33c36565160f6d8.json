@@ -2,13 +2,6 @@
   {
     "dim": "os",
     "period": "cur",
-    "value": "Windows",
-    "pageviews": 4108,
-    "visitor_days": 2432
-  },
-  {
-    "dim": "os",
-    "period": "cur",
     "value": "Android",
     "pageviews": 2609,
     "visitor_days": 1630
@@ -23,6 +16,13 @@
   {
     "dim": "os",
     "period": "cur",
+    "value": "Windows",
+    "pageviews": 4108,
+    "visitor_days": 2432
+  },
+  {
+    "dim": "os",
+    "period": "cur",
     "value": "Linux",
     "pageviews": 745,
     "visitor_days": 432
@@ -33,6 +33,13 @@
     "value": "macOS",
     "pageviews": 1665,
     "visitor_days": 992
+  },
+  {
+    "dim": "browser",
+    "period": "cur",
+    "value": "Firefox",
+    "pageviews": 745,
+    "visitor_days": 432
   },
   {
     "dim": "browser",
@@ -77,11 +84,25 @@
     "visitor_days": 7040
   },
   {
+    "dim": "country",
+    "period": "cur",
+    "value": "CH",
+    "pageviews": 622,
+    "visitor_days": 365
+  },
+  {
     "dim": "device",
     "period": "cur",
     "value": "tablet",
     "pageviews": 416,
     "visitor_days": 254
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "NL",
+    "pageviews": 224,
+    "visitor_days": 140
   },
   {
     "dim": "country",
@@ -100,23 +121,16 @@
   {
     "dim": "entry_page",
     "period": "cur",
+    "value": "/privacy",
+    "pageviews": 1122,
+    "visitor_days": 747
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
     "value": "/faq",
     "pageviews": 1709,
     "visitor_days": 1149
-  },
-  {
-    "dim": "country",
-    "period": "cur",
-    "value": "CH",
-    "pageviews": 622,
-    "visitor_days": 365
-  },
-  {
-    "dim": "page",
-    "period": "cur",
-    "value": "/faq",
-    "pageviews": 1675,
-    "visitor_days": 1531
   },
   {
     "dim": "page",
@@ -124,6 +138,13 @@
     "value": "/",
     "pageviews": 9500,
     "visitor_days": 6481
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/about",
+    "pageviews": 1335,
+    "visitor_days": 1267
   },
   {
     "dim": "entry_page",
@@ -135,9 +156,9 @@
   {
     "dim": "page",
     "period": "cur",
-    "value": "/about",
-    "pageviews": 1335,
-    "visitor_days": 1267
+    "value": "/faq",
+    "pageviews": 1675,
+    "visitor_days": 1531
   },
   {
     "dim": "utm",
@@ -147,32 +168,11 @@
     "visitor_days": 7676
   },
   {
-    "dim": "page",
+    "dim": "utm",
     "period": "cur",
-    "value": "/privacy",
-    "pageviews": 1103,
-    "visitor_days": 1026
-  },
-  {
-    "dim": "entry_page",
-    "period": "cur",
-    "value": "/privacy",
-    "pageviews": 1122,
-    "visitor_days": 747
-  },
-  {
-    "dim": "source",
-    "period": "cur",
-    "value": "mastodon.social",
-    "pageviews": 785,
-    "visitor_days": 546
-  },
-  {
-    "dim": "source",
-    "period": "cur",
-    "value": "reddit",
-    "pageviews": 589,
-    "visitor_days": 397
+    "value": "newsletter / email / autumn",
+    "pageviews": 877,
+    "visitor_days": 624
   },
   {
     "dim": "source",
@@ -184,16 +184,23 @@
   {
     "dim": "source",
     "period": "cur",
-    "value": "localhost",
-    "pageviews": 2110,
-    "visitor_days": 1176
+    "value": "newsletter",
+    "pageviews": 877,
+    "visitor_days": 624
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/privacy",
+    "pageviews": 1103,
+    "visitor_days": 1026
   },
   {
     "dim": "source",
     "period": "cur",
-    "value": "www.google.com",
-    "pageviews": 3443,
-    "visitor_days": 2413
+    "value": "mastodon.social",
+    "pageviews": 785,
+    "visitor_days": 546
   },
   {
     "dim": "source",
@@ -205,30 +212,9 @@
   {
     "dim": "source",
     "period": "cur",
-    "value": "newsletter",
-    "pageviews": 877,
-    "visitor_days": 624
-  },
-  {
-    "dim": "utm",
-    "period": "cur",
-    "value": "newsletter / email / autumn",
-    "pageviews": 877,
-    "visitor_days": 624
-  },
-  {
-    "dim": "browser",
-    "period": "cur",
-    "value": "Firefox",
-    "pageviews": 745,
-    "visitor_days": 432
-  },
-  {
-    "dim": "country",
-    "period": "cur",
-    "value": "NL",
-    "pageviews": 224,
-    "visitor_days": 140
+    "value": "www.google.com",
+    "pageviews": 3443,
+    "visitor_days": 2413
   },
   {
     "dim": "country",
@@ -236,5 +222,19 @@
     "value": "US",
     "pageviews": 253,
     "visitor_days": 164
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "localhost",
+    "pageviews": 2110,
+    "visitor_days": 1176
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "reddit",
+    "pageviews": 589,
+    "visitor_days": 397
   }
 ]
