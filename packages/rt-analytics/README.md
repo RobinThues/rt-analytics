@@ -193,6 +193,23 @@ derived per app). The key is `ANALYTICS_PSEUDONYM_KEY` if set (at least 16 chara
 `ANALYTICS_DAILY_SALT`. **Never rotate the pseudonym key**: every pseudonym changes with it. Set a separate
 `ANALYTICS_PSEUDONYM_KEY` if you may want to rotate the salt later.
 
+To see failed API calls, wrap the route handler. A response with status 500 or higher, or a thrown error, writes a
+`$route_failure` event with `{ route, status, count }`. Nothing is written for good responses:
+
+```ts
+import { after } from "next/server";
+import { withFailureEvents } from "rt-analytics/next";
+
+export const GET = withFailureEvents({ tracker: serverTracker, route: "/api/search", schedule: after }, async (req) => {
+  // your handler
+});
+```
+
+Writes are limited to one per 10 seconds per server instance, route and status, and `count` holds the failures since
+the last write, so **sum `count` instead of counting rows**. The failures after an instance's last write are lost.
+Pass a fixed `route` name and never the request URL, because a URL can hold personal data. Without `schedule`, the
+response waits for the write.
+
 Deletion requests: `npm run pseudonymize -- --app my-app <value>...` prints the ids for given values;
 `sql/templates/delete_pseudonyms.sql` deletes their rows. The script reads the key from the environment
 and does not load env files itself, e.g.
@@ -276,6 +293,8 @@ Visitors never get it.
 - `createServerTracker(options: ServerTrackerOptions): ServerTracker` — server-side events (see [Server-side events](#server-side-events)).
   - `ServerTrackerOptions`: `{ appId: string; salt?: string /* default ANALYTICS_DAILY_SALT */; pseudonymKey?: string /* default ANALYTICS_PSEUDONYM_KEY, else the salt */; writer?: RowWriter; now?: () => Date }`
   - `ServerTracker`: `{ track(name: string, props?: Record<string, unknown>): Promise<void>; pseudonymize(value: string): string | null }`
+- `withFailureEvents(options: RouteFailureOptions, handler): handler` — reports failed API calls (see [Server-side events](#server-side-events)).
+  - `RouteFailureOptions`: `{ tracker: Pick<ServerTracker, "track">; route: string; schedule?: (task: () => Promise<void>) => void /* e.g. Next.js after */; windowMs?: number /* default 10000 */; now?: () => number }`
 
 ### `rt-analytics/schema`
 

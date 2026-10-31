@@ -1,5 +1,5 @@
 import { validateBatch } from "./validate.js";
-import { dailyVisitorId, isBot, parseUserAgent } from "./enrich.js";
+import { dailyVisitorId, detectInApp, isBot, parseUserAgent } from "./enrich.js";
 import type { EventRow, RowWriter } from "./bigquery-writer.js";
 import { MIN_SECRET_LENGTH, validSecret, writerFromEnv } from "./config.js";
 import { hasIgnoreCookie, ignoreCookie, ignorePage, keyMatches, type IgnoreState } from "./ignore.js";
@@ -142,6 +142,7 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
 
       const now = opts.now ? opts.now() : new Date();
       const uaInfo = parseUserAgent(ua as string);
+      const inApp = detectInApp(ua as string);
       const country = req.headers.get("x-vercel-ip-country");
       const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "0.0.0.0";
 
@@ -165,6 +166,7 @@ export function createAnalyticsHandler(opts: HandlerOptions = {}) {
           browser: uaInfo.browser,
           os: uaInfo.os,
           device_type: uaInfo.deviceType,
+          in_app: inApp,
           viewport_w: e.viewportW,
           viewport_h: e.viewportH,
           props: Object.keys(e.props).length > 0 ? JSON.stringify(e.props) : null,

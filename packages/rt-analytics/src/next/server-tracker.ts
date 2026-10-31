@@ -95,6 +95,7 @@ export function createServerTracker(opts: ServerTrackerOptions): ServerTracker {
           browser: null,
           os: null,
           device_type: null,
+          in_app: null,
           viewport_w: null,
           viewport_h: null,
           props: json,

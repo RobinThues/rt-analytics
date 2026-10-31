@@ -78,12 +78,26 @@ describe("createAnalyticsHandler", () => {
       browser: "Chrome",
       os: "macOS",
       device_type: "desktop",
+      in_app: null,
       page_path: "/play",
       consent_state: "pending",
       props: '{"a":1}',
     });
     expect(row.timestamp).toEqual(new Date("2026-07-11T11:59:00.000Z"));
     expect(row.visitor_id).toMatch(/^d_[0-9a-f]{32}$/); // cookieless daily hash fallback
+  });
+
+  it("stores the app of an in-app browser", async () => {
+    const req = new Request("http://localhost/api/a", {
+      method: "POST",
+      headers: {
+        "user-agent":
+          "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 350.0.0.21.97",
+      },
+      body: batchBody(),
+    });
+    await handler.POST(req);
+    expect(written[0]![0]!.in_app).toBe("instagram");
   });
 
   it("keeps a client-provided visitorId (consented mode)", async () => {

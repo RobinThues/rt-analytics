@@ -33,6 +33,7 @@ describe.skipIf(!raw)("BigQueryWriter (real dataset)", () => {
           browser: "Test",
           os: "Test",
           device_type: "desktop",
+          in_app: null,
           viewport_w: null,
           viewport_h: null,
           props: null,

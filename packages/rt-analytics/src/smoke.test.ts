@@ -3,6 +3,6 @@ import { SDK_VERSION } from "./index.js";
 
 describe("toolchain", () => {
   it("resolves the core entry", () => {
-    expect(SDK_VERSION).toBe("0.5.1");
+    expect(SDK_VERSION).toBe("0.6.0");
   });
 });

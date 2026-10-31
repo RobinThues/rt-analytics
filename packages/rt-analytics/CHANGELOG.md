@@ -4,6 +4,25 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
 [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-10-31
+
+### Upgrade
+
+Add the new column before you deploy this version, or in-app visits fail to write. `npm run setup:gcp` adds it, or run:
+
+```sql
+ALTER TABLE `<project>.analytics.events` ADD COLUMN IF NOT EXISTS in_app STRING;
+```
+
+### Added
+
+- The ingest handler stores the app of an in-app browser in the new `in_app` column (`instagram`, `tiktok`, `facebook`,
+  `threads`, `linkedin`, `snapchat`, `pinterest`), detected from the user agent. It stays null in a normal browser, and
+  the raw user agent is still not stored. These apps often send no referrer, so their visits looked like direct
+  traffic. If your privacy text lists the data you collect, add this.
+- `withFailureEvents` for route handlers, which reports failed API calls as `$route_failure` server events with
+  `{ route, status, count }`. Writes are limited per server instance, so sum `count` when reading the rows.
+
 ## [0.5.1] - 2026-10-27
 
 ### Fixed

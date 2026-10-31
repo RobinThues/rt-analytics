@@ -5,6 +5,8 @@
  *          [--per-user-query-quota-gib <n>] [--keep-pool-binding]
  *          (only the dashboard resources: config dataset, keyless service accounts for production and
  *          development, Vercel OIDC pool, per-user query quota)
+ *        npm run setup:gcp -- --alerts --github-repo <owner/name> [--project <id>]
+ *          (only the alert resources: state dataset, keyless service account, GitHub OIDC pool)
  * Requires: gcloud CLI authenticated (`gcloud auth login` and `gcloud auth application-default login`).
  */
 import { BigQuery } from "@google-cloud/bigquery";
@@ -12,6 +14,7 @@ import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { setupAlerts } from "./gcp-alerts.js";
 import { setupDashboard } from "./gcp-dashboard.js";
 
 const DATASET = "analytics";
@@ -41,6 +44,7 @@ const SCHEMA = [
   { name: "browser", type: "STRING" },
   { name: "os", type: "STRING" },
   { name: "device_type", type: "STRING" },
+  { name: "in_app", type: "STRING" },
   { name: "viewport_w", type: "INT64" },
   { name: "viewport_h", type: "INT64" },
   { name: "props", type: "JSON" },
@@ -80,6 +84,15 @@ function resolveProject(): string {
 
 async function main(): Promise<void> {
   const projectId = resolveProject();
+  if (process.argv.includes("--alerts")) {
+    const repo = flagValue("--github-repo");
+    if (!repo) {
+      console.error("--alerts needs --github-repo <owner/name>");
+      process.exit(2);
+    }
+    await setupAlerts(projectId, repo);
+    return;
+  }
   if (process.argv.includes("--dashboard")) {
     const team = flagValue("--vercel-team");
     const project = flagValue("--vercel-project") ?? "rt-analytics-dashboard";
@@ -122,6 +135,14 @@ async function main(): Promise<void> {
     console.log(`Created table ${TABLE} (partitioned by day, clustered by app_id, event_name)`);
   } else {
     console.log(`Table ${TABLE} exists`);
+    // Upgrades add nullable columns at the end, which is safe while apps keep writing.
+    const [meta] = await table.getMetadata();
+    const fields: { name: string }[] = meta.schema?.fields ?? [];
+    const missing = SCHEMA.filter((c) => !fields.some((f) => f.name === c.name));
+    if (missing.length > 0) {
+      await table.setMetadata({ schema: { fields: [...fields, ...missing] } });
+      console.log(`Added columns: ${missing.map((c) => c.name).join(", ")}`);
+    }
   }
 
   // 3. Views (CREATE OR REPLACE — safe upgrade path)

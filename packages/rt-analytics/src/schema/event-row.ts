@@ -18,6 +18,8 @@ export interface EventRow {
   browser: string | null;
   os: string | null;
   device_type: string | null;
+  /** The app whose built-in browser sent the event (instagram, tiktok, ...); null in a normal browser. */
+  in_app: string | null;
   viewport_w: number | null;
   viewport_h: number | null;
   /** JSON-serialized custom props */

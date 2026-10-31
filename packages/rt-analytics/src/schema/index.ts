@@ -4,7 +4,15 @@ import type { ConsentState } from "../core/types.js";
 export const BUILTIN_PREFIX = "$";
 
 /** Event names the SDK emits by itself. */
-export const BUILTIN_EVENTS = ["$pageview", "$session_start", "$web_vital", "$error", "$consent", "$identify"] as const;
+export const BUILTIN_EVENTS = [
+  "$pageview",
+  "$session_start",
+  "$web_vital",
+  "$error",
+  "$consent",
+  "$identify",
+  "$route_failure",
+] as const;
 export type BuiltinEvent = (typeof BUILTIN_EVENTS)[number];
 
 export const EVENTS = {
@@ -14,6 +22,7 @@ export const EVENTS = {
   error: "$error",
   consent: "$consent",
   identify: "$identify",
+  routeFailure: "$route_failure",
 } as const satisfies Record<string, BuiltinEvent>;
 
 /** consent_state as stored in BigQuery: the client states plus "server" for server-side events. */

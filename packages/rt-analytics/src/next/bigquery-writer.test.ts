@@ -38,6 +38,7 @@ function row(over: Partial<EventRow> = {}): EventRow {
     browser: "Chrome",
     os: "macOS",
     device_type: "desktop",
+    in_app: null,
     viewport_w: 800,
     viewport_h: 600,
     props: null,

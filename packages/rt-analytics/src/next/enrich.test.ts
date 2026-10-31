@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { dailyVisitorId, isBot, parseUserAgent } from "./enrich.js";
+import { dailyVisitorId, detectInApp, isBot, parseUserAgent } from "./enrich.js";
 
 const CHROME_MAC =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
@@ -12,6 +12,64 @@ describe("parseUserAgent", () => {
     expect(parseUserAgent(CHROME_MAC)).toEqual({ browser: "Chrome", os: "macOS", deviceType: "desktop" });
     expect(parseUserAgent(SAFARI_IPHONE)).toEqual({ browser: "Safari", os: "iOS", deviceType: "mobile" });
     expect(parseUserAgent(FIREFOX_WIN)).toEqual({ browser: "Firefox", os: "Windows", deviceType: "desktop" });
+  });
+});
+
+const IN_APP_AGENTS: ReadonlyArray<[string, string]> = [
+  [
+    "instagram",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Instagram 350.0.0.21.97 (iPhone15,2; iOS 18_0; de_DE; de; scale=3.00; 1179x2556; 648054026)",
+  ],
+  [
+    "instagram",
+    "Mozilla/5.0 (Linux; Android 14; SM-S918B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36 Instagram 349.0.0.40.100 Android (34/14; 480dpi; 1080x2115; samsung; SM-S918B; dm3q; qcom; de_DE; 640000000)",
+  ],
+  [
+    "tiktok",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 musical_ly_36.5.0 JsSdk/2.0 NetType/WIFI Channel/App Store ByteLocale/de Region/DE",
+  ],
+  [
+    "tiktok",
+    "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP2A.240805.005; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36 trill_360505 JsSdk/1.0 NetType/WIFI Channel/googleplay AppName/trill app_version/36.5.5 ByteLocale/de ByteFullLocale/de Region/DE BytedanceWebview/d8a21c6",
+  ],
+  [
+    "facebook",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/480.0.0.40.100;FBBV/640000000;FBDV/iPhone15,2;FBMD/iPhone;FBSN/iOS;FBSV/18.0;FBSS/3;FBCR/;FBID/phone;FBLC/de_DE;FBOP/80]",
+  ],
+  [
+    "facebook",
+    "Mozilla/5.0 (Linux; Android 14; SM-S918B Build/UP1A.231005.007; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/480.0.0.40.100;]",
+  ],
+  [
+    "threads",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Barcelona 350.0.0.21.97 (iPhone15,2; iOS 18_0; de_DE; de; scale=3.00; 1179x2556; 648054026)",
+  ],
+  [
+    "linkedin",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [LinkedInApp]/9.30.1000",
+  ],
+  [
+    "snapchat",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Snapchat/13.10.0.45 (like Safari/8619.1.26, panda)",
+  ],
+  [
+    "pinterest",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [Pinterest/iOS]",
+  ],
+];
+
+describe("detectInApp", () => {
+  it.each(IN_APP_AGENTS)("names %s", (app, ua) => {
+    expect(detectInApp(ua)).toBe(app);
+  });
+
+  // isbot runs first in the ingest, so an in-app agent it flagged would lose the whole visit.
+  it.each(IN_APP_AGENTS)("keeps a %s visit (not a bot)", (_app, ua) => {
+    expect(isBot(ua)).toBe(false);
+  });
+
+  it("returns null for normal browsers", () => {
+    for (const ua of [CHROME_MAC, SAFARI_IPHONE, FIREFOX_WIN]) expect(detectInApp(ua)).toBeNull();
   });
 });
 

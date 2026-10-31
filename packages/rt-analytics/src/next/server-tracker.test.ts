@@ -43,6 +43,7 @@ describe("createServerTracker", () => {
       browser: null,
       os: null,
       device_type: null,
+      in_app: null,
       viewport_w: null,
       viewport_h: null,
     });
