@@ -120,3 +120,11 @@ Decision: Hourly charts bucket by wall-clock hour in the app timezone, and the p
 Why: A review showed that the previous period drifts by 1 hour after a DST change with elapsed-hour buckets.
 Rejected: Elapsed-hour buckets, which were the first draft.
 Spec: [hourly charts design](superpowers/specs/2026-10-27-hourly-charts-design.md)
+
+## 2026-10-31: Traffic spikes get a log scale, not a capped axis
+
+Decided by: both
+Decision: Trend charts get a manual Linear/Log switch, with linear as the default. It isn't built yet.
+Why: On real wetter-in-kalender data, one day reached about 100 times normal traffic and the fall took several days. Log shows normal days, the peak and the fall together, with no day clipped.
+Rejected: A capped y-axis, first recommended by Claude for a single-day spike. A high cap keeps normal days small, and a low cap clips all the latest days and hides the current trend.
+Details: [todo](todo/2026-10-31-log-scale-charts.md)
