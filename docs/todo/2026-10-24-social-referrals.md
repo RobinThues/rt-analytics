@@ -11,9 +11,9 @@ Visits from TikTok and Instagram mostly show as "direct", YouTube often too.
 - The client sends the raw `document.referrer` (`packages/rt-analytics/src/core/analytics.ts:98`), stored in
   the `referrer` column (`next/handler.ts:160`). The dashboard reduces it with
   `LOWER(NET.HOST(first_pv.referrer))`; empty or own host becomes "direct"
-  (`apps/dashboard/src/queries/overview.ts:158,168`).
+  (`apps/dashboard/src/queries/overview.ts:183`).
 - utm values are stored in their own columns (`analytics.ts:99-101`, `handler.ts:161-163`) but only feed the
-  separate utm panel (`overview.ts:170`), not "source". Example: 8 sessions with `utm_source=chatgpt.com`
+  separate utm panel (`overview.ts:199`), not "source". Example: 8 sessions with `utm_source=chatgpt.com`
   show as "direct".
 - `parseUserAgent` (`next/enrich.ts:16-40`) has no in-app detection: Instagram and TikTok on Android become
   "Chrome", on iOS "Other". The raw user agent is not stored, so old rows can't be classified again.
