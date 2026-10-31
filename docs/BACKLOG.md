@@ -2,7 +2,7 @@
 
 ## Now
 
-- [ ] **Launch package, built but not live**: social and in-app sources, failure events, alerts, Linear/Log switch, goals per source. Why: the numbers and alerts should work before the first public wetter-in-kalender Short on 2026-11-09. Waits for a GCP step, see the [handoff](handoffs/launch-package.md) and the [spec](superpowers/specs/2026-10-31-launch-package-design.md). (me)
+- [ ] **Turn the alerts on**: run the alert access setup, set the two GitHub variables, and test one failing run. Why: the job is merged but stays off until then, and the first public wetter-in-kalender Short is on 2026-11-09. See the [handoff](handoffs/launch-package.md). (me)
 
 ## Next
 
@@ -12,6 +12,7 @@
 
 ## Icebox
 
+- [ ] **Fix the Next.js `new Date()` warning in the app layout**: `[appId]/layout.tsx` calls `listApps()` next to `requireUser()`, so the clock is read before any request data, and `next start` logs "unstable value `new Date()` while prerendering". Why: pages work, but the log noise can hide real errors, and e2e can't see it because it uses a fixed today. (claude)
 - [ ] **Own domain for the dashboard**: move it to `analytics.thues.eu`. Why: it still runs on `rt-analytics-dashboard.vercel.app`, and the plan was to move once it is stable. (me)
 - [ ] **Try the consent banner on wetter-in-kalender**: use the library's banner and update the privacy text. Why: the site is cookieless today, so it has no persistent visitor data for returning visitors, retention or person funnels. (me)
 - [ ] **Dashboard v2**: person funnels, "seen on N days", identity stitching, week and month uniques, funnel editing, preview sign-in, FCP and TTFB, more filters, daily aggregates, self-hosting. Why: defined but not built in v1, see [section 13 of the spec](superpowers/specs/2026-10-14-dashboard-design.md). (me)
@@ -53,6 +54,7 @@
 - [x] **Dashboard visual style and dark mode**: [spec](superpowers/specs/2026-10-17-dashboard-visual-style-design.md).
 - [x] **Cheaper e2e on BigQuery**: [spec](superpowers/specs/2026-10-19-e2e-bigquery-cost-design.md).
 - [x] **Hourly charts**: [spec](superpowers/specs/2026-10-27-hourly-charts-design.md).
+- [x] **Social and in-app sources, failure events, Linear/Log switch, goals per source**: SDK 0.6.0, live 2026-10-31, [spec](superpowers/specs/2026-10-31-launch-package-design.md).
 
 ## Rejected
 
