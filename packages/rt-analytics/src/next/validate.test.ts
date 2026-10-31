@@ -44,6 +44,7 @@ describe("validateBatch", () => {
     expect(validateBatch(validBatch({ events: [validEvent(), validEvent({ name: "has spaces" })] }))).toBeNull();
     expect(validateBatch(validBatch({ events: [validEvent({ ts: "not-a-date" })] }))).toBeNull();
     expect(validateBatch(validBatch({ events: [validEvent({ sessionId: 42 })] }))).toBeNull();
+    expect(validateBatch(validBatch({ events: [validEvent({ name: "$route_failure" })] }))).toBeNull();
   });
 
   it("truncates long strings and drops oversized or non-object props", () => {

@@ -2,7 +2,7 @@
 
 ## Now
 
-- [ ] **Tell social and in-app visits apart**: source falls back to `utm_source`, plus in-app detection and a host-to-platform map. Why: TikTok and Instagram visits show as "direct", and the numbers should be clean before the first public wetter-in-kalender Short on 2026-11-09. Details: [todo](todo/2026-10-24-social-referrals.md). (me)
+- [ ] **Launch package, built but not live**: social and in-app sources, failure events, alerts, Linear/Log switch, goals per source. Why: the numbers and alerts should work before the first public wetter-in-kalender Short on 2026-11-09. Waits for a GCP step, see the [handoff](handoffs/launch-package.md) and the [spec](superpowers/specs/2026-10-31-launch-package-design.md). (me)
 
 ## Next
 
@@ -12,7 +12,6 @@
 
 ## Icebox
 
-- [ ] **Linear/Log switch for the trend charts**: a page-wide switch, linear by default, with a symlog axis and lines only in log mode. Why: a peak about 100 times normal traffic that falls over several days flattens normal days, and log keeps all of it readable. Details: [todo](todo/2026-10-31-log-scale-charts.md). (me)
 - [ ] **Own domain for the dashboard**: move it to `analytics.thues.eu`. Why: it still runs on `rt-analytics-dashboard.vercel.app`, and the plan was to move once it is stable. (me)
 - [ ] **Try the consent banner on wetter-in-kalender**: use the library's banner and update the privacy text. Why: the site is cookieless today, so it has no persistent visitor data for returning visitors, retention or person funnels. (me)
 - [ ] **Dashboard v2**: person funnels, "seen on N days", identity stitching, week and month uniques, funnel editing, preview sign-in, FCP and TTFB, more filters, daily aggregates, self-hosting. Why: defined but not built in v1, see [section 13 of the spec](superpowers/specs/2026-10-14-dashboard-design.md). (me)
@@ -25,17 +24,16 @@
 - [ ] **Remove the zod override**: drop the root `overrides` entry once `@vercel/cli-config` allows zod 4.6.6 or newer. Why: it pins 4.1.11 today, and the override only exists for the audit fix. (claude)
 - [ ] **Cap `PREV_END` at `prev_to_ts`**: fixes `npm run e2e:record` changing old fixtures, because live demo events after the fixed today count as "prev". Why: e2e only, but it changes all SQL, so it needs a full re-record. (claude)
 - [ ] **E2E recording minors**: a refused recording doesn't fail `e2e:record`, a failed recording leaves the fixtures deleted (`git restore` fixes it), demo-b empty states are only partly tested, and the per-user quota flag accepts fractions. Why: open from the 2026-10-19 final review. (claude)
-- [ ] **Weekly digest and alerts across all apps**: one email with a table of apps, plus alerts on error share, traffic spikes and drops, silent tracking and a falling step rate. GitHub Actions with Resend. Why: nothing tells Robin when something happens, and a launch-day problem ran for 2 hours at peak. (claude)
+- [ ] **Weekly digest, and alerts for the other apps**: one email with a table of apps, a falling step rate, and alert values for the apps with little traffic. Alerts for wetter-in-kalender are in the launch package. Why: the other apps have no alerts, and nothing sums up a week. (claude)
+- [ ] **Resend for alert emails**: create an account and set `RESEND_API_KEY`, `ALERT_EMAIL_TO` and `ALERT_EMAIL_FROM` as repo secrets. Why: until then the alert is GitHub's "run failed" email, with no numbers and no message when a problem ends. (me)
 - [ ] **All-apps start page**: trend, errors, last event and SDK version per app. Why: there is no overview across apps, and SDK lag in an app stays unseen. (claude)
 - [ ] **Local CLI and MCP server**: read-only access on the dashboard's query builders, plus MCP Toolbox for free SQL with a byte cap. Why: agents write one-off BigQuery scripts in several projects. (claude)
-- [ ] **Failure events from routes**: a helper that reports only failed API calls. Why: failed searches on launch day never reached analytics, so alerts can't see them. (claude)
 - [ ] **Fewer overview queries**: one query per page, skip server events, and keep the cache across deploys. Why: each job bills at least 10 MB, and scans grow as the 58-day window fills. (claude)
 - [ ] **Fewer heartbeat rows**: store far fewer `calendar_poll` rows per subscription, and design it with active ids. Why: it is the largest share of rows, and active counts don't need them all. (claude)
 - [ ] **Clean test data**: an off switch for server events and one clean-up command. Why: several projects delete test rows by hand, because the ignore cookie can't reach server events. (claude)
 - [ ] **Rotate the daily salt once**: after checking that every app has its own pseudonym key. Why: it cuts the link from past rows back to an IP and browser. (claude)
 - [ ] **Active ids and retention on any prop**: active per day, 7 and 28 days, new per day, retention by first day, split by another prop. Why: active subscriptions are the main wetter-in-kalender metric and need hand-written SQL, and installed software needs the same metric. (claude)
 - [ ] **Saved metrics**: pin an explorer view or funnel as a KPI on the overview and in the digest. Why: app-specific metrics live in SQL files in each app repo. (claude)
-- [ ] **Goals and conversion per source**: one goal event per app, with conversion per source, page and device. Why: the dashboard shows traffic per source but not which source converts. (claude)
 - [ ] **Better errors in the SDK**: per-session cap and dedupe, short stack, app version, scrubbed text. Why: a few sessions can write over a thousand rows, and errors have no stack or version. (claude)
 - [ ] **Collect less without consent, and correct the consent wording**: drop viewport, cut referrer query strings, and replace the README's "banner is optional" sentence. Why: German authorities and the EDPB read device access more widely than the README says. (claude)
 - [ ] **Retention per data type**: stable pseudonyms kept shorter than page rows, with daily aggregates kept. Why: 14 months of row data is hard to defend for stable ids, and partition expiry is one setting for the whole table. Check this before the "Delete events after 14 months" item. (claude)

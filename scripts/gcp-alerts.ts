@@ -73,6 +73,9 @@ export async function setupAlerts(projectId: string, repo: string): Promise<void
   const bq = new BigQuery({ projectId });
   const inProject = `--project=${projectId}`;
 
+  // APIs for token exchange and impersonation
+  gcloud("services", "enable", "iam.googleapis.com", "sts.googleapis.com", "iamcredentials.googleapis.com", inProject);
+
   // 1. State dataset and table
   const dataset = bq.dataset(ALERTS_DATASET);
   if (!(await dataset.exists())[0]) {

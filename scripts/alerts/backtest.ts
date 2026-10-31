@@ -28,7 +28,7 @@ interface HourRow {
 
 const [result] = await new BigQuery({ projectId: PROJECT_ID }).query({
   query: `SELECT TIMESTAMP_TRUNC(timestamp, HOUR) AS hour, COUNT(*) AS events, COUNTIF(event_name = '$pageview') AS pageviews,
-  COUNT(DISTINCT IF(event_name = '$pageview', session_id, NULL)) AS sessions,
+  COUNT(DISTINCT IF(event_name IN ('$pageview', '$error'), session_id, NULL)) AS sessions,
   COUNT(DISTINCT IF(event_name = '$error', session_id, NULL)) AS error_sessions
 FROM ${EVENTS_TABLE}
 WHERE app_id = @app_id AND timestamp >= TIMESTAMP(@from)

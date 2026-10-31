@@ -16,6 +16,12 @@ export interface RouteFailureOptions {
   now?: () => number;
 }
 
+/** redirect(), notFound() and similar work by throwing an error with a digest; they aren't failures. */
+function isNextControlFlow(err: unknown): boolean {
+  const digest = (err as { digest?: unknown } | null)?.digest;
+  return typeof digest === "string" && (digest.startsWith("NEXT_") || digest === "DYNAMIC_SERVER_USAGE");
+}
+
 /**
  * Wraps a route handler and reports failures as `$route_failure` events with `{ route, status, count }`:
  * a response with status 500 or higher, or a thrown error (status 500, thrown on to the caller). `count` holds
@@ -53,7 +59,7 @@ export function withFailureEvents<A extends unknown[]>(
     try {
       res = await handler(...args);
     } catch (err) {
-      await report(FAILURE_STATUS);
+      if (!isNextControlFlow(err)) await report(FAILURE_STATUS);
       throw err;
     }
     if (res.status >= FAILURE_STATUS) await report(res.status);

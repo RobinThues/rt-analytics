@@ -5,7 +5,7 @@ import { ChartContainer, ChartTooltip, type ChartConfig } from "@/components/ui/
 import { formatInt } from "@/lib/format";
 import type { ChartPoint } from "@/queries/series";
 import { chartTicks, oneDay, pointLabel, tickLabel } from "@/view/chart-axis";
-import { logTicks, type ChartScale } from "@/view/chart-scale";
+import { logTickLabel, logTicks, type ChartScale } from "@/view/chart-scale";
 import type { Interval } from "@/view/interval";
 
 const config = {
@@ -37,7 +37,13 @@ export function TrendChart({
   const yTicks = logTicks(data.flatMap((p) => (compare ? [p.cur, p.prev] : [p.cur])));
   const logAxis =
     scale === "log"
-      ? { scale: scaleSymlog(), domain: [0, yTicks[yTicks.length - 1]!], ticks: yTicks, interval: 0 }
+      ? {
+          scale: scaleSymlog(),
+          domain: [0, yTicks[yTicks.length - 1]!],
+          ticks: yTicks,
+          interval: 0,
+          tickFormatter: logTickLabel,
+        }
       : {};
   return (
     <ChartContainer config={config} className="aspect-auto h-40 w-full tabular-nums" aria-label={title}>

@@ -7,10 +7,20 @@ export function parseScale(value: string | string[] | undefined): ChartScale {
   return value === "log" ? "log" : "linear";
 }
 
-/** 0, 1, 10, 100, ... up to the first power of ten at or above the largest value (at least 1). */
+/**
+ * 0, 1, 10, 100, ... up to the first power of ten at or above the largest value (at least 1). From 10,000 up the
+ * labels of 0 and 1 would touch at the chart's height, so 1 goes.
+ */
 export function logTicks(values: readonly (number | null)[]): number[] {
   const max = Math.max(1, ...values.map((v) => v ?? 0));
   const ticks = [0, 1];
   while (ticks[ticks.length - 1]! < max) ticks.push(ticks[ticks.length - 1]! * 10);
-  return ticks;
+  return ticks[ticks.length - 1]! >= 10_000 ? ticks.filter((t) => t !== 1) : ticks;
+}
+
+const compact = new Intl.NumberFormat("en", { notation: "compact" });
+
+/** "1,000" still fits the axis width; long values go short, like "1M". */
+export function logTickLabel(value: number): string {
+  return value >= 100_000 ? compact.format(value) : value.toLocaleString("en");
 }

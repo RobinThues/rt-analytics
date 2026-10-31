@@ -72,7 +72,9 @@ describe("overview queries", () => {
   it("failed routes: sums count, because writes are limited, and old rows without count are 1", () => {
     const sql = qualityQuery(ctx).sql;
     expect(sql).toContain("event_name = '$route_failure'");
-    expect(sql).toContain("SUM(IFNULL(LAX_INT64(props.count), 1))");
+    expect(sql).toContain("SUM(IF(LAX_INT64(props.count) BETWEEN 1 AND 100000, LAX_INT64(props.count), 1))");
+    // Older SDKs still accept this name from browsers, and browser rows always have a session.
+    expect(sql).toContain("event_name = '$route_failure' AND session_id IS NULL");
   });
   it("breakdowns: the source reads the in-app column, other queries don't", () => {
     expect(breakdownsQuery(ctx).sql).toContain("first_pv.in_app IS NOT NULL");

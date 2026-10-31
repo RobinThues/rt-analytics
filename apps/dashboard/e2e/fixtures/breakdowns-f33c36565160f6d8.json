@@ -2,13 +2,6 @@
   {
     "dim": "os",
     "period": "cur",
-    "value": "macOS",
-    "pageviews": 1665,
-    "visitor_days": 992
-  },
-  {
-    "dim": "os",
-    "period": "cur",
     "value": "Windows",
     "pageviews": 4108,
     "visitor_days": 2432
@@ -35,6 +28,13 @@
     "visitor_days": 432
   },
   {
+    "dim": "os",
+    "period": "cur",
+    "value": "macOS",
+    "pageviews": 1665,
+    "visitor_days": 992
+  },
+  {
     "dim": "browser",
     "period": "cur",
     "value": "Chrome",
@@ -56,11 +56,11 @@
     "visitor_days": 374
   },
   {
-    "dim": "browser",
+    "dim": "device",
     "period": "cur",
-    "value": "Firefox",
-    "pageviews": 745,
-    "visitor_days": 432
+    "value": "mobile",
+    "pageviews": 6679,
+    "visitor_days": 4110
   },
   {
     "dim": "device",
@@ -70,20 +70,6 @@
     "visitor_days": 3856
   },
   {
-    "dim": "device",
-    "period": "cur",
-    "value": "tablet",
-    "pageviews": 416,
-    "visitor_days": 254
-  },
-  {
-    "dim": "device",
-    "period": "cur",
-    "value": "mobile",
-    "pageviews": 6679,
-    "visitor_days": 4110
-  },
-  {
     "dim": "country",
     "period": "cur",
     "value": "DE",
@@ -91,11 +77,18 @@
     "visitor_days": 7040
   },
   {
-    "dim": "entry_page",
+    "dim": "device",
     "period": "cur",
-    "value": "/about",
-    "pageviews": 1320,
-    "visitor_days": 914
+    "value": "tablet",
+    "pageviews": 416,
+    "visitor_days": 254
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "AT",
+    "pageviews": 862,
+    "visitor_days": 511
   },
   {
     "dim": "entry_page",
@@ -103,20 +96,6 @@
     "value": "/",
     "pageviews": 9464,
     "visitor_days": 5969
-  },
-  {
-    "dim": "utm",
-    "period": "cur",
-    "value": "(none)",
-    "pageviews": 12738,
-    "visitor_days": 7676
-  },
-  {
-    "dim": "entry_page",
-    "period": "cur",
-    "value": "/privacy",
-    "pageviews": 1122,
-    "visitor_days": 747
   },
   {
     "dim": "entry_page",
@@ -128,16 +107,9 @@
   {
     "dim": "country",
     "period": "cur",
-    "value": "US",
-    "pageviews": 253,
-    "visitor_days": 164
-  },
-  {
-    "dim": "page",
-    "period": "cur",
-    "value": "/privacy",
-    "pageviews": 1103,
-    "visitor_days": 1026
+    "value": "CH",
+    "pageviews": 622,
+    "visitor_days": 365
   },
   {
     "dim": "page",
@@ -149,16 +121,44 @@
   {
     "dim": "page",
     "period": "cur",
+    "value": "/",
+    "pageviews": 9500,
+    "visitor_days": 6481
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/about",
+    "pageviews": 1320,
+    "visitor_days": 914
+  },
+  {
+    "dim": "page",
+    "period": "cur",
     "value": "/about",
     "pageviews": 1335,
     "visitor_days": 1267
   },
   {
-    "dim": "source",
+    "dim": "utm",
     "period": "cur",
-    "value": "direct",
-    "pageviews": 5191,
-    "visitor_days": 3668
+    "value": "(none)",
+    "pageviews": 12738,
+    "visitor_days": 7676
+  },
+  {
+    "dim": "page",
+    "period": "cur",
+    "value": "/privacy",
+    "pageviews": 1103,
+    "visitor_days": 1026
+  },
+  {
+    "dim": "entry_page",
+    "period": "cur",
+    "value": "/privacy",
+    "pageviews": 1122,
+    "visitor_days": 747
   },
   {
     "dim": "source",
@@ -170,30 +170,16 @@
   {
     "dim": "source",
     "period": "cur",
-    "value": "www.google.com",
-    "pageviews": 3443,
-    "visitor_days": 2413
+    "value": "reddit",
+    "pageviews": 589,
+    "visitor_days": 397
   },
   {
-    "dim": "page",
+    "dim": "source",
     "period": "cur",
-    "value": "/",
-    "pageviews": 9500,
-    "visitor_days": 6481
-  },
-  {
-    "dim": "country",
-    "period": "cur",
-    "value": "CH",
-    "pageviews": 622,
-    "visitor_days": 365
-  },
-  {
-    "dim": "utm",
-    "period": "cur",
-    "value": "newsletter / email / autumn",
-    "pageviews": 877,
-    "visitor_days": 624
+    "value": "direct",
+    "pageviews": 5191,
+    "visitor_days": 3668
   },
   {
     "dim": "source",
@@ -201,6 +187,13 @@
     "value": "localhost",
     "pageviews": 2110,
     "visitor_days": 1176
+  },
+  {
+    "dim": "source",
+    "period": "cur",
+    "value": "www.google.com",
+    "pageviews": 3443,
+    "visitor_days": 2413
   },
   {
     "dim": "source",
@@ -217,18 +210,18 @@
     "visitor_days": 624
   },
   {
-    "dim": "source",
+    "dim": "utm",
     "period": "cur",
-    "value": "www.reddit.com",
-    "pageviews": 589,
-    "visitor_days": 397
+    "value": "newsletter / email / autumn",
+    "pageviews": 877,
+    "visitor_days": 624
   },
   {
-    "dim": "country",
+    "dim": "browser",
     "period": "cur",
-    "value": "AT",
-    "pageviews": 862,
-    "visitor_days": 511
+    "value": "Firefox",
+    "pageviews": 745,
+    "visitor_days": 432
   },
   {
     "dim": "country",
@@ -236,5 +229,12 @@
     "value": "NL",
     "pageviews": 224,
     "visitor_days": 140
+  },
+  {
+    "dim": "country",
+    "period": "cur",
+    "value": "US",
+    "pageviews": 253,
+    "visitor_days": 164
   }
 ]

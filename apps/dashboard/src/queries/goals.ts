@@ -86,10 +86,12 @@ export interface GoalTotals {
   sessions: number;
   conversions: number;
   rate: number;
-  prevConversions: number | null;
-  prevRate: number | null;
+  prevSessions: number;
+  prevConversions: number;
+  prevRate: number;
 }
 
+/** A period without rows had no sessions, so its numbers are 0. */
 export function goalTotals(rows: readonly GoalRow[]): GoalTotals {
   const of = (period: Period) => rows.find((r) => r.dim === "total" && r.period === period);
   const cur = of("cur");
@@ -98,7 +100,8 @@ export function goalTotals(rows: readonly GoalRow[]): GoalTotals {
     sessions: cur?.sessions ?? 0,
     conversions: cur?.conversions ?? 0,
     rate: rateOf(cur?.conversions ?? 0, cur?.sessions ?? 0),
-    prevConversions: prev ? prev.conversions : null,
-    prevRate: prev && prev.sessions > 0 ? rateOf(prev.conversions, prev.sessions) : null,
+    prevSessions: prev?.sessions ?? 0,
+    prevConversions: prev?.conversions ?? 0,
+    prevRate: rateOf(prev?.conversions ?? 0, prev?.sessions ?? 0),
   };
 }

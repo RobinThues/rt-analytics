@@ -17,11 +17,12 @@ ALTER TABLE `<project>.analytics.events` ADD COLUMN IF NOT EXISTS in_app STRING;
 ### Added
 
 - The ingest handler stores the app of an in-app browser in the new `in_app` column (`instagram`, `tiktok`, `facebook`,
-  `threads`, `linkedin`, `snapchat`, `pinterest`), detected from the user agent. It stays null in a normal browser, and
+  `threads`, `linkedin`, `snapchat`, `pinterest`, `x`, `reddit`, `telegram`), detected from the user agent. It stays null in a normal browser, and
   the raw user agent is still not stored. These apps often send no referrer, so their visits looked like direct
   traffic. If your privacy text lists the data you collect, add this.
 - `withFailureEvents` for route handlers, which reports failed API calls as `$route_failure` server events with
-  `{ route, status, count }`. Writes are limited per server instance, so sum `count` when reading the rows.
+  `{ route, status, count }`. Writes are limited per server instance, so sum `count` when reading the rows. The public
+  ingest refuses this event name, so a browser can't forge it.
 
 ## [0.5.1] - 2026-10-27
 

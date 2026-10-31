@@ -266,7 +266,7 @@ const NULL_NUM = "CAST(NULL AS FLOAT64)";
  * columns they do not use with typed NULLs.
  */
 export function qualityQuery(ctx: QueryContext): QuerySpec {
-  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "page_path", "props", "consent_state"])}
+  const sql = `WITH ${eventsCte(ctx.table, ["event_name", "timestamp", "session_id", "page_path", "props", "consent_state"])}
 (
   SELECT 'vitals' AS panel, period, LAX_STRING(props.metric) AS metric,
     APPROX_QUANTILES(LAX_FLOAT64(props.value), 100)[OFFSET(75)] AS p75, COUNT(*) AS samples,
@@ -304,11 +304,11 @@ UNION ALL
 UNION ALL
 (
   SELECT 'failures' AS panel, ${NULL_STR} AS period, ${NULL_STR} AS metric, ${NULL_NUM} AS p75, LAX_INT64(props.status) AS samples,
-    ${NULL_STR} AS page_path, IFNULL(LAX_STRING(props.route), '(no route)') AS message, SUM(IFNULL(LAX_INT64(props.count), 1)) AS occurrences,
+    ${NULL_STR} AS page_path, IFNULL(LAX_STRING(props.route), '(no route)') AS message, SUM(IF(LAX_INT64(props.count) BETWEEN 1 AND 100000, LAX_INT64(props.count), 1)) AS occurrences,
     FORMAT_TIMESTAMP('%Y-%m-%d %H:%M', MAX(timestamp), @tz) AS last_seen,
     ${NULL_STR} AS consent_state, ${NULL_INT} AS pageviews
   FROM evp
-  WHERE event_name = ${ROUTE_FAILURE} AND period = 'cur'
+  WHERE event_name = ${ROUTE_FAILURE} AND session_id IS NULL AND period = 'cur'
   GROUP BY message, samples
   ORDER BY occurrences DESC, message
   LIMIT 10

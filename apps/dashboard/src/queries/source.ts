@@ -12,16 +12,31 @@ const PLATFORM_NAMES: Readonly<Record<string, readonly string[]>> = {
     "com.google.android.youtube",
     "yt",
   ],
-  tiktok: ["tiktok.com", "www.tiktok.com", "m.tiktok.com", "vm.tiktok.com", "com.zhiliaoapp.musically"],
+  tiktok: [
+    "tiktok.com",
+    "www.tiktok.com",
+    "m.tiktok.com",
+    "vm.tiktok.com",
+    "vt.tiktok.com",
+    "com.zhiliaoapp.musically",
+  ],
   facebook: [
     "facebook.com",
     "www.facebook.com",
     "m.facebook.com",
     "l.facebook.com",
     "lm.facebook.com",
+    "web.facebook.com",
     "com.facebook.katana",
     "fb",
   ],
+  threads: ["threads.net", "www.threads.net", "l.threads.net", "threads.com", "www.threads.com", "l.threads.com"],
+  linkedin: ["linkedin.com", "www.linkedin.com", "lnkd.in", "com.linkedin.android"],
+  snapchat: ["snapchat.com", "www.snapchat.com"],
+  pinterest: ["pinterest.com", "www.pinterest.com", "de.pinterest.com", "pin.it"],
+  x: ["x.com", "www.x.com", "twitter.com", "www.twitter.com", "mobile.twitter.com", "t.co", "twitter"],
+  reddit: ["reddit.com", "www.reddit.com", "old.reddit.com", "out.reddit.com", "com.reddit.frontpage"],
+  telegram: ["t.me", "web.telegram.org", "org.telegram.messenger"],
 };
 
 const quoted = (names: readonly string[]) => names.map((n) => `'${n}'`).join(", ");

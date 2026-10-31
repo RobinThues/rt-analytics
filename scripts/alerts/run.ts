@@ -1,13 +1,15 @@
 /**
  * One alert check for all configured apps (spec 2026-10-31-launch-package, part 3). Runs in GitHub Actions.
  * Usage: npx tsx scripts/alerts/run.ts [--dry]  (--dry only prints what it would do, with numbers: local use only)
- * Exit code 1: a problem started and no email was sent, so GitHub's "run failed" email is the alert. Also on any crash.
+ * Exit code 1: a problem started and no email was sent, so GitHub's "run failed" email is the alert. Also on any crash,
+ * and once a day when the repo has been quiet so long that GitHub is about to turn the schedule off.
  */
 import { BigQuery } from "@google-cloud/bigquery";
 import { ALERT_APPS, BQ_LOCATION, CLEAR_AFTER_RUNS, MAX_BYTES_PER_RUN, PROJECT_ID } from "./config";
 import { METRICS_SQL, toMetrics, type MetricRow } from "./metrics";
 import { emailText, publicLines, sendEmail, type AppChanges } from "./notify";
 import { evaluate, transition } from "./rules";
+import { scheduleReminderDue } from "./schedule-reminder";
 import { readOpenProblems, saveOpenProblems, sameProblems } from "./state";
 
 const dry = process.argv.includes("--dry");
@@ -55,5 +57,9 @@ if (changes.length > 0) {
 for (const save of saves) await save();
 if (alertByFailedRun) {
   console.error("A problem started. Open the dashboard for the numbers.");
+  process.exit(1);
+}
+if (scheduleReminderDue(process.env.LAST_COMMIT_AT, new Date(now))) {
+  console.error("GitHub turns this schedule off after 60 days without a commit. Push any commit to main.");
   process.exit(1);
 }

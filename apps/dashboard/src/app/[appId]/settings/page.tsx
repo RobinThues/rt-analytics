@@ -7,7 +7,7 @@ import { Panel } from "@/components/panel";
 import { BlockSkeleton } from "@/components/skeletons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { getSettings } from "@/config/data";
+import { readSettings } from "@/config/data";
 import { goalEventOptions } from "@/config/settings";
 import { listEvents } from "@/discovery/data";
 import { APP_ID_RE } from "@/discovery/sql";
@@ -25,7 +25,9 @@ async function SettingsView({ params, searchParams }: Pick<PageProps<"/[appId]/s
   const { appId } = await params;
   if (!APP_ID_RE.test(appId)) notFound();
   await requireUser();
-  const [settings, sp] = await Promise.all([getSettings(appId), searchParams]);
+  const [{ settings, failed }, sp] = await Promise.all([readSettings(appId), searchParams]);
+  // Saving the defaults a failed read gives would wipe the stored hosts and goal.
+  if (failed) return <p className="text-sm text-destructive">Could not load the settings. Reload to try again.</p>;
   const events = await listEvents(appId, settings.timezone);
   const goalEvents = goalEventOptions(events.ok ? events.rows : [], settings.goal?.event);
   const zones = Intl.supportedValuesOf("timeZone");

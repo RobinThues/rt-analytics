@@ -43,12 +43,15 @@ export function parseUserAgent(ua: string): UAInfo {
 // Checked in order. App user agents usually also contain a browser name, so `browser` stays as it is.
 const IN_APP_BROWSERS: ReadonlyArray<[string, RegExp]> = [
   ["instagram", /instagram/i],
-  ["tiktok", /musical_ly|bytedancewebview|tiktok/i],
+  ["tiktok", /musical_ly|trill_|bytedancewebview|tiktok/i],
   ["facebook", /fban|fbav|fb_iab|fb4a/i],
   ["threads", /barcelona/i],
   ["linkedin", /linkedinapp/i],
   ["snapchat", /snapchat/i],
   ["pinterest", /pinterest/i],
+  ["x", /twitter/i],
+  ["reddit", /reddit/i],
+  ["telegram", /telegram/i],
 ];
 
 /** The app whose built-in browser sent the request, or null for a normal browser. */

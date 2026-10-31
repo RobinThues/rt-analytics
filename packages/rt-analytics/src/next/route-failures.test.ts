@@ -45,6 +45,18 @@ describe("withFailureEvents", () => {
     expect(track).toHaveBeenCalledExactlyOnceWith("$route_failure", { route: "/api/search", status: 500, count: 1 });
   });
 
+  it.each(["NEXT_REDIRECT;replace;/x;307;", "NEXT_HTTP_ERROR_FALLBACK;404", "DYNAMIC_SERVER_USAGE"])(
+    "doesn't count Next.js control flow (%s) and throws it on",
+    async (digest) => {
+      const signal = Object.assign(new Error("control flow"), { digest });
+      const route = withFailureEvents(options(), async () => {
+        throw signal;
+      });
+      await expect(route()).rejects.toBe(signal);
+      expect(track).not.toHaveBeenCalled();
+    },
+  );
+
   it("passes the handler's arguments on", async () => {
     const handler = vi.fn(async (_a: string, _b: number) => new Response());
     await withFailureEvents(options(), handler)("x", 1);

@@ -1,7 +1,7 @@
 [
   {
     "panel": "consent",
-    "period": "cur",
+    "period": "prev",
     "metric": null,
     "p75": null,
     "samples": null,
@@ -9,8 +9,73 @@
     "message": null,
     "occurrences": null,
     "last_seen": null,
-    "consent_state": "pending",
-    "pageviews": 4589
+    "consent_state": "accepted",
+    "pageviews": 738
+  },
+  {
+    "panel": "vitals",
+    "period": "prev",
+    "metric": "CLS",
+    "p75": 0.163,
+    "samples": 3102,
+    "page_path": null,
+    "message": null,
+    "occurrences": null,
+    "last_seen": null,
+    "consent_state": null,
+    "pageviews": null
+  },
+  {
+    "panel": "vitals",
+    "period": "prev",
+    "metric": "LCP",
+    "p75": 3225,
+    "samples": 3102,
+    "page_path": null,
+    "message": null,
+    "occurrences": null,
+    "last_seen": null,
+    "consent_state": null,
+    "pageviews": null
+  },
+  {
+    "panel": "vitals",
+    "period": "prev",
+    "metric": "INP",
+    "p75": 321,
+    "samples": 2701,
+    "page_path": null,
+    "message": null,
+    "occurrences": null,
+    "last_seen": null,
+    "consent_state": null,
+    "pageviews": null
+  },
+  {
+    "panel": "vitals",
+    "period": "cur",
+    "metric": "LCP",
+    "p75": 3243,
+    "samples": 4070,
+    "page_path": null,
+    "message": null,
+    "occurrences": null,
+    "last_seen": null,
+    "consent_state": null,
+    "pageviews": null
+  },
+  {
+    "panel": "vitals",
+    "period": "cur",
+    "metric": "INP",
+    "p75": 319,
+    "samples": 3593,
+    "page_path": null,
+    "message": null,
+    "occurrences": null,
+    "last_seen": null,
+    "consent_state": null,
+    "pageviews": null
   },
   {
     "panel": "consent",
@@ -24,6 +89,19 @@
     "last_seen": null,
     "consent_state": "declined",
     "pageviews": 87
+  },
+  {
+    "panel": "consent",
+    "period": "cur",
+    "metric": null,
+    "p75": null,
+    "samples": null,
+    "page_path": null,
+    "message": null,
+    "occurrences": null,
+    "last_seen": null,
+    "consent_state": "pending",
+    "pageviews": 4589
   },
   {
     "panel": "errors",
@@ -63,19 +141,6 @@
     "last_seen": "2026-10-12 10:17",
     "consent_state": null,
     "pageviews": null
-  },
-  {
-    "panel": "consent",
-    "period": "prev",
-    "metric": null,
-    "p75": null,
-    "samples": null,
-    "page_path": null,
-    "message": null,
-    "occurrences": null,
-    "last_seen": null,
-    "consent_state": "accepted",
-    "pageviews": 738
   },
   {
     "panel": "slow_pages",
@@ -167,71 +232,6 @@
     "last_seen": null,
     "consent_state": "declined",
     "pageviews": 89
-  },
-  {
-    "panel": "vitals",
-    "period": "prev",
-    "metric": "INP",
-    "p75": 321,
-    "samples": 2701,
-    "page_path": null,
-    "message": null,
-    "occurrences": null,
-    "last_seen": null,
-    "consent_state": null,
-    "pageviews": null
-  },
-  {
-    "panel": "vitals",
-    "period": "prev",
-    "metric": "LCP",
-    "p75": 3225,
-    "samples": 3102,
-    "page_path": null,
-    "message": null,
-    "occurrences": null,
-    "last_seen": null,
-    "consent_state": null,
-    "pageviews": null
-  },
-  {
-    "panel": "vitals",
-    "period": "prev",
-    "metric": "CLS",
-    "p75": 0.163,
-    "samples": 3102,
-    "page_path": null,
-    "message": null,
-    "occurrences": null,
-    "last_seen": null,
-    "consent_state": null,
-    "pageviews": null
-  },
-  {
-    "panel": "vitals",
-    "period": "cur",
-    "metric": "LCP",
-    "p75": 3243,
-    "samples": 4070,
-    "page_path": null,
-    "message": null,
-    "occurrences": null,
-    "last_seen": null,
-    "consent_state": null,
-    "pageviews": null
-  },
-  {
-    "panel": "vitals",
-    "period": "cur",
-    "metric": "INP",
-    "p75": 319,
-    "samples": 3593,
-    "page_path": null,
-    "message": null,
-    "occurrences": null,
-    "last_seen": null,
-    "consent_state": null,
-    "pageviews": null
   },
   {
     "panel": "vitals",

@@ -1,13 +1,13 @@
 [
   {
-    "period": "prev",
-    "step": 1,
-    "sessions": 1403
-  },
-  {
     "period": "cur",
     "step": 1,
     "sessions": 1786
+  },
+  {
+    "period": "prev",
+    "step": 1,
+    "sessions": 1403
   },
   {
     "period": "prev",

@@ -128,3 +128,35 @@ Decision: Trend charts get a manual Linear/Log switch, with linear as the defaul
 Why: On real wetter-in-kalender data, one day reached about 100 times normal traffic and the fall took several days. Log shows normal days, the peak and the fall together, with no day clipped.
 Rejected: A capped y-axis, first recommended by Claude for a single-day spike. A high cap keeps normal days small, and a low cap clips all the latest days and hides the current trend.
 Details: [todo](todo/2026-10-31-log-scale-charts.md)
+
+## 2026-10-31: Alerts through a scheduled GitHub job, with GitHub's email until Resend exists
+
+Decided by: Claude, within the scope Robin approved
+Decision: A job every 15 minutes checks fixed rules for wetter-in-kalender. It stores state in its own `analytics_alerts` dataset, reached with a keyless account that only `main` of this repo can use. Without a Resend key, the alert is a failed run and GitHub's email.
+Why: It adds no Vercel usage on a team near its limits, and the logs of a public repo can only name app and problem, so numbers stay out of them.
+Rejected: State in `dashboard_config`, because write access there also allows changing settings and funnels. Renewing the schedule with the workflow enable API, because notifications may then go to a bot token. A private repo, because 15-minute runs would pass the free Actions minutes.
+Spec: [launch package](superpowers/specs/2026-10-31-launch-package-design.md)
+
+## 2026-10-31: In-app browsers get their own column
+
+Decided by: Claude, within the scope Robin approved
+Decision: The ingest stores `in_app` as a new column, and the raw user agent stays unstored. A session's source is an external referrer, else `utm_source`, else `in_app`, else direct.
+Why: Source SQL stays simple, and the value is one short word. The referrer comes first because the 2026-10-24 todo agreed that, and tagged social links give the same answer either way.
+Rejected: A prop, which would need JSON reads in every source query. Storing the user agent, because of the privacy text.
+Spec: [launch package](superpowers/specs/2026-10-31-launch-package-design.md)
+
+## 2026-10-31: Failure events are limited per instance
+
+Decided by: Claude, within the scope Robin approved
+Decision: `$route_failure` writes at most once per 10 seconds per instance, route and status, with a `count`. The public ingest refuses the event name, and readers only trust rows without a session.
+Why: An outage like the 8,400 failed searches of 2026-10-27 must not also mean 8,400 BigQuery writes. A security review showed that browsers could otherwise forge these rows and trigger alerts.
+Rejected: One row per failure.
+Spec: [launch package](superpowers/specs/2026-10-31-launch-package-design.md)
+
+## 2026-10-31: A goal counts sessions, and its name says what it counts
+
+Decided by: Claude, within the scope Robin approved
+Decision: One goal event per app, and a session converts when it has that event. wetter-in-kalender uses `subscribe_click`, named "Clicks on subscribe".
+Why: `calendar_poll` shows real subscriptions, but it is a server event with no session, so it can't link to a source.
+Rejected: Person-level conversion, because the site is cookieless.
+Spec: [launch package](superpowers/specs/2026-10-31-launch-package-design.md)

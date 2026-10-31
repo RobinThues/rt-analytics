@@ -50,13 +50,21 @@ a single past spike:
 |---|---|
 | `error_share` | Share of sessions with an error is high, with a minimum number of error sessions |
 | `route_failures` | `SUM(count)` per route passes a minimum |
-| `silent_all` | No event of any kind for 30 minutes |
+| `silent_all` | No event of any kind for 45 minutes |
 | `silent_pageviews` | 0 pageviews in 60 minutes while the median is high enough |
 | `traffic_spike` | Pageviews over a multiple of the median, with a minimum (information only) |
 | `traffic_drop` | Pageviews under a share of the median, with a minimum median |
 
 `error_share` counts sessions and not events. On launch day one session wrote hundreds of "Script error." rows, so
-event share is decided by a few sessions.
+event share is decided by a few sessions. The share is over sessions with a pageview or an error, so a page that fails
+before its pageview still counts.
+
+Only rows without a session count for `route_failures`. The public ingest refuses this event name from version 0.6.0,
+but older SDKs accept it, and browser rows always have a session. Route names must be plain paths, because they go into
+public logs, and a row's `count` is limited to 100,000.
+
+`silent_all` is 45 minutes. Before launch, at about 200 events a day, gaps reached 70 minutes. Since 2026-10-28, at
+about 20,000 events a day, the longest gap is under a minute.
 
 **One message per problem.** State is stored per app and rule. A rule fires at once and clears after 4 clean runs (1
 hour), so a noisy value doesn't flap.
@@ -72,8 +80,9 @@ that only accepts `main` of this repo. It reads `analytics` and writes only the 
 does not go in `dashboard_config`, because write access there would also allow changing settings and funnels. State
 is read with `tabledata.list`, which costs no query bytes.
 
-**Keep alive.** GitHub turns off scheduled runs after 60 days without repo activity, so the job renews itself with the
-workflow enable API.
+**Keep alive.** GitHub turns off scheduled runs after 60 days without a commit. From day 50 a failed run once a day
+asks for a commit. The job doesn't renew itself with the workflow enable API, because GitHub's docs say notifications
+then go to whoever re-enabled it, and that would be a bot token on the only alert path.
 
 Values come from a backtest against the real days, `scripts/alerts/backtest.ts`.
 

@@ -1,4 +1,5 @@
 import type { AnalyticsEvent, Batch, ConsentState } from "../core/types.js";
+import { EVENTS } from "../schema/index.js";
 
 const MAX_EVENTS = 25;
 const MAX_STRING = 1024;
@@ -17,7 +18,8 @@ function num(v: unknown): number | null {
 function validateEvent(raw: unknown): AnalyticsEvent | null {
   if (typeof raw !== "object" || raw === null) return null;
   const e = raw as Record<string, unknown>;
-  const name = typeof e.name === "string" && NAME_RE.test(e.name) ? e.name : null;
+  // The ingest is public, and alerts read this event, so a browser must not be able to send it.
+  const name = typeof e.name === "string" && NAME_RE.test(e.name) && e.name !== EVENTS.routeFailure ? e.name : null;
   const eventId = str(e.eventId, 64);
   const ts = typeof e.ts === "string" && !Number.isNaN(Date.parse(e.ts)) ? e.ts : null;
   const sessionId = str(e.sessionId, 64);

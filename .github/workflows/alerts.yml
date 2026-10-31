@@ -14,7 +14,6 @@ concurrency:
 permissions:
   id-token: write # keyless access to BigQuery
   contents: read
-  actions: write # keeps the schedule alive, see the last step
 
 jobs:
   check:
@@ -33,22 +32,18 @@ jobs:
       - name: Install the root tools only
         run: npm ci --workspaces=false --include-workspace-root --ignore-scripts
 
-      - uses: google-github-actions/auth@v3
+      # Pinned to a commit, because this step gets the cloud access. This is v3.0.0.
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093
         with:
           workload_identity_provider: ${{ vars.ALERTS_WIF_PROVIDER }}
           service_account: ${{ vars.ALERTS_SERVICE_ACCOUNT }}
 
+      # Secrets, not variables: GitHub prints variables in the step's env in the public log, and these hold an address.
       - name: Check the rules
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-          ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
-          ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
-        run: npx tsx scripts/alerts/run.ts
-
-      # GitHub turns scheduled runs off after 60 days without repo activity. This renews them, and it also runs
-      # after a failed check, because a failed check is the alert.
-      - name: Keep the schedule alive
-        if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/alerts.yml/enable"
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
+        run: |
+          export LAST_COMMIT_AT="$(git log -1 --format=%cI)"
+          npx tsx scripts/alerts/run.ts

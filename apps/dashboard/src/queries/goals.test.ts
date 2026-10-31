@@ -86,10 +86,24 @@ describe("goalTotals", () => {
       row({ dim: "total", value: "all", sessions: 200, conversions: 50 }),
       row({ dim: "total", value: "all", period: "prev", sessions: 100, conversions: 10 }),
     ]);
-    expect(t).toEqual({ sessions: 200, conversions: 50, rate: 0.25, prevConversions: 10, prevRate: 0.1 });
+    expect(t).toEqual({
+      sessions: 200,
+      conversions: 50,
+      rate: 0.25,
+      prevSessions: 100,
+      prevConversions: 10,
+      prevRate: 0.1,
+    });
   });
 
   it("is all zero without rows, with no division by zero", () => {
-    expect(goalTotals([])).toEqual({ sessions: 0, conversions: 0, rate: 0, prevConversions: null, prevRate: null });
+    expect(goalTotals([])).toEqual({
+      sessions: 0,
+      conversions: 0,
+      rate: 0,
+      prevSessions: 0,
+      prevConversions: 0,
+      prevRate: 0,
+    });
   });
 });

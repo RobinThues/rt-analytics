@@ -17,8 +17,16 @@ describe("METRICS_SQL", () => {
     expect(METRICS_SQL.match(/timestamp >= TIMESTAMP_SUB\(TIMESTAMP\(@now\)/g)).toHaveLength(2);
   });
 
-  it("sums the failure count, because writes are limited", () => {
-    expect(METRICS_SQL).toContain("SUM(IFNULL(LAX_INT64(props.count), 1))");
+  it("sums the failure count, because writes are limited, with a limit per row", () => {
+    expect(METRICS_SQL).toContain("SUM(IF(LAX_INT64(props.count) BETWEEN 1 AND 100000, LAX_INT64(props.count), 1))");
+  });
+
+  it("counts sessions with an error too, so the share can't pass 100 % or miss a broken page", () => {
+    expect(METRICS_SQL).toContain("COUNT(DISTINCT IF(event_name IN ('$pageview', '$error'), session_id, NULL))");
+  });
+
+  it("only reads failure rows without a session, so a browser can't forge them", () => {
+    expect(METRICS_SQL).toContain("event_name = '$route_failure' AND session_id IS NULL");
   });
 });
 
@@ -48,9 +56,15 @@ describe("toMetrics", () => {
     expect(m.baselinePageviews).toEqual([0, 0, 0, 0, 0, 0, 0]);
   });
 
-  it("a route called __proto__ can't touch the object", () => {
-    const m = toMetrics([row({ kind: "failure", route: "__proto__", n: 3 })]);
+  it("lets only plain paths through, because route names go into public logs", () => {
+    const m = toMetrics([
+      row({ kind: "failure", route: "/api/cal", n: 1 }),
+      row({ kind: "failure", route: "::error::forged", n: 2 }),
+      row({ kind: "failure", route: "/api/x\n::warning::forged", n: 3 }),
+      row({ kind: "failure", route: "__proto__", n: 4 }),
+    ]);
+    expect(Object.keys(m.failures).sort()).toEqual(["(invalid route)", "/api/cal"]);
+    expect(m.failures["(invalid route)"]).toBe(9);
     expect(Object.getPrototypeOf(m.failures)).toBeNull();
-    expect(m.failures["__proto__"]).toBe(3);
   });
 });

@@ -79,7 +79,12 @@ export async function GoalPanel({ ctx, live, maxBytes }: PanelProps) {
       <KpiRow
         cols={{ base: 2, sm: 3 }}
         cells={[
-          { label: "Sessions", value: formatInt(t.sessions), change: undefined, testId: "goal-sessions" },
+          {
+            label: "Sessions",
+            value: formatInt(t.sessions),
+            change: ctx.compare ? change(t.sessions, t.prevSessions) : undefined,
+            testId: "goal-sessions",
+          },
           {
             label: goal.label,
             value: formatInt(t.conversions),

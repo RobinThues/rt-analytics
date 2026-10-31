@@ -56,6 +56,22 @@ const IN_APP_AGENTS: ReadonlyArray<[string, string]> = [
     "pinterest",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [Pinterest/iOS]",
   ],
+  [
+    "tiktok",
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 trill_36.5.0 JsSdk/2.0 NetType/WIFI Channel/App Store ByteLocale/de Region/DE",
+  ],
+  [
+    "x",
+    "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP2A.240805.005; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36 TwitterAndroid",
+  ],
+  [
+    "reddit",
+    "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP2A.240805.005; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36 Reddit/Version 2024.40.0",
+  ],
+  [
+    "telegram",
+    "Mozilla/5.0 (Linux; Android 14; Pixel 8 Build/AP2A.240805.005; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/128.0.6613.127 Mobile Safari/537.36 Telegram-Android/11.2.2",
+  ],
 ];
 
 describe("detectInApp", () => {

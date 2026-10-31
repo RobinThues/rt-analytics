@@ -5,7 +5,8 @@ import type { Thresholds } from "./rules";
 export const WETTER_THRESHOLDS: Thresholds = {
   errorShare: { share: 0.2, minErrorSessions: 20 },
   routeFailures: { minFailures: 20 },
-  silentAll: { minutes: 30 },
+  // Before launch, at about 200 events a day, gaps reached 70 minutes; since 28 Oct, at 20,000 a day, they are 0.
+  silentAll: { minutes: 45 },
   silentPageviews: { minBaseline: 8 },
   trafficSpike: { factor: 5, minPageviews: 50 },
   trafficDrop: { share: 0.2, minBaseline: 30 },
