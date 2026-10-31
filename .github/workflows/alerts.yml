@@ -1,0 +1,54 @@
+name: Alerts
+
+# Spec: docs/superpowers/specs/2026-10-31-launch-package-design.md, part 3. The repo is public, so these logs are too:
+# the job prints only app and problem names, never numbers.
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: alerts
+  cancel-in-progress: false
+
+permissions:
+  id-token: write # keyless access to BigQuery
+  contents: read
+  actions: write # keeps the schedule alive, see the last step
+
+jobs:
+  check:
+    # Stays off until `npm run setup:gcp -- --alerts` has run and printed these variables.
+    if: vars.ALERTS_WIF_PROVIDER != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install the root tools only
+        run: npm ci --workspaces=false --include-workspace-root --ignore-scripts
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.ALERTS_WIF_PROVIDER }}
+          service_account: ${{ vars.ALERTS_SERVICE_ACCOUNT }}
+
+      - name: Check the rules
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
+          ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
+        run: npx tsx scripts/alerts/run.ts
+
+      # GitHub turns scheduled runs off after 60 days without repo activity. This renews them, and it also runs
+      # after a failed check, because a failed check is the alert.
+      - name: Keep the schedule alive
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/alerts.yml/enable"
