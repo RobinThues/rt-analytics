@@ -8,7 +8,7 @@ export const WETTER_THRESHOLDS: Thresholds = {
   // Before launch, at about 200 events a day, gaps reached 70 minutes; since 28 Oct, at 20,000 a day, they are 0.
   silentAll: { minutes: 45 },
   silentPageviews: { minBaseline: 8 },
-  trafficSpike: { factor: 0, minPageviews: 0 },
+  trafficSpike: { factor: 5, minPageviews: 50 },
   trafficDrop: { share: 0.2, minBaseline: 30 },
 };
 
