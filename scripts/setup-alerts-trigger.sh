@@ -6,6 +6,10 @@
 # Usage: scripts/setup-alerts-trigger.sh
 set -euo pipefail
 
+# gcloud would otherwise write its arguments, and so the token, to ~/.config/gcloud/logs. The token is still in gcloud's
+# arguments for the moment the command runs, which is fine on a single-user machine.
+export CLOUDSDK_CORE_DISABLE_FILE_LOGGING=1
+
 project=robin-thues
 location=europe-west3
 job=rt-analytics-alerts
