@@ -2,7 +2,7 @@
 
 ## Now
 
-- [ ] **Turn the alerts on**: run the alert access setup, set the two GitHub variables, and test one failing run. Why: the job is merged but stays off until then, and the first public wetter-in-kalender Short is on 2026-11-09. See the [handoff](handoffs/launch-package.md). (me)
+- [ ] **Give the alerts a reliable trigger**: the job works when started by hand, but GitHub's schedule has never started it. Proposal: Cloud Scheduler starts the workflow every 15 minutes through the API. Why: alerts don't run on their own until then, and the first public wetter-in-kalender Short is on 2026-11-09. See the [handoff](handoffs/launch-package.md). (me)
 
 ## Next
 
