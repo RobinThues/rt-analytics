@@ -80,7 +80,7 @@ that only accepts `main` of this repo. It reads `analytics` and writes only the 
 does not go in `dashboard_config`, because write access there would also allow changing settings and funnels. State
 is read with `tabledata.list`, which costs no query bytes.
 
-**Keep alive.** GitHub turns off scheduled runs after 60 days without a commit. From day 50 a failed run once a day
+**Keep alive.** (Replaced on 2026-11-01, see docs/DECISIONS.md: Cloud Scheduler starts the job.) GitHub turns off scheduled runs after 60 days without a commit. From day 50 a failed run once a day
 asks for a commit. The job doesn't renew itself with the workflow enable API, because GitHub's docs say notifications
 then go to whoever re-enabled it, and that would be a bot token on the only alert path.
 

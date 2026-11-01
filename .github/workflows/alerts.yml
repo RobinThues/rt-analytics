@@ -3,6 +3,8 @@ name: Alerts
 # Spec: docs/superpowers/specs/2026-10-31-launch-package-design.md, part 3. The repo is public, so these logs are too:
 # the job prints only app and problem names, never numbers.
 on:
+  # Only a backup: GitHub's schedule didn't start this job in 5 hours. Cloud Scheduler starts it through
+  # workflow_dispatch, see scripts/setup-alerts-trigger.sh.
   schedule:
     - cron: "3,18,33,48 * * * *"
   workflow_dispatch:
@@ -44,6 +46,4 @@ jobs:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
           ALERT_EMAIL_FROM: ${{ secrets.ALERT_EMAIL_FROM }}
-        run: |
-          export LAST_COMMIT_AT="$(git log -1 --format=%cI)"
-          npx tsx scripts/alerts/run.ts
+        run: npx tsx scripts/alerts/run.ts

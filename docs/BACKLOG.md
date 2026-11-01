@@ -2,16 +2,18 @@
 
 ## Now
 
-- [ ] **Give the alerts a reliable trigger**: the job works when started by hand, but GitHub's schedule has never started it. Proposal: Cloud Scheduler starts the workflow every 15 minutes through the API. Why: alerts don't run on their own until then, and the first public wetter-in-kalender Short is on 2026-11-09. See the [handoff](handoffs/launch-package.md). (me)
-
 ## Next
 
 - [ ] **Delete events after 14 months**: set partition expiration on `analytics.events` (also in `setup:gcp`) and name the fixed period in the wetter-in-kalender privacy text. Why: the table has no expiration today, so rows stay forever. (me)
 
 ## Later
 
+- [ ] **Replace the alert token before 2027-11-01**: create a new token with the same access and run `scripts/setup-alerts-trigger.sh` again. Why: alerts stop without any message when the token expires. (me)
 ## Icebox
 
+- [ ] **Notice when alerts stop running**: a check outside the job that warns when no Alerts run has happened for some hours. Why: a failing scheduler or a dead token stops alerts without any message. (claude)
+- [ ] **Check `silent_all` after the CDN cache**: `calendar_poll` rows may fall with wetter's CDN cache from 2026-10-31. If gaps pass 45 minutes the rule gives false alarms and needs a higher value. Why: `claude-tmp-helpers/alert-event-gaps.sh` shows the gaps, and nobody has looked since the cache went live. (claude)
+- [ ] **Vercel CDN Requests limit**: find out what drives the CDN Requests near the Hobby limit and reduce them, after the alerts are done. Why: going over the limit pauses all projects in the team. (me)
 - [ ] **Fix the Next.js `new Date()` warning in the app layout**: `[appId]/layout.tsx` calls `listApps()` next to `requireUser()`, so the clock is read before any request data, and `next start` logs "unstable value `new Date()` while prerendering". Why: pages work, but the log noise can hide real errors, and e2e can't see it because it uses a fixed today. (claude)
 - [ ] **Own domain for the dashboard**: move it to `analytics.thues.eu`. Why: it still runs on `rt-analytics-dashboard.vercel.app`, and the plan was to move once it is stable. (me)
 - [ ] **Try the consent banner on wetter-in-kalender**: use the library's banner and update the privacy text. Why: the site is cookieless today, so it has no persistent visitor data for returning visitors, retention or person funnels. (me)
@@ -46,6 +48,7 @@
 
 ## Done
 
+- [x] **Turn the alerts on**: Cloud Scheduler starts the job every 15 minutes, see the decision of 2026-11-01 in [DECISIONS](DECISIONS.md).
 - [x] **Exclude own traffic and harden the ingest route**: released in 0.2.0, [spec](superpowers/specs/2026-10-12-rt-analytics-0.2.0-design.md).
 - [x] **Fresh start of wetter-in-kalender data**: rows from before the cutoff deleted, first row in the table is now from 2026-10-13.
 - [x] **Rate limit on the ingest route**: the Vercel firewall rule on wetter-in-kalender moved from log mode to rate limit (120 per 60 s).
