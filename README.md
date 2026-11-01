@@ -8,7 +8,11 @@ Self-owned, free web analytics for Next.js apps on Vercel, backed by BigQuery.
 | [`apps/dashboard`](apps/dashboard)               | the Next.js dashboard; see its README                                                |
 | [`apps/demo`](apps/demo)                         | demo app (`appId: "demo"`), also the integration reference                           |
 | [`sql`](sql)                                     | BigQuery views and query templates                                                   |
-| [`scripts`](scripts)                             | `npm run setup:gcp`, `npm run pseudonymize`, demo data                               |
+| [`scripts`](scripts)                             | `npm run setup:gcp`, `npm run pseudonymize`, demo data, the alert job                |
+
+## Alerts
+
+`scripts/alerts/run.ts` checks wetter-in-kalender every 15 minutes in the Alerts workflow. Cloud Scheduler starts the workflow, and GitHub's cron is only a backup, see [DECISIONS](docs/DECISIONS.md). `npm run setup:gcp -- --alerts` sets up the access and `scripts/setup-alerts-trigger.sh` creates the scheduler job. Without Resend, an alert is GitHub's "Run failed" email.
 
 ## Demo data
 

@@ -165,6 +165,6 @@ Spec: [launch package](superpowers/specs/2026-10-31-launch-package-design.md)
 
 Decided by: both
 Decision: A Cloud Scheduler job in `europe-west3` starts the Alerts workflow every 15 minutes through `workflow_dispatch`, with a fine-grained token that only has Actions access to this repo. GitHub's cron stays as a backup, and the 60-day reminder is gone, because a turned-off backup doesn't stop alerts.
-Why: GitHub's schedule created no run in 5 hours, even after turning the workflow off and on and changing the cron line. The community forum has had the same reports since August 2026, with no fix from GitHub. Three scheduler jobs per billing account are free.
+Why: GitHub's schedule created no run in 5 hours, even after turning the workflow off and on and changing the cron line. The community forum has had the same reports since August 2026, with no fix from GitHub. Three scheduler jobs per billing account are free. GitHub's first scheduled run came about 9.5 hours after the workflow was pushed, on 2026-11-01 around 08:12 UTC, which is too late to rely on but fine for a backup.
 Rejected: Waiting for GitHub, because alerts need to run before the Short on 2026-11-09. Vercel cron, because Hobby allows one run a day. A third-party cron service, because it would hold the token outside GCP.
 Replaces: The "Keep alive" part of the [launch package](superpowers/specs/2026-10-31-launch-package-design.md) spec.
